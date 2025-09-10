@@ -21,7 +21,7 @@ export default function Sidebar() {
           const active = pathname === item.href;
           return (
             <Link
-              key={item.href}
+              key={item.label}
               href={item.href}
               className={
                 "block rounded px-3 py-2 text-sm transition-colors " +

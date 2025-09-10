@@ -6,9 +6,14 @@ type Row = {
 };
 
 const rows: Row[] = [
-  { id: "1", prediction: "0.82", shap: [0.1, -0.05, 0.3, 0.2, -0.1], label: "Positive" },
-  { id: "2", prediction: "0.41", shap: [-0.2, 0.05, -0.1, 0.1, 0.02], label: "Negative" },
-  { id: "3", prediction: "0.67", shap: [0.3, 0.12, -0.05, -0.02, 0.07], label: "Positive" },
+  { id: "pred_001", prediction: "0.82", shap: [0.1, -0.05, 0.3, 0.2, -0.1], label: "Positive" },
+  { id: "pred_002", prediction: "0.41", shap: [-0.2, 0.05, -0.1, 0.1, 0.02], label: "Negative" },
+  { id: "pred_003", prediction: "0.67", shap: [0.3, 0.12, -0.05, -0.02, 0.07], label: "Positive" },
+  { id: "pred_004", prediction: "0.93", shap: [0.4, 0.15, 0.2, -0.05, 0.1], label: "Positive" },
+  { id: "pred_005", prediction: "0.28", shap: [-0.3, -0.1, -0.15, 0.08, -0.05], label: "Negative" },
+  { id: "pred_006", prediction: "0.76", shap: [0.25, 0.08, -0.02, 0.12, 0.05], label: "Positive" },
+  { id: "pred_007", prediction: "0.15", shap: [-0.4, -0.08, -0.2, -0.05, -0.12], label: "Negative" },
+  { id: "pred_008", prediction: "0.89", shap: [0.35, 0.18, 0.15, -0.08, 0.13], label: "Positive" },
 ];
 
 function MiniSpark({ values }: { values: number[] }) {
