@@ -1,7 +1,11 @@
-import Image from "next/image";
-
 import MetricCard from "@/components/MetricCard";
 import RealtimeCharts from "@/components/RealtimeCharts";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Dashboard - VeritasAI",
+  description: "Real-time ML model monitoring dashboard with performance metrics and live charts",
+};
 
 export default function Home() {
   return (

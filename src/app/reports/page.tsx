@@ -1,4 +1,10 @@
 import ReportPreview from "@/components/ReportPreview";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Reports - VeritasAI",
+  description: "Audit-ready ML model reports with summary graphs and compliance documentation",
+};
 
 export default function ReportsPage() {
   return (
