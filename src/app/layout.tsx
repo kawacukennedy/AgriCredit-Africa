@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { appWithTranslation } from 'next-i18next';
 import "./globals.css";
+import "../utils/i18n";
+import { AccessibilityPanel } from "@/components/AccessibilityPanel";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -17,7 +20,7 @@ export const metadata: Metadata = {
   description: "AI-Blockchain platform for decentralized microcredit and sustainable agriculture in Africa",
 };
 
-export default function RootLayout({
+function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
@@ -28,7 +31,10 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {children}
+        <AccessibilityPanel />
       </body>
     </html>
   );
 }
+
+export default appWithTranslation(RootLayout);

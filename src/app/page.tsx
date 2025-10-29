@@ -2,28 +2,27 @@
 
 import { motion } from 'framer-motion';
 import { useState } from 'react';
+import { useTranslation } from 'next-i18next';
 import { useWallet } from '@/hooks/useWallet';
 
 const slides = [
   {
-    title: "Decentralized Microcredit",
-    description: "Access fair loans powered by AI credit scoring and blockchain transparency.",
+    key: "credit",
     image: "/globe.svg"
   },
   {
-    title: "AI-Powered Marketplace",
-    description: "Trade agricultural produce with smart recommendations and IoT-verified quality.",
+    key: "marketplace",
     image: "/file.svg"
   },
   {
-    title: "Carbon Credits for Farmers",
-    description: "Earn tokens for sustainable farming practices and climate impact.",
+    key: "carbon",
     image: "/window.svg"
   }
 ];
 
 export default function Home() {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const { t } = useTranslation('common');
   const { address, isConnected, connectWallet, isConnecting, error, disconnectWallet } = useWallet();
 
   const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % slides.length);
@@ -35,6 +34,12 @@ export default function Home() {
     } else {
       await connectWallet();
     }
+  };
+
+  const getWalletButtonText = () => {
+    if (isConnecting) return t('wallet.connecting');
+    if (isConnected) return t('wallet.disconnect');
+    return t('wallet.connect');
   };
 
   return (
@@ -53,7 +58,7 @@ export default function Home() {
             disabled={isConnecting}
             className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
           >
-            {isConnecting ? 'Connecting...' : isConnected ? 'Disconnect' : 'Connect Wallet'}
+            {getWalletButtonText()}
           </button>
         </div>
         {error && (
@@ -69,7 +74,7 @@ export default function Home() {
             animate={{ opacity: 1, y: 0 }}
             className="text-4xl md:text-6xl font-bold text-gray-800 dark:text-white mb-4"
           >
-            Empowering African Agriculture
+            {t('home.title')}
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -77,7 +82,7 @@ export default function Home() {
             transition={{ delay: 0.2 }}
             className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto"
           >
-            AI-Blockchain platform for decentralized microcredit, sustainable farming, and climate-smart incentives.
+            {t('home.subtitle')}
           </motion.p>
         </div>
 
@@ -93,10 +98,10 @@ export default function Home() {
             <div className="flex flex-col md:flex-row items-center gap-8">
               <div className="flex-1">
                 <h3 className="text-3xl font-bold text-gray-800 dark:text-white mb-4">
-                  {slides[currentSlide].title}
+                  {t(`home.features.${slides[currentSlide].key}.title`)}
                 </h3>
                 <p className="text-lg text-gray-600 dark:text-gray-300 mb-6">
-                  {slides[currentSlide].description}
+                  {t(`home.features.${slides[currentSlide].key}.description`)}
                 </p>
                 <button className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
                   Learn More
@@ -143,17 +148,17 @@ export default function Home() {
         {/* CTA Section */}
         <div className="text-center mt-16">
           <h3 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">
-            Ready to Transform Agriculture?
+            {t('home.getStarted')}
           </h3>
           <p className="text-gray-600 dark:text-gray-300 mb-8 max-w-xl mx-auto">
-            Join thousands of farmers already benefiting from decentralized finance and AI-powered insights.
+            {t('home.explore')}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button className="bg-green-600 text-white px-8 py-4 rounded-lg hover:bg-green-700 transition-colors text-lg font-semibold">
-              Get Started
+              {t('home.getStarted')}
             </button>
             <button className="border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 px-8 py-4 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-lg font-semibold">
-              Explore Features
+              {t('home.explore')}
             </button>
           </div>
         </div>

@@ -1,0 +1,128 @@
+{
+  "nav": {
+    "home": "Gida",
+    "dashboard": "Dashboard",
+    "loans": "Lamuni",
+    "marketplace": "Kasuwa",
+    "carbon": "Lamunin carbon",
+    "dao": "DAO"
+  },
+  "wallet": {
+    "connect": "Haɗa wallet",
+    "disconnect": "Cire haɗi",
+    "connecting": "Ana haɗawa...",
+    "connected": "An haɗa",
+    "switchNetwork": "Canza hanyar sadarwa"
+  },
+  "home": {
+    "title": "Ƙarfafa Noman Afrika",
+    "subtitle": "Dandalin AI-Blockchain don ƙananan lamuni masu zaman kansu da noma mai dorewa",
+    "getStarted": "Fara",
+    "explore": "Bincika fasaloli",
+    "features": {
+      "credit": {
+        "title": "Ƙananan lamuni masu zaman kansu",
+        "description": "Samun lamuni na adalci waɗanda ke aiki da kimanta lamunin AI da bayyana blockchain."
+      },
+      "marketplace": {
+        "title": "Kasuwa mai aiki da AI",
+        "description": "Ciniki kayayyakin noma tare da shawarwari masu hankali da ingancin da IoT ya tabbatar."
+      },
+      "carbon": {
+        "title": "Lamunin carbon ga manoma",
+        "description": "Samun alamu don ayyukan noma mai dorewa da tasirin yanayi."
+      }
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "widgets": {
+      "creditScore": "Makin lamuni",
+      "farmAnalytics": "Binciken gona",
+      "activeLoans": "Lamuni masu aiki",
+      "carbonTokens": "Alamun carbon"
+    },
+    "dao": {
+      "title": "Shawara DAO",
+      "voteYes": "Zaɓi eh",
+      "voteNo": "Zaɓi a'a"
+    },
+    "actions": {
+      "applyLoan": "Nemi lamuni",
+      "listProduce": "Jer kayayyaki",
+      "viewCarbon": "Duba tasirin carbon"
+    }
+  },
+  "loans": {
+    "title": "Neman lamuni",
+    "steps": {
+      "cropData": "Bayanin amfanin ƙasa",
+      "aiPrediction": "Hasashen AI",
+      "loanTerms": "Sharuɗɗan lamuni",
+      "review": "Bita da tura"
+    },
+    "form": {
+      "cropType": "Nau'in amfanin ƙasa",
+      "farmSize": "Girman gona (hekta)",
+      "location": "Wuri",
+      "yield": "Amfanin da ake tsammani (tan)",
+      "loanAmount": "Adadin lamuni",
+      "duration": "Lokacin biyan bashi",
+      "interestRate": "Adadin riba"
+    },
+    "buttons": {
+      "next": "Na gaba",
+      "previous": "Na baya",
+      "deploy": "Tura kwangila"
+    }
+  },
+  "marketplace": {
+    "title": "Kasuwa",
+    "search": "Nemi kayayyaki...",
+    "filters": {
+      "allCrops": "Duk amfanin ƙasa",
+      "allLocations": "Duk wurare"
+    },
+    "listings": {
+      "price": "Farashi",
+      "farmer": "Manomi",
+      "location": "Wuri",
+      "quality": "Inganci"
+    },
+    "buttons": {
+      "listProduce": "Jer kayayyaki",
+      "viewDetails": "Duba cikakkun bayanai",
+      "contactBuyer": "Tuntubi mai saye"
+    },
+    "ai": {
+      "recommendations": "Shawara AI a gare ku",
+      "pricing": "Dacewar farashi mafi kyau",
+      "buyerMatch": "Daidaitawar mai saye"
+    }
+  },
+  "carbon": {
+    "title": "Dashboard na carbon",
+    "sellTokens": "Sayar da alamun CARBT",
+    "analytics": {
+      "offset": "Rage CO2",
+      "tokens": "Alamun CARBT",
+      "value": "Darajar alama",
+      "ndvi": "Makin NDVI"
+    },
+    "performance": {
+      "title": "Ma'aunin aiki",
+      "accuracy": "Daidaiton tabbatar carbon",
+      "increase": "Karuwan amfanin daga ayyukan dorewa",
+      "income": "Karamin kudin shiga daga lamunin carbon"
+    }
+  },
+  "common": {
+    "loading": "Ana lodawa...",
+    "error": "Kuskure ya faru",
+    "success": "Nasara",
+    "cancel": "Soke",
+    "confirm": "Tabbatar",
+    "save": "Ajiye",
+    "delete": "Share"
+  }
+}

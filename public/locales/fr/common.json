@@ -1,0 +1,128 @@
+{
+  "nav": {
+    "home": "Accueil",
+    "dashboard": "Tableau de bord",
+    "loans": "Prêts",
+    "marketplace": "Marché",
+    "carbon": "Crédits carbone",
+    "dao": "DAO"
+  },
+  "wallet": {
+    "connect": "Connecter le portefeuille",
+    "disconnect": "Déconnecter",
+    "connecting": "Connexion...",
+    "connected": "Connecté",
+    "switchNetwork": "Changer de réseau"
+  },
+  "home": {
+    "title": "Autonomiser l'agriculture africaine",
+    "subtitle": "Plateforme IA-Blockchain pour le microcrédit décentralisé et l'agriculture durable",
+    "getStarted": "Commencer",
+    "explore": "Explorer les fonctionnalités",
+    "features": {
+      "credit": {
+        "title": "Microcrédit décentralisé",
+        "description": "Accédez à des prêts équitables alimentés par l'évaluation du crédit IA et la transparence blockchain."
+      },
+      "marketplace": {
+        "title": "Marché alimenté par l'IA",
+        "description": "Échangez des produits agricoles avec des recommandations intelligentes et une qualité vérifiée par IoT."
+      },
+      "carbon": {
+        "title": "Crédits carbone pour les agriculteurs",
+        "description": "Gagnez des jetons pour les pratiques agricoles durables et l'impact climatique."
+      }
+    }
+  },
+  "dashboard": {
+    "title": "Tableau de bord",
+    "widgets": {
+      "creditScore": "Score de crédit",
+      "farmAnalytics": "Analyses agricoles",
+      "activeLoans": "Prêts actifs",
+      "carbonTokens": "Jetons carbone"
+    },
+    "dao": {
+      "title": "Propositions DAO",
+      "voteYes": "Voter oui",
+      "voteNo": "Voter non"
+    },
+    "actions": {
+      "applyLoan": "Demander un prêt",
+      "listProduce": "Lister les produits",
+      "viewCarbon": "Voir l'impact carbone"
+    }
+  },
+  "loans": {
+    "title": "Demande de prêt",
+    "steps": {
+      "cropData": "Informations sur les cultures",
+      "aiPrediction": "Prédiction IA",
+      "loanTerms": "Conditions du prêt",
+      "review": "Révision et déploiement"
+    },
+    "form": {
+      "cropType": "Type de culture",
+      "farmSize": "Taille de la ferme (hectares)",
+      "location": "Emplacement",
+      "yield": "Rendement attendu (tonnes)",
+      "loanAmount": "Montant du prêt",
+      "duration": "Période de remboursement",
+      "interestRate": "Taux d'intérêt"
+    },
+    "buttons": {
+      "next": "Suivant",
+      "previous": "Précédent",
+      "deploy": "Déployer le contrat"
+    }
+  },
+  "marketplace": {
+    "title": "Marché",
+    "search": "Rechercher des produits...",
+    "filters": {
+      "allCrops": "Toutes les cultures",
+      "allLocations": "Tous les emplacements"
+    },
+    "listings": {
+      "price": "Prix",
+      "farmer": "Agriculteur",
+      "location": "Emplacement",
+      "quality": "Qualité"
+    },
+    "buttons": {
+      "listProduce": "Lister les produits",
+      "viewDetails": "Voir les détails",
+      "contactBuyer": "Contacter l'acheteur"
+    },
+    "ai": {
+      "recommendations": "Recommandations IA pour vous",
+      "pricing": "Stratégie de tarification optimale",
+      "buyerMatch": "Correspondance acheteur"
+    }
+  },
+  "carbon": {
+    "title": "Tableau de bord carbone",
+    "sellTokens": "Vendre des jetons CARBT",
+    "analytics": {
+      "offset": "Compensation CO2",
+      "tokens": "Jetons CARBT",
+      "value": "Valeur des jetons",
+      "ndvi": "Score NDVI"
+    },
+    "performance": {
+      "title": "Métriques de performance",
+      "accuracy": "Précision de vérification carbone",
+      "increase": "Augmentation du rendement des pratiques durables",
+      "income": "Revenus supplémentaires des crédits carbone"
+    }
+  },
+  "common": {
+    "loading": "Chargement...",
+    "error": "Une erreur s'est produite",
+    "success": "Succès",
+    "cancel": "Annuler",
+    "confirm": "Confirmer",
+    "save": "Sauvegarder",
+    "delete": "Supprimer"
+  }
+}
