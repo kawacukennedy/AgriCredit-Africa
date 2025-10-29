@@ -1,6 +1,9 @@
+'use client';
+
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { appWithTranslation } from 'next-i18next';
+import { useEffect } from 'react';
 import "./globals.css";
 import "../utils/i18n";
 import { AccessibilityPanel } from "@/components/AccessibilityPanel";
@@ -18,6 +21,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "AgriCredit DApp",
   description: "AI-Blockchain platform for decentralized microcredit and sustainable agriculture in Africa",
+  manifest: "/manifest.json",
+  themeColor: "#22c55e",
+  viewport: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no",
 };
 
 function RootLayout({
@@ -25,6 +31,18 @@ function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js')
+        .then(registration => {
+          console.log('SW registered: ', registration);
+        })
+        .catch(error => {
+          console.log('SW registration failed: ', error);
+        });
+    }
+  }, []);
+
   return (
     <html lang="en">
       <body

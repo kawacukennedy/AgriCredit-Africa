@@ -1,5 +1,7 @@
+require("@nomiclabs/hardhat-waffle");
+
 /** @type import('hardhat/config').HardhatUserConfig */
-const config = {
+module.exports = {
   solidity: "0.8.19",
   networks: {
     hardhat: {},
@@ -16,5 +18,3 @@ const config = {
     apiKey: process.env.ETHERSCAN_API_KEY,
   },
 };
-
-export default config;
