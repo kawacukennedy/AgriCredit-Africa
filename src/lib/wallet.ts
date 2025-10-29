@@ -20,7 +20,7 @@ export class WalletManager {
 
     try {
       // Request account access
-      await window.ethereum.request({ method: 'eth_requestAccounts' });
+      await (window.ethereum as any).request({ method: 'eth_requestAccounts' });
 
       this.provider = new ethers.BrowserProvider(window.ethereum);
       this.signer = await this.provider.getSigner();
@@ -52,7 +52,7 @@ export class WalletManager {
     if (!window.ethereum) throw new Error('No wallet found');
 
     try {
-      await window.ethereum.request({
+      await (window.ethereum as any).request({
         method: 'wallet_switchEthereumChain',
         params: [{ chainId: `0x${chainId.toString(16)}` }],
       });
@@ -100,7 +100,7 @@ export class WalletManager {
     const network = networks[chainId];
     if (!network) throw new Error('Network not supported');
 
-    await window.ethereum.request({
+    await (window.ethereum as any).request({
       method: 'wallet_addEthereumChain',
       params: [network],
     });

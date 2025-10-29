@@ -84,7 +84,7 @@ export function useWallet() {
     const checkConnection = async () => {
       if (window.ethereum) {
         try {
-          const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+          const accounts = await (window.ethereum as any).request({ method: 'eth_accounts' });
           if (accounts.length > 0) {
             await connectWallet();
           }
