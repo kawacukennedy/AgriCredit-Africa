@@ -1,8 +1,8 @@
 'use client';
 
-import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { useEffect } from 'react';
+import Head from 'next/head';
 import "./globals.css";
 import { AccessibilityPanel } from "@/components/AccessibilityPanel";
 
@@ -16,13 +16,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "AgriCredit DApp",
-  description: "AI-Blockchain platform for decentralized microcredit and sustainable agriculture in Africa",
-  manifest: "/manifest.json",
-  themeColor: "#22c55e",
-  viewport: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no",
-};
+
 
 function RootLayout({
   children,
@@ -42,14 +36,23 @@ function RootLayout({
   }, []);
 
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
-        <AccessibilityPanel />
-      </body>
-    </html>
+    <>
+      <Head>
+        <title>AgriCredit DApp</title>
+        <meta name="description" content="AI-Blockchain platform for decentralized microcredit and sustainable agriculture in Africa" />
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#22c55e" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+      </Head>
+      <html lang="en">
+        <body
+          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        >
+          {children}
+          <AccessibilityPanel />
+        </body>
+      </html>
+    </>
   );
 }
 
