@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { useState } from 'react';
 import { useWallet } from '@/hooks/useWallet';
 import Image from 'next/image';
+import { ArrowRight, Shield, Zap, TrendingUp, Wallet, BarChart3 } from 'lucide-react';
 
 const slides = [
   {
@@ -23,15 +24,18 @@ const slides = [
 const featureData = {
   credit: {
     title: 'Decentralized Credit',
-    description: 'Access microloans without traditional banking barriers'
+    description: 'Access microloans without traditional banking barriers',
+    icon: Shield
   },
   marketplace: {
     title: 'AI-Powered Marketplace',
-    description: 'Connect with buyers and optimize pricing with AI insights'
+    description: 'Connect with buyers and optimize pricing with AI insights',
+    icon: TrendingUp
   },
   carbon: {
     title: 'Carbon Credits',
-    description: 'Earn from sustainable farming through tokenized carbon credits'
+    description: 'Earn from sustainable farming through tokenized carbon credits',
+    icon: Zap
   }
 };
 
@@ -69,13 +73,14 @@ export default function Home() {
               {address.slice(0, 6)}...{address.slice(-4)}
             </span>
           )}
-          <button
-            onClick={handleWalletAction}
-            disabled={isConnecting}
-            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
-          >
-            {getWalletButtonText()}
-          </button>
+              <button
+                onClick={isConnected ? handleDisconnect : handleConnect}
+                disabled={isConnecting}
+                className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-6 py-3 rounded-lg transition-colors flex items-center gap-2"
+              >
+                <Wallet className="w-5 h-5" />
+                <span>{getWalletButtonText()}</span>
+              </button>
         </div>
         {error && (
           <div className="text-red-500 text-sm mt-2">{error}</div>
@@ -113,14 +118,20 @@ export default function Home() {
           >
             <div className="flex flex-col md:flex-row items-center gap-8">
               <div className="flex-1">
-                 <h3 className="text-3xl font-bold text-gray-800 dark:text-white mb-4">
-                   {currentFeature.title}
-                 </h3>
-                 <p className="text-lg text-gray-600 dark:text-gray-300 mb-6">
-                   {currentFeature.description}
-                 </p>
-                <button className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
-                  Learn More
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center">
+                    <currentFeature.icon className="w-6 h-6 text-green-600 dark:text-green-400" />
+                  </div>
+                  <h3 className="text-3xl font-bold text-gray-800 dark:text-white">
+                    {currentFeature.title}
+                  </h3>
+                </div>
+                <p className="text-lg text-gray-600 dark:text-gray-300 mb-6">
+                  {currentFeature.description}
+                </p>
+                <button className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
+                  <span>Learn More</span>
+                  <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
               <div className="flex-1">

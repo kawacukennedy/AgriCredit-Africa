@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'next-i18next';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
+import { Thermometer, Droplets, Sun, Leaf } from 'lucide-react';
 
 interface SensorData {
   soilMoisture: number;
@@ -16,9 +18,29 @@ export default function IoTDashboard() {
   const { t } = useTranslation('common');
   const [sensorData, setSensorData] = useState<SensorData | null>(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [historicalData, setHistoricalData] = useState<any[]>([]);
 
   // Mock sensor data
   useEffect(() => {
+    // Generate historical data
+    const generateHistoricalData = () => {
+      const data = [];
+      const now = new Date();
+      for (let i = 23; i >= 0; i--) {
+        const time = new Date(now.getTime() - i * 60 * 60 * 1000);
+        data.push({
+          time: time.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+          soilMoisture: 40 + Math.random() * 40,
+          temperature: 20 + Math.random() * 15,
+          humidity: 40 + Math.random() * 40,
+          lightLevel: Math.random() * 100,
+        });
+      }
+      return data;
+    };
+
+    setHistoricalData(generateHistoricalData());
+
     const mockData: SensorData = {
       soilMoisture: Math.random() * 100,
       temperature: 20 + Math.random() * 15,
@@ -33,29 +55,46 @@ export default function IoTDashboard() {
 
     // Update every 30 seconds
     const interval = setInterval(() => {
-      setSensorData({
+      const newData = {
         soilMoisture: Math.random() * 100,
         temperature: 20 + Math.random() * 15,
         humidity: 40 + Math.random() * 40,
         lightLevel: Math.random() * 100,
         phLevel: 5.5 + Math.random() * 2,
         timestamp: new Date().toISOString()
+      };
+      setSensorData(newData);
+
+      // Update historical data
+      setHistoricalData(prev => {
+        const updated = [...prev.slice(1), {
+          time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+          soilMoisture: newData.soilMoisture,
+          temperature: newData.temperature,
+          humidity: newData.humidity,
+          lightLevel: newData.lightLevel,
+        }];
+        return updated;
       });
     }, 30000);
 
     return () => clearInterval(interval);
   }, []);
 
-  const SensorCard = ({ title, value, unit, min, max, color }: {
+  const SensorCard = ({ title, value, unit, min, max, color, icon: Icon }: {
     title: string;
     value: number;
     unit: string;
     min: number;
     max: number;
     color: string;
+    icon: any;
   }) => (
     <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
-      <h3 className="text-lg font-semibold mb-4 text-gray-800 dark:text-white">{title}</h3>
+      <div className="flex items-center gap-2 mb-4">
+        <Icon className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+        <h3 className="text-lg font-semibold text-gray-800 dark:text-white">{title}</h3>
+      </div>
       <div className="flex items-center justify-between mb-2">
         <span className="text-2xl font-bold text-gray-900 dark:text-white">
           {value.toFixed(1)} {unit}
@@ -106,6 +145,7 @@ export default function IoTDashboard() {
               min={0}
               max={100}
               color="bg-blue-500"
+              icon={Droplets}
             />
             <SensorCard
               title="Temperature"
@@ -114,6 +154,7 @@ export default function IoTDashboard() {
               min={0}
               max={50}
               color="bg-red-500"
+              icon={Thermometer}
             />
             <SensorCard
               title="Humidity"
@@ -122,6 +163,7 @@ export default function IoTDashboard() {
               min={0}
               max={100}
               color="bg-cyan-500"
+              icon={Droplets}
             />
             <SensorCard
               title="Light Level"
@@ -130,6 +172,7 @@ export default function IoTDashboard() {
               min={0}
               max={100}
               color="bg-yellow-500"
+              icon={Sun}
             />
             <SensorCard
               title="Soil pH"
@@ -138,6 +181,7 @@ export default function IoTDashboard() {
               min={0}
               max={14}
               color="bg-purple-500"
+              icon={Leaf}
             />
             <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
               <h3 className="text-lg font-semibold mb-4 text-gray-800 dark:text-white">Last Update</h3>
@@ -163,6 +207,52 @@ export default function IoTDashboard() {
             <p className="mt-4 text-gray-600 dark:text-gray-300">Loading sensor data...</p>
           </div>
         )}
+
+        {/* Historical Data Chart */}
+        <div className="mt-8 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+          <h2 className="text-xl font-semibold mb-6 text-gray-800 dark:text-white">24-Hour Trends</h2>
+          <div className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={historicalData}>
+                <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                <XAxis dataKey="time" />
+                <YAxis />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                    border: 'none',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                  }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="temperature"
+                  stackId="1"
+                  stroke="#ef4444"
+                  fill="#fee2e2"
+                  name="Temperature (°C)"
+                />
+                <Area
+                  type="monotone"
+                  dataKey="soilMoisture"
+                  stackId="2"
+                  stroke="#3b82f6"
+                  fill="#dbeafe"
+                  name="Soil Moisture (%)"
+                />
+                <Area
+                  type="monotone"
+                  dataKey="humidity"
+                  stackId="3"
+                  stroke="#06b6d4"
+                  fill="#cffafe"
+                  name="Humidity (%)"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
 
         <div className="mt-8 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
           <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white">Farm Insights</h2>

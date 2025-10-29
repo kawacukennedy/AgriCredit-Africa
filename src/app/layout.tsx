@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import Head from 'next/head';
 import "./globals.css";
 import { AccessibilityPanel } from "@/components/AccessibilityPanel";
+import { NavBar } from "@/components/NavBar";
 
 
 
@@ -37,6 +38,7 @@ function RootLayout({
         <body
           className="antialiased"
         >
+          <NavBar />
           {children}
           <AccessibilityPanel />
         </body>
