@@ -1,6 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 
 const listings = [
   {
@@ -87,9 +88,11 @@ export default function Marketplace() {
               className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden hover:shadow-lg transition-shadow"
             >
               <div className="p-6">
-                <img
+                <Image
                   src={listing.image}
                   alt={listing.title}
+                  width={400}
+                  height={128}
                   className="w-full h-32 object-cover rounded-lg mb-4"
                 />
                 <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-2">

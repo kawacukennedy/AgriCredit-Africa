@@ -56,9 +56,9 @@ export class WalletManager {
         method: 'wallet_switchEthereumChain',
         params: [{ chainId: `0x${chainId.toString(16)}` }],
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       // If network doesn't exist, add it
-      if (error.code === 4902) {
+      if (error instanceof Error && 'code' in error && error.code === 4902) {
         await this.addNetwork(chainId);
       } else {
         throw error;
@@ -67,7 +67,13 @@ export class WalletManager {
   }
 
   private async addNetwork(chainId: number): Promise<void> {
-    const networks: { [key: number]: any } = {
+    const networks: { [key: number]: {
+      chainId: string;
+      chainName: string;
+      nativeCurrency: { name: string; symbol: string; decimals: number };
+      rpcUrls: string[];
+      blockExplorerUrls: string[];
+    } } = {
       137: {
         chainId: '0x89',
         chainName: 'Polygon Mainnet',
@@ -108,7 +114,7 @@ export class WalletManager {
     return this.signer;
   }
 
-  async getContract(address: string, abi: any[]): Promise<ethers.Contract> {
+  async getContract(address: string, abi: ethers.InterfaceAbi): Promise<ethers.Contract> {
     if (!this.provider || !this.signer) {
       throw new Error('Wallet not connected');
     }
@@ -122,6 +128,6 @@ export const walletManager = new WalletManager();
 // Type declaration for window.ethereum
 declare global {
   interface Window {
-    ethereum?: any;
+    ethereum?: ethers.Eip1193Provider;
   }
 }

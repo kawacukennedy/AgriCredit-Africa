@@ -1,12 +1,12 @@
-const { expect } = require("chai");
-const { ethers } = require("hardhat");
+import { expect } from "chai";
+import { ethers } from "hardhat";
 
 describe("IdentityRegistry", function () {
   let identityRegistry;
-  let owner, user1, user2;
+  let user1, user2;
 
   beforeEach(async function () {
-    [owner, user1, user2] = await ethers.getSigners();
+    [, user1, user2] = await ethers.getSigners();
 
     const IdentityRegistry = await ethers.getContractFactory("IdentityRegistry");
     identityRegistry = await IdentityRegistry.deploy();

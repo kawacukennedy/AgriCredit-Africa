@@ -1,4 +1,5 @@
-const { ethers } = require("hardhat");
+import { ethers } from "hardhat";
+import fs from "fs";
 
 async function main() {
   console.log("Starting AgriCredit DApp deployment...");
@@ -88,7 +89,6 @@ async function main() {
   console.log("YieldToken:", await yieldToken.getAddress());
 
   // Save deployment addresses
-  const fs = require("fs");
   const deploymentInfo = {
     network: network.name,
     contracts: {

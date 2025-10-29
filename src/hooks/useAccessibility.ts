@@ -22,6 +22,7 @@ export function useAccessibility() {
     const saved = localStorage.getItem('accessibility-settings');
     if (saved) {
       try {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setSettings(JSON.parse(saved));
       } catch (error) {
         console.error('Failed to parse accessibility settings:', error);

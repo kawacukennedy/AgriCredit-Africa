@@ -1,0 +1,166 @@
+AgriCredit Africa - System Architecture Diagram
+==============================================
+
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                              USER ROLES                                        │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│ • Farmers: Smallholder farmers accessing microcredit and marketplace          │
+│ • Cooperatives: Agricultural cooperatives managing group loans                │
+│ • Investors: Providing liquidity to the platform                              │
+│ • Buyers: Purchasing agricultural products                                   │
+│ • Validators: DAO members participating in governance                        │
+└─────────────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                          EXTERNAL INTEGRATIONS                                │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│ • Weather APIs (OpenWeatherMap, Climate API)                                  │
+│ • IoT Sensors (Soil moisture, Temperature, Humidity)                         │
+│ • Satellite Imagery (Crop health monitoring)                                 │
+│ • Market Data Feeds (Commodity prices, Supply chain data)                    │
+│ • Carbon Credit Registries (Verra, Gold Standard)                            │
+│ • DeFi Protocols (Uniswap, Aave for liquidity)                               │
+│ • Identity Providers (World ID, Civic for KYC)                               │
+└─────────────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                              UI LAYER                                          │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│ • Next.js 14 Frontend Application                                             │
+│   ├── Dashboard (Farm metrics, Loan status, Market insights)                  │
+│   ├── Loan Portal (Application, Repayment tracking)                           │
+│   ├── Marketplace (Product listings, AI recommendations)                      │
+│   ├── Carbon Credits (Portfolio, Trading interface)                           │
+│   ├── Governance (Proposal voting, Discussion forums)                         │
+│   └── Wallet Integration (MetaMask, WalletConnect)                            │
+│ • Mobile PWA (Responsive design, Offline capabilities)                        │
+│ • Multi-language Support (English, French, Swahili, Hausa)                    │
+│ • Accessibility Features (Text-to-speech, Color blind modes)                  │
+└─────────────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                        DATA ORACLE / IOT LAYER                                │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│ • IoT Data Ingestion                                                           │
+│   ├── Sensor Data Processing (Real-time farm monitoring)                      │
+│   ├── Satellite Imagery Analysis (Crop health assessment)                     │
+│   ├── Weather Data Aggregation (Climate risk modeling)                        │
+│ • Oracle Networks                                                             │
+│   ├── Chainlink (Price feeds, External data)                                  │
+│   ├── API3 (Decentralized data feeds)                                         │
+│   ├── Witnet (Weather and agricultural data)                                  │
+│ • Data Validation & Consensus                                                  │
+│   ├── Multi-source verification                                                │
+│   ├── Anomaly detection algorithms                                             │
+└─────────────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                          ECOSYSTEM MODULES                                    │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ │
+│ │Identity     │ │Loan Manager │ │Carbon Token│ │Liquidity   │ │Yield Token │ │
+│ │Registry     │ │             │ │            │ │Pool        │ │            │ │
+│ │(KYC/AML)    │ │(Microcredit)│ │(Credits)    │ │(AMM)       │ │(Staking)   │ │
+│ └─────────────┘ └─────────────┘ └─────────────┘ └─────────────┘ └─────────────┘ │
+│ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ │
+│ │Marketplace  │ │Governance  │ │NFT Farming │ │AgriCredit  │ │Insurance    │ │
+│ │Escrow       │ │DAO         │ │            │ │Token       │ │Protocol    │ │
+│ │(Trading)    │ │(Voting)     │ │(Assets)     │ │(Utility)   │ │(Risk Mgmt) │ │
+│ └─────────────┘ └─────────────┘ └─────────────┘ └─────────────┘ └─────────────┘ │
+└─────────────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                          BACKEND INFRASTRUCTURE                               │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐ │
+│ │FastAPI Backend  │ │AI/ML Models     │ │PostgreSQL DB    │ │Redis Cache      │ │
+│ │                 │ │                 │ │                 │ │                 │ │
+│ │• REST APIs      │ │• Credit Scoring  │ │• User Data      │ │• Session Mgmt   │ │
+│ │• GraphQL        │ │• Yield Predict   │ │• Transaction Log │ │• API Cache      │ │
+│ │• WebSocket      │ │• Climate Analysis│ │• IoT Data       │ │• Rate Limiting  │ │
+│ └─────────────────┘ └─────────────────┘ └─────────────────┘ └─────────────────┘ │
+│ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐ │
+│ │IPFS Storage     │ │TensorFlow Serving│ │TimescaleDB     │ │Message Queue    │ │
+│ │                 │ │                 │ │                 │ │                 │ │
+│ │• Decentralized  │ │• Model Serving   │ │• Time-series    │ │• Async Tasks    │ │
+│ │  File Storage   │ │• Auto-scaling    │ │  Data           │ │• Notifications  │ │
+│ │• NFT Metadata   │ │• A/B Testing     │ │• Sensor Data    │ │• Email/SMS      │ │
+│ └─────────────────┘ └─────────────────┘ └─────────────────┘ └─────────────────┘ │
+└─────────────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                        SECURITY & GOVERNANCE                                 │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│ • Smart Contract Security                                                     │
+│   ├── OpenZeppelin Standards (ERC-20, ERC-721, Access Control)                │
+│   ├── Reentrancy Guards, Overflow Protection                                  │
+│   ├── Multi-signature Wallets for Admin Functions                             │
+│ • Data Privacy & Compliance                                                    │
+│   ├── GDPR-compliant Data Handling                                            │
+│   ├── Zero-knowledge Proofs for Privacy                                       │
+│   ├── Encrypted Data Storage                                                  │
+│ • Governance Mechanisms                                                       │
+│   ├── DAO Voting on Protocol Changes                                          │
+│   ├── Quadratic Voting for Fair Representation                                │
+│   ├── Timelock Controllers for Critical Updates                               │
+│ • Audit & Monitoring                                                          │
+│   ├── Regular Security Audits                                                 │
+│   ├── Real-time Threat Detection                                              │
+│   ├── Incident Response Protocols                                             │
+└─────────────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                      MONITORING & DEVOPS                                      │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐ │
+│ │Prometheus       │ │Grafana          │ │ELK Stack        │ │GitHub Actions   │ │
+│ │                 │ │                 │ │                 │ │                 │ │
+│ │• Metrics        │ │• Dashboards      │ │• Logging        │ │• CI/CD          │ │
+│ │  Collection     │ │• Alerts          │ │• Search/Analysis │ │• Auto Deploy    │ │
+│ │• Service Health │ │• Visualizations  │ │• Error Tracking  │ │• Testing        │ │
+│ └─────────────────┘ └─────────────────┘ └─────────────────┘ └─────────────────┘ │
+│ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐ │
+│ │Docker           │ │Kubernetes       │ │Terraform        │ │AWS/GCP          │ │
+│ │                 │ │                 │ │                 │ │                 │ │
+│ │• Containerization│ │• Orchestration  │ │• Infrastructure  │ │• Cloud Hosting  │ │
+│ │• Multi-stage    │ │• Auto-scaling    │ │  as Code        │ │• CDN/Edge       │ │
+│ │  Builds         │ │• Load Balancing  │ │• Environment Mgmt│ │• Backup/DR      │ │
+│ └─────────────────┘ └─────────────────┘ └─────────────────┘ └─────────────────┘ │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+Connection Flows:
+================
+
+1. User Interaction Flow:
+   User → UI Layer → Backend APIs → Smart Contracts → Blockchain
+
+2. Data Ingestion Flow:
+   IoT Sensors → Data Oracle → Validation → Backend → Database
+
+3. AI Processing Flow:
+   Raw Data → AI Models → Predictions → API Response → UI Update
+
+4. Governance Flow:
+   Proposal → DAO Voting → Timelock → Contract Update → Notification
+
+5. Marketplace Flow:
+   Listing → Escrow → Payment → Delivery → Rating → Settlement
+
+6. Carbon Credit Flow:
+   Farm Data → Carbon Calculation → Token Minting → Trading → Retirement
+
+Legend:
+=======
+┌─────┐    ┌─────┐    ┌─────┐
+│User │ -> │API  │ -> │DB   │
+└─────┘    └─────┘    └─────┘
+Solid arrows: Direct data flow
+Dashed arrows: Asynchronous/event-driven flow
+Double arrows: Bidirectional communication

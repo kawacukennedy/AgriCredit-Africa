@@ -29,11 +29,12 @@ export function useWallet() {
         window.ethereum.on('accountsChanged', handleAccountsChanged);
         window.ethereum.on('chainChanged', handleChainChanged);
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setIsConnecting(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const disconnectWallet = useCallback(async () => {
@@ -52,14 +53,15 @@ export function useWallet() {
       window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
       window.ethereum.removeListener('chainChanged', handleChainChanged);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const switchNetwork = useCallback(async (chainId: number) => {
     try {
       await walletManager.switchNetwork(chainId);
       // Chain change will trigger handleChainChanged
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Unknown error');
     }
   }, []);
 

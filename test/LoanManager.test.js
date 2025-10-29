@@ -1,12 +1,12 @@
-const { expect } = require("chai");
-const { ethers } = require("hardhat");
+import { expect } from "chai";
+import { ethers } from "hardhat";
 
 describe("LoanManager", function () {
   let loanManager, identityRegistry, mockToken;
-  let owner, borrower, lender;
+  let borrower, lender;
 
   beforeEach(async function () {
-    [owner, borrower, lender] = await ethers.getSigners();
+    [, borrower, lender] = await ethers.getSigners();
 
     // Deploy mock ERC20 token
     const MockToken = await ethers.getContractFactory("AgriCredit");

@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { useState } from 'react';
 import { useTranslation } from 'next-i18next';
 import { useWallet } from '@/hooks/useWallet';
+import Image from 'next/image';
 
 const slides = [
   {
@@ -108,9 +109,11 @@ export default function Home() {
                 </button>
               </div>
               <div className="flex-1">
-                <img
+                <Image
                   src={slides[currentSlide].image}
                   alt={slides[currentSlide].title}
+                  width={600}
+                  height={256}
                   className="w-full h-64 object-contain"
                 />
               </div>

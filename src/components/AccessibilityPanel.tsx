@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useAccessibility } from '@/hooks/useAccessibility';
+import { useAccessibility, AccessibilitySettings } from '@/hooks/useAccessibility';
 
 export function AccessibilityPanel() {
   const [isOpen, setIsOpen] = useState(false);
@@ -68,7 +68,7 @@ export function AccessibilityPanel() {
             </label>
             <select
               value={settings.colorBlindMode}
-              onChange={(e) => updateSettings({ colorBlindMode: e.target.value as any })}
+              onChange={(e) => updateSettings({ colorBlindMode: e.target.value as AccessibilitySettings['colorBlindMode'] })}
               className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-800 dark:text-white"
             >
               <option value="none">None</option>

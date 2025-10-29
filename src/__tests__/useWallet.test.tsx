@@ -1,5 +1,6 @@
 import { renderHook, act } from '@testing-library/react';
 import { useWallet } from '../hooks/useWallet';
+import { ethers } from 'ethers';
 
 // Mock ethers
 jest.mock('ethers', () => ({
@@ -48,7 +49,7 @@ describe('useWallet', () => {
       getNetwork: jest.fn().mockResolvedValue({ chainId: 1 }),
     };
 
-    require('ethers').ethers.BrowserProvider.mockImplementation(() => mockProvider);
+    ethers.BrowserProvider.mockImplementation(() => mockProvider);
 
     const { result } = renderHook(() => useWallet());
 
