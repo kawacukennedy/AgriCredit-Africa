@@ -1,36 +1,81 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AgriCredit DApp
+
+AgriCredit is an AI-Blockchain platform that bridges the gap between finance, sustainability, and agriculture across Africa. It provides decentralized microcredit access, an AI-powered marketplace, IoT-driven insights, and tokenized carbon credits, creating an integrated agri-economy for farmers, cooperatives, and investors.
+
+## Architecture
+
+- **Frontend**: Next.js with TypeScript, TailwindCSS, and Framer Motion
+- **Smart Contracts**: Solidity with Hardhat, OpenZeppelin
+- **AI Backend**: FastAPI with TensorFlow for credit scoring and yield prediction
+- **Blockchain**: Polygon, Celo, BNB Chain support
+
+## Project Structure
+
+```
+agricredit/
+├── contracts/          # Solidity smart contracts
+├── src/               # Next.js frontend
+├── backend/           # AI services (FastAPI)
+├── docs/              # Project specs and architecture
+└── hardhat.config.js  # Hardhat configuration
+```
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 18+
+- npm or yarn
+- Python 3.8+ (for AI backend)
+- Hardhat
+
+### Frontend Setup
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Smart Contracts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm install --save-dev hardhat
+npx hardhat compile
+npx hardhat test
+```
 
-## Learn More
+### AI Backend
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+cd backend
+pip install -r requirements.txt
+python main.py
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Key Features
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **Decentralized Identity**: DID-based KYC with reputation scoring
+- **AI Credit Scoring**: Machine learning models for loan approval
+- **Lending Protocol**: Smart contract-based microloans
+- **Marketplace**: NFT farming contracts with escrow
+- **Carbon Credits**: Tokenized environmental impact
 
-## Deploy on Vercel
+## Deployment
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- Frontend: Vercel
+- Contracts: Hardhat deployment scripts
+- Backend: AWS Lambda / Kubernetes
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Commit changes
+4. Push to GitHub
+5. Create a Pull Request
+
+## License
+
+MIT License
