@@ -26,8 +26,8 @@ export function useWallet() {
 
       // Listen for account changes
       if (window.ethereum) {
-        window.ethereum.on('accountsChanged', handleAccountsChanged);
-        window.ethereum.on('chainChanged', handleChainChanged);
+        (window.ethereum as any).on('accountsChanged', handleAccountsChanged);
+        (window.ethereum as any).on('chainChanged', handleChainChanged);
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Unknown error');
@@ -50,8 +50,8 @@ export function useWallet() {
 
     // Remove listeners
     if (window.ethereum) {
-      window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
-      window.ethereum.removeListener('chainChanged', handleChainChanged);
+      (window.ethereum as any).removeListener('accountsChanged', handleAccountsChanged);
+      (window.ethereum as any).removeListener('chainChanged', handleChainChanged);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -98,8 +98,8 @@ export function useWallet() {
 
     return () => {
       if (window.ethereum) {
-        window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
-        window.ethereum.removeListener('chainChanged', handleChainChanged);
+        (window.ethereum as any).removeListener('accountsChanged', handleAccountsChanged);
+        (window.ethereum as any).removeListener('chainChanged', handleChainChanged);
       }
     };
   }, [connectWallet, handleAccountsChanged, handleChainChanged]);
