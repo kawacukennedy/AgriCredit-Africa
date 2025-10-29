@@ -13,6 +13,51 @@ export function AccessibilityPanel() {
     }
   };
 
+  const startVoiceRecognition = () => {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      alert('Voice recognition not supported in this browser');
+      return;
+    }
+
+    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+    recognition.lang = 'en-US';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onresult = (event) => {
+      const command = event.results[0][0].transcript.toLowerCase();
+      handleVoiceCommand(command);
+    };
+
+    recognition.onerror = (event) => {
+      console.error('Voice recognition error:', event.error);
+    };
+
+    recognition.start();
+  };
+
+  const handleVoiceCommand = (command: string) => {
+    if (command.includes('open dashboard')) {
+      window.location.href = '/dashboard';
+    } else if (command.includes('open marketplace')) {
+      window.location.href = '/marketplace';
+    } else if (command.includes('open loan application')) {
+      window.location.href = '/loan-application';
+    } else if (command.includes('toggle high contrast')) {
+      updateSettings({ highContrast: !settings.highContrast });
+      speak('High contrast mode toggled');
+    } else if (command.includes('increase font size')) {
+      const sizes = ['small', 'medium', 'large'] as const;
+      const currentIndex = sizes.indexOf(settings.fontSize);
+      if (currentIndex < sizes.length - 1) {
+        updateSettings({ fontSize: sizes[currentIndex + 1] });
+        speak('Font size increased');
+      }
+    } else {
+      speak('Command not recognized. Try saying "open dashboard", "open marketplace", "toggle high contrast", or "increase font size"');
+    }
+  };
+
   return (
     <>
       {/* Accessibility Button */}
@@ -44,7 +89,7 @@ export function AccessibilityPanel() {
               <span className="text-gray-700 dark:text-gray-300">Text-to-Speech</span>
             </label>
             {settings.textToSpeech && (
-              <div className="mt-2 flex gap-2">
+              <div className="mt-2 flex gap-2 flex-wrap">
                 <button
                   onClick={() => speak("This is a test of the text-to-speech feature")}
                   className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700"
@@ -56,6 +101,12 @@ export function AccessibilityPanel() {
                   className="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700"
                 >
                   Stop
+                </button>
+                <button
+                  onClick={startVoiceRecognition}
+                  className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
+                >
+                  🎤 Voice Commands
                 </button>
               </div>
             )}
