@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "jest"
+    "test": "jest",
+    "compile": "hardhat compile",
+    "test:contracts": "hardhat test"
   },
   "dependencies": {
     "ethers": "^6.15.0",

@@ -7,38 +7,38 @@ on:
     branches: [ main ]
 
 jobs:
-  test-contracts:
-    runs-on: ubuntu-latest
+   test-contracts:
+     runs-on: ubuntu-latest
 
-    steps:
-    - uses: actions/checkout@v4
+     steps:
+     - uses: actions/checkout@v4
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        cache: 'npm'
+     - name: Setup Node.js
+       uses: actions/setup-node@v4
+       with:
+         node-version: '20'
+         cache: 'npm'
 
     - name: Install dependencies
       run: npm ci
 
-    - name: Compile contracts
-      run: npx hardhat compile
+     - name: Compile contracts
+       run: npm run compile
 
-    - name: Run contract tests
-      run: npx hardhat test
+     - name: Run contract tests
+       run: npm run test:contracts
 
-  test-frontend:
-    runs-on: ubuntu-latest
+   test-frontend:
+     runs-on: ubuntu-latest
 
-    steps:
-    - uses: actions/checkout@v4
+     steps:
+     - uses: actions/checkout@v4
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        cache: 'npm'
+     - name: Setup Node.js
+       uses: actions/setup-node@v4
+       with:
+         node-version: '20'
+         cache: 'npm'
 
     - name: Install dependencies
       run: npm ci
@@ -61,7 +61,7 @@ jobs:
     - name: Setup Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.8'
+        python-version: '3.10'
 
     - name: Install dependencies
       run: |
