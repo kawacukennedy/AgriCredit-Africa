@@ -180,6 +180,20 @@ export default function Dashboard() {
                 <h4 className="font-medium text-gray-800 dark:text-white">Yield Farming</h4>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Stake tokens for passive income</p>
               </button>
+              <button
+                onClick={() => router.push('/governance')}
+                className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              >
+                <h4 className="font-medium text-gray-800 dark:text-white">DAO Governance</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Vote on platform decisions</p>
+              </button>
+              <button
+                onClick={() => router.push('/carbon-marketplace')}
+                className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              >
+                <h4 className="font-medium text-gray-800 dark:text-white">Carbon Market</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Trade carbon credits</p>
+              </button>
            </div>
         </motion.div>
       </main>
