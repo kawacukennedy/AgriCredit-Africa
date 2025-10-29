@@ -39,6 +39,25 @@ export interface YieldPredictionResponse {
   };
 }
 
+export interface IoTSensorData {
+  device_id: string;
+  soil_moisture: number;
+  temperature: number;
+  humidity: number;
+  light_level: number;
+  ph_level?: number;
+  location?: { lat: number; lng: number };
+}
+
+export interface IoTSensorReading {
+  soilMoisture: number;
+  temperature: number;
+  humidity: number;
+  lightLevel: number;
+  phLevel?: number;
+  timestamp: string;
+}
+
 export async function getCreditScore(request: CreditScoringRequest): Promise<CreditScoringResponse> {
   const response = await fetch(`${API_BASE_URL}/credit-scoring`, {
     method: 'POST',
@@ -88,6 +107,42 @@ export async function healthCheck(): Promise<{ status: string; service: string }
 
   if (!response.ok) {
     throw new Error(`Health check failed: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+export async function sendSensorData(data: IoTSensorData): Promise<{ status: string; message: string }> {
+  const response = await fetch(`${API_BASE_URL}/iot/sensor-data`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to send sensor data: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+export async function getSensorData(deviceId: string, hours: number = 24): Promise<{ status: string; data: IoTSensorReading[] }> {
+  const response = await fetch(`${API_BASE_URL}/iot/sensor-data/${deviceId}?hours=${hours}`);
+
+  if (!response.ok) {
+    throw new Error(`Failed to get sensor data: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+export async function getLatestSensorData(deviceId: string): Promise<{ status: string; data: IoTSensorReading }> {
+  const response = await fetch(`${API_BASE_URL}/iot/sensor-data/${deviceId}/latest`);
+
+  if (!response.ok) {
+    throw new Error(`Failed to get latest sensor data: ${response.statusText}`);
   }
 
   return response.json();

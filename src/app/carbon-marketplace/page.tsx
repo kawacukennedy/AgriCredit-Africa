@@ -60,7 +60,10 @@ export default function CarbonMarketplacePage() {
   const loadMarketData = async () => {
     setIsLoading(true);
     try {
-      // Mock data for carbon marketplace
+      // Load carbon token balance
+      const balance = await contractInteractions.getCarbonOffset(address!);
+
+      // For now, keep mock data until full marketplace contract is implemented
       const mockListings: CarbonListing[] = [
         {
           id: 1,
@@ -137,8 +140,20 @@ export default function CarbonMarketplacePage() {
 
     setIsLoading(true);
     try {
-      // In a real implementation, this would mint CARBT tokens first if needed
-      // For now, we'll simulate the listing creation
+      // First mint CARBT tokens if the user doesn't have enough
+      const currentBalance = await contractInteractions.getCarbonOffset(address!);
+      if (parseFloat(currentBalance) < parseFloat(listingForm.amount)) {
+        // Mint tokens (in production, this would require verification)
+        await contractInteractions.mintCarbonTokens(
+          address!,
+          listingForm.amount,
+          listingForm.verificationProof || 'user-verification'
+        );
+      }
+
+      // Create marketplace listing
+      await contractInteractions.listCarbonTokens(listingForm.amount, listingForm.price);
+
       alert('Carbon credit listing created successfully!');
       setShowCreateListing(false);
       setListingForm({ amount: '', price: '', verificationProof: '' });
@@ -172,7 +187,8 @@ export default function CarbonMarketplacePage() {
   const handlePurchase = async (listingId: number) => {
     setIsLoading(true);
     try {
-      // In a real implementation, this would execute the purchase through smart contracts
+      // Execute purchase through escrow contract
+      await contractInteractions.buyCarbonTokens(listingId, '0'); // Amount will be determined by escrow
       alert('Purchase completed successfully!');
       loadMarketData();
     } catch (error) {

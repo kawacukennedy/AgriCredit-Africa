@@ -46,6 +46,12 @@ export const GOVERNANCE_DAO_ABI = [
 ];
 
 export const CARBON_TOKEN_ABI = [
+  // ERC20 functions
+  "function balanceOf(address account) external view returns (uint256)",
+  "function transfer(address to, uint256 amount) external returns (bool)",
+  "function approve(address spender, uint256 amount) external returns (bool)",
+  "function allowance(address owner, address spender) external view returns (uint256)",
+  // Carbon specific functions
   "function mintCarbonTokens(address to, uint256 carbonAmount, string memory verificationProof) external",
   "function burnCarbonTokens(uint256 amount) external",
   "function getCarbonOffset(address user) external view returns (uint256)",

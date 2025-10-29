@@ -1,73 +1,60 @@
-import tensorflow as tf
 import numpy as np
-from sklearn.preprocessing import StandardScaler
-import joblib
 import os
 
 class CreditScoringModel:
     def __init__(self):
-        self.model = None
-        self.scaler = None
-        self.model_path = os.path.join(os.path.dirname(__file__), 'credit_model.h5')
-        self.scaler_path = os.path.join(os.path.dirname(__file__), 'credit_scaler.pkl')
+        self.weights = None
+        self.bias = None
+        self.model_path = os.path.join(os.path.dirname(__file__), 'credit_model.npy')
 
     def build_model(self):
-        """Build the neural network model for credit scoring"""
-        model = tf.keras.Sequential([
-            tf.keras.layers.Dense(64, activation='relu', input_shape=(10,)),
-            tf.keras.layers.Dropout(0.2),
-            tf.keras.layers.Dense(32, activation='relu'),
-            tf.keras.layers.Dropout(0.2),
-            tf.keras.layers.Dense(16, activation='relu'),
-            tf.keras.layers.Dense(1, activation='sigmoid')  # Binary classification: good/bad credit
+        """Initialize simple linear model weights"""
+        # Simple weights for each feature based on importance
+        self.weights = np.array([
+            0.1,  # farm_size
+            0.3,  # historical_repayment_rate
+            0.1,  # mobile_money_usage
+            0.1,  # satellite_ndvi
+            -0.1, # weather_risk (negative because higher risk is bad)
+            0.1,  # cooperative_membership
+            0.05, # loan_history
+            0.1,  # income_stability
+            -0.05,# location_risk (negative)
+            0.05  # crop_diversity
         ])
+        self.bias = 0.5
+        return self
 
-        model.compile(
-            optimizer='adam',
-            loss='binary_crossentropy',
-            metrics=['accuracy', tf.keras.metrics.AUC()]
-        )
-
-        self.model = model
-        return model
-
-    def train(self, X_train, y_train, epochs=100, batch_size=32):
-        """Train the model with training data"""
-        if self.model is None:
+    def train(self, X_train, y_train):
+        """Simple training - just set predefined weights"""
+        if self.weights is None:
             self.build_model()
 
-        # Normalize features
-        self.scaler = StandardScaler()
-        X_train_scaled = self.scaler.fit_transform(X_train)
+        # Calculate predictions
+        predictions = self._predict_proba(X_train)
 
-        # Train model
-        history = self.model.fit(
-            X_train_scaled, y_train,
-            epochs=epochs,
-            batch_size=batch_size,
-            validation_split=0.2,
-            verbose=1
-        )
+        # Simple accuracy calculation
+        binary_pred = (predictions > 0.5).astype(int)
+        accuracy = np.mean(binary_pred == y_train)
 
-        # Save model and scaler
+        print(f"Training Accuracy: {accuracy:.4f}")
+
+        # Save model
         self.save_model()
 
-        return history
+        return {"accuracy": accuracy}
 
     def predict(self, features):
         """Predict credit score for given features"""
-        if self.model is None:
+        if self.weights is None:
             self.load_model()
 
         # Ensure features is 2D
         if len(features.shape) == 1:
             features = features.reshape(1, -1)
 
-        # Scale features
-        features_scaled = self.scaler.transform(features)
-
         # Get prediction probability
-        prediction = self.model.predict(features_scaled)[0][0]
+        prediction = self._predict_proba(features)[0]
 
         # Convert to credit score (300-850 range)
         credit_score = 300 + (prediction * 550)
@@ -91,6 +78,10 @@ class CreditScoringModel:
             "explainability": self._generate_explanation(features, prediction)
         }
 
+    def _predict_proba(self, X):
+        """Internal prediction method"""
+        return 1 / (1 + np.exp(-(np.dot(X, self.weights) + self.bias)))
+
     def _generate_explanation(self, features, prediction):
         """Generate human-readable explanation"""
         feature_names = [
@@ -101,26 +92,29 @@ class CreditScoringModel:
 
         explanations = []
         for i, feature in enumerate(features[0]):
-            if feature > np.mean(features):  # Above average
+            weight = self.weights[i]
+            if weight > 0 and feature > 0.5:  # Positive weight and above average
                 explanations.append(f"Positive factor: {feature_names[i]}")
-            else:
+            elif weight < 0 and feature < 0.5:  # Negative weight and below average (good)
+                explanations.append(f"Positive factor: {feature_names[i]}")
+            elif weight > 0 and feature < 0.5:
+                explanations.append(f"Area for improvement: {feature_names[i]}")
+            elif weight < 0 and feature > 0.5:
                 explanations.append(f"Area for improvement: {feature_names[i]}")
 
         return explanations[:3]  # Top 3 factors
 
     def save_model(self):
-        """Save model and scaler"""
-        if self.model:
-            self.model.save(self.model_path)
-        if self.scaler:
-            joblib.dump(self.scaler, self.scaler_path)
+        """Save model weights"""
+        if self.weights is not None:
+            np.save(self.model_path, np.concatenate([self.weights, [self.bias]]))
 
     def load_model(self):
-        """Load model and scaler"""
+        """Load model weights"""
         if os.path.exists(self.model_path):
-            self.model = tf.keras.models.load_model(self.model_path)
-        if os.path.exists(self.scaler_path):
-            self.scaler = joblib.load(self.scaler_path)
+            params = np.load(self.model_path)
+            self.weights = params[:-1]
+            self.bias = params[-1]
 
     def generate_sample_data(self, n_samples=1000):
         """Generate sample training data for demonstration"""
@@ -171,7 +165,7 @@ if __name__ == "__main__":
 
     # Train model
     print("Training credit scoring model...")
-    model.train(X_train, y_train, epochs=50)
+    model.train(X_train, y_train)
 
     # Test prediction
     sample_features = np.array([5.0, 0.9, 10.0, 0.7, 0.8, 1.0, 3.0, 0.85, 0.9, 4.0])

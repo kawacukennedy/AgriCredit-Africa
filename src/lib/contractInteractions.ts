@@ -164,6 +164,38 @@ export class ContractInteractions {
     return ethers.utils.formatEther(offset);
   }
 
+  // Carbon Marketplace functions using MarketplaceEscrow
+  async listCarbonTokens(amount: string, price: string) {
+    // First approve the marketplace escrow to transfer tokens
+    const carbonContract = this.getCarbonTokenContract();
+    const escrowAddress = CONTRACT_ADDRESSES.MarketplaceEscrow;
+
+    // Approve escrow contract to transfer tokens
+    const approveTx = await carbonContract.approve(escrowAddress, ethers.utils.parseEther(amount));
+    await approveTx.wait();
+
+    // Create escrow listing
+    const escrowContract = this.getMarketplaceEscrowContract();
+    const tx = await escrowContract.createEscrow(
+      await this.signer!.getAddress(),
+      ethers.utils.parseEther(amount),
+      CONTRACT_ADDRESSES.CarbonToken
+    );
+    return await tx.wait();
+  }
+
+  async buyCarbonTokens(escrowId: number, amount: string) {
+    const escrowContract = this.getMarketplaceEscrowContract();
+    const tx = await escrowContract.fundEscrow(escrowId);
+    return await tx.wait();
+  }
+
+  async getCarbonListings() {
+    // This would require events or a separate marketplace contract
+    // For now, return mock data structure
+    return [];
+  }
+
   // Liquidity Pool Contract
   getLiquidityPoolContract() {
     if (!this.provider) throw new Error('Provider not available');

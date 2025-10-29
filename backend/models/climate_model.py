@@ -1,38 +1,9 @@
-import tensorflow as tf
 import numpy as np
-from sklearn.preprocessing import StandardScaler
-import joblib
 import os
 
 class ClimateAnalysisModel:
     def __init__(self):
-        self.model = None
-        self.scaler = None
-        self.model_path = os.path.join(os.path.dirname(__file__), 'climate_model.h5')
-        self.scaler_path = os.path.join(os.path.dirname(__file__), 'climate_scaler.pkl')
-
-    def build_model(self):
-        """Build CNN model for satellite image analysis"""
-        model = tf.keras.Sequential([
-            tf.keras.layers.Conv2D(32, (3, 3), activation='relu', input_shape=(64, 64, 3)),
-            tf.keras.layers.MaxPooling2D((2, 2)),
-            tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
-            tf.keras.layers.MaxPooling2D((2, 2)),
-            tf.keras.layers.Conv2D(128, (3, 3), activation='relu'),
-            tf.keras.layers.Flatten(),
-            tf.keras.layers.Dense(64, activation='relu'),
-            tf.keras.layers.Dropout(0.3),
-            tf.keras.layers.Dense(1, activation='linear')  # Regression for CO2 sequestration
-        ])
-
-        model.compile(
-            optimizer='adam',
-            loss='mse',
-            metrics=['mae']
-        )
-
-        self.model = model
-        return model
+        self.model_path = os.path.join(os.path.dirname(__file__), 'climate_model.npy')
 
     def preprocess_satellite_data(self, satellite_data):
         """Preprocess satellite data for model input"""
@@ -157,18 +128,14 @@ class ClimateAnalysisModel:
         return recommendations
 
     def save_model(self):
-        """Save model and scaler"""
-        if self.model:
-            self.model.save(self.model_path)
-        if self.scaler:
-            joblib.dump(self.scaler, self.scaler_path)
+        """Save model parameters (placeholder)"""
+        # No model to save for rule-based system
+        pass
 
     def load_model(self):
-        """Load model and scaler"""
-        if os.path.exists(self.model_path):
-            self.model = tf.keras.models.load_model(self.model_path)
-        if os.path.exists(self.scaler_path):
-            self.scaler = joblib.load(self.scaler_path)
+        """Load model parameters (placeholder)"""
+        # No model to load for rule-based system
+        pass
 
 if __name__ == "__main__":
     # Example usage

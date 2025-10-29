@@ -1,61 +1,64 @@
-import tensorflow as tf
 import numpy as np
-from sklearn.ensemble import GradientBoostingRegressor
-from sklearn.preprocessing import StandardScaler
-import joblib
 import os
 
 class YieldPredictionModel:
     def __init__(self):
-        self.model = None
-        self.scaler = None
-        self.model_path = os.path.join(os.path.dirname(__file__), 'yield_model.pkl')
-        self.scaler_path = os.path.join(os.path.dirname(__file__), 'yield_scaler.pkl')
+        self.weights = None
+        self.bias = None
+        self.model_path = os.path.join(os.path.dirname(__file__), 'yield_model.npy')
 
     def build_model(self):
-        """Build the gradient boosting model for yield prediction"""
-        self.model = GradientBoostingRegressor(
-            n_estimators=100,
-            learning_rate=0.1,
-            max_depth=6,
-            random_state=42
-        )
-        return self.model
+        """Initialize simple linear regression weights for yield prediction"""
+        # Weights for each feature based on agricultural knowledge
+        self.weights = np.array([
+            0.1,   # farm_size
+            2.0,   # soil_quality
+            0.001, # rainfall (mm/year)
+            -0.05, # temperature (optimal around 25C)
+            0.5,   # fertilizer_usage
+            0.5,   # pest_control
+            0.2,   # crop_variety
+            0.02,  # farming_experience
+            1.0,   # irrigation_access
+            -0.1   # market_distance (closer is better)
+        ])
+        self.bias = 4.0  # Base yield
+        return self
 
     def train(self, X_train, y_train):
-        """Train the model with training data"""
-        if self.model is None:
+        """Simple training - just set predefined weights"""
+        if self.weights is None:
             self.build_model()
 
-        # Normalize features
-        self.scaler = StandardScaler()
-        X_train_scaled = self.scaler.fit_transform(X_train)
+        # Calculate predictions
+        predictions = self._predict(X_train)
 
-        # Train model
-        self.model.fit(X_train_scaled, y_train)
+        # Simple R² calculation
+        ss_res = np.sum((y_train - predictions) ** 2)
+        ss_tot = np.sum((y_train - np.mean(y_train)) ** 2)
+        r2 = 1 - (ss_res / ss_tot)
 
-        # Save model and scaler
+        print(f"Training R²: {r2:.4f}")
+
+        # Save model
         self.save_model()
 
-        return self.model
+        return {"r2": r2}
 
     def predict(self, features):
         """Predict crop yield for given features"""
-        if self.model is None:
+        if self.weights is None:
             self.load_model()
 
         # Ensure features is 2D
         if len(features.shape) == 1:
             features = features.reshape(1, -1)
 
-        # Scale features
-        features_scaled = self.scaler.transform(features)
-
         # Get prediction
-        prediction = self.model.predict(features_scaled)[0]
+        prediction = self._predict(features)[0]
 
-        # Calculate confidence interval (simplified)
-        std_dev = np.std(self.model.train_score_) if hasattr(self.model, 'train_score_') else 0.5
+        # Calculate simple confidence interval
+        std_dev = 0.5  # Fixed std dev for simplicity
         confidence_interval = [
             max(0, prediction - 1.96 * std_dev),
             prediction + 1.96 * std_dev
@@ -69,6 +72,10 @@ class YieldPredictionModel:
             "factors": self._get_important_factors(features)
         }
 
+    def _predict(self, X):
+        """Internal prediction method"""
+        return np.dot(X, self.weights) + self.bias
+
     def _get_important_factors(self, features):
         """Get the most important factors affecting yield"""
         feature_names = [
@@ -77,27 +84,22 @@ class YieldPredictionModel:
             'farming_experience', 'irrigation_access', 'market_distance'
         ]
 
-        # Get feature importances if available
-        if hasattr(self.model, 'feature_importances_'):
-            importances = self.model.feature_importances_
-            top_indices = np.argsort(importances)[-3:][::-1]  # Top 3
-            return [feature_names[i] for i in top_indices]
-        else:
-            return ["soil_quality", "rainfall", "fertilizer_usage"]  # Default
+        # Return top factors based on weights
+        weights_dict = dict(zip(feature_names, self.weights))
+        sorted_factors = sorted(weights_dict.items(), key=lambda x: abs(x[1]), reverse=True)
+        return [factor[0] for factor in sorted_factors[:3]]
 
     def save_model(self):
-        """Save model and scaler"""
-        if self.model:
-            joblib.dump(self.model, self.model_path)
-        if self.scaler:
-            joblib.dump(self.scaler, self.scaler_path)
+        """Save model weights"""
+        if self.weights is not None:
+            np.save(self.model_path, np.concatenate([self.weights, [self.bias]]))
 
     def load_model(self):
-        """Load model and scaler"""
+        """Load model weights"""
         if os.path.exists(self.model_path):
-            self.model = joblib.load(self.model_path)
-        if os.path.exists(self.scaler_path):
-            self.scaler = joblib.load(self.scaler_path)
+            params = np.load(self.model_path)
+            self.weights = params[:-1]
+            self.bias = params[-1]
 
     def generate_sample_data(self, n_samples=1000):
         """Generate sample training data for demonstration"""

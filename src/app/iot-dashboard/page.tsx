@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'next-i18next';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
 import { Thermometer, Droplets, Sun, Leaf } from 'lucide-react';
+import { getSensorData, getLatestSensorData, sendSensorData } from '@/lib/api';
 
 interface SensorData {
   soilMoisture: number;
@@ -20,62 +21,95 @@ export default function IoTDashboard() {
   const [isConnected, setIsConnected] = useState(false);
   const [historicalData, setHistoricalData] = useState<any[]>([]);
 
-  // Mock sensor data
+  // Fetch sensor data from API
   useEffect(() => {
-    // Generate historical data
-    const generateHistoricalData = () => {
-      const data = [];
-      const now = new Date();
-      for (let i = 23; i >= 0; i--) {
-        const time = new Date(now.getTime() - i * 60 * 60 * 1000);
-        data.push({
-          time: time.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-          soilMoisture: 40 + Math.random() * 40,
-          temperature: 20 + Math.random() * 15,
-          humidity: 40 + Math.random() * 40,
-          lightLevel: Math.random() * 100,
+    const fetchSensorData = async () => {
+      try {
+        const result = await getLatestSensorData('device-001');
+
+        if (result.status === 'success') {
+          const data = result.data;
+          setSensorData({
+            soilMoisture: data.soilMoisture,
+            temperature: data.temperature,
+            humidity: data.humidity,
+            lightLevel: data.lightLevel,
+            phLevel: data.phLevel || 7.0,
+            timestamp: data.timestamp
+          });
+          setIsConnected(true);
+        }
+      } catch (error) {
+        console.error('Failed to fetch sensor data:', error);
+        // Fallback to mock data
+        setSensorData({
+          soilMoisture: 65.0,
+          temperature: 24.5,
+          humidity: 70.0,
+          lightLevel: 85.0,
+          phLevel: 6.8,
+          timestamp: new Date().toISOString()
         });
+        setIsConnected(false);
       }
-      return data;
     };
 
-    setHistoricalData(generateHistoricalData());
+    const fetchHistoricalData = async () => {
+      try {
+        const result = await getSensorData('device-001', 24);
 
-    const mockData: SensorData = {
-      soilMoisture: Math.random() * 100,
-      temperature: 20 + Math.random() * 15,
-      humidity: 40 + Math.random() * 40,
-      lightLevel: Math.random() * 100,
-      phLevel: 5.5 + Math.random() * 2,
-      timestamp: new Date().toISOString()
+        if (result.status === 'success' && result.data.length > 0) {
+          const formattedData = result.data.map((item) => ({
+            time: new Date(item.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+            soilMoisture: item.soilMoisture,
+            temperature: item.temperature,
+            humidity: item.humidity,
+            lightLevel: item.lightLevel,
+          }));
+          setHistoricalData(formattedData);
+        } else {
+          // Generate mock historical data
+          const data = [];
+          const now = new Date();
+          for (let i = 23; i >= 0; i--) {
+            const time = new Date(now.getTime() - i * 60 * 60 * 1000);
+            data.push({
+              time: time.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+              soilMoisture: 40 + Math.random() * 40,
+              temperature: 20 + Math.random() * 15,
+              humidity: 40 + Math.random() * 40,
+              lightLevel: Math.random() * 100,
+            });
+          }
+          setHistoricalData(data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch historical data:', error);
+        // Fallback to mock data
+        const data = [];
+        const now = new Date();
+        for (let i = 23; i >= 0; i--) {
+          const time = new Date(now.getTime() - i * 60 * 60 * 1000);
+          data.push({
+            time: time.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+            soilMoisture: 40 + Math.random() * 40,
+            temperature: 20 + Math.random() * 15,
+            humidity: 40 + Math.random() * 40,
+            lightLevel: Math.random() * 100,
+          });
+        }
+        setHistoricalData(data);
+      }
     };
 
-    setSensorData(mockData);
-    setIsConnected(true);
+    // Initial fetch
+    fetchSensorData();
+    fetchHistoricalData();
 
     // Update every 30 seconds
     const interval = setInterval(() => {
-      const newData = {
-        soilMoisture: Math.random() * 100,
-        temperature: 20 + Math.random() * 15,
-        humidity: 40 + Math.random() * 40,
-        lightLevel: Math.random() * 100,
-        phLevel: 5.5 + Math.random() * 2,
-        timestamp: new Date().toISOString()
-      };
-      setSensorData(newData);
-
-      // Update historical data
-      setHistoricalData(prev => {
-        const updated = [...prev.slice(1), {
-          time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-          soilMoisture: newData.soilMoisture,
-          temperature: newData.temperature,
-          humidity: newData.humidity,
-          lightLevel: newData.lightLevel,
-        }];
-        return updated;
-      });
+      fetchSensorData();
+      fetchHistoricalData();
     }, 30000);
 
     return () => clearInterval(interval);
