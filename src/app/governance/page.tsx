@@ -379,7 +379,7 @@ export default function GovernancePage() {
                   <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
                     <li>• Minimum 1,000 AGC tokens to propose</li>
                     <li>• 7-day voting period</li>
-                    <li>• >50% approval needed to pass</li>
+                    <li>• &gt;50% approval needed to pass</li>
                   </ul>
                 </div>
 

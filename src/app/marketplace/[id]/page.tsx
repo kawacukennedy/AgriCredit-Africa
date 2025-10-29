@@ -103,7 +103,7 @@ export default function ListingDetailsPage() {
 
   useEffect(() => {
     const listingId = params.id as string;
-    const foundListing = mockListings[listingId as keyof typeof mockListings];
+    const foundListing = mockListings[parseInt(listingId) as keyof typeof mockListings];
 
     if (foundListing) {
       setListing(foundListing);

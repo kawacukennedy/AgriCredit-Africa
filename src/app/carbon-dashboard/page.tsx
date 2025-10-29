@@ -5,10 +5,6 @@ import React, { useState } from 'react';
 export default function CarbonDashboard() {
   const [isSelling, setIsSelling] = useState(false);
 
-  // Mock data for charts
-  // const co2Data = [];
-  // const tokenData = [];
-
   const handleSellTokens = async () => {
     setIsSelling(true);
     // Simulate selling tokens
@@ -38,41 +34,25 @@ export default function CarbonDashboard() {
       <main className="container mx-auto px-6 py-8">
         {/* Impact Analytics */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm"
-          >
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
             <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-2">CO2 Offset</h3>
             <div className="text-3xl font-bold text-teal-600">2.4 tons</div>
             <p className="text-sm text-gray-600 dark:text-gray-400">This month</p>
           </div>
 
-          <div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm"
-          >
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
             <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-2">CARBT Tokens</h3>
             <div className="text-3xl font-bold text-green-600">1,247</div>
             <p className="text-sm text-gray-600 dark:text-gray-400">Earned this year</p>
           </div>
 
-          <div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm"
-          >
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
             <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-2">Token Value</h3>
             <div className="text-3xl font-bold text-blue-600">$2,494</div>
             <p className="text-sm text-gray-600 dark:text-gray-400">Current market value</p>
           </div>
 
-          <div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm"
-          >
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
             <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-2">NDVI Score</h3>
             <div className="text-3xl font-bold text-purple-600">0.72</div>
             <p className="text-sm text-gray-600 dark:text-gray-400">Vegetation health</p>
@@ -81,40 +61,27 @@ export default function CarbonDashboard() {
 
         {/* Charts Placeholder */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          <div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm"
-          >
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
               Monthly CO2 Sequestration
             </h3>
             <div className="h-64 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center">
-              <p className="text-gray-500 dark:text-gray-400">CO2 Sequestration Chart</p>
+              <p className="text-gray-500 dark:text-gray-400">Interactive charts coming soon</p>
             </div>
           </div>
 
-          <div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm"
-          >
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
             <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
               Token Earnings Over Time
             </h3>
             <div className="h-64 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center">
-              <p className="text-gray-500 dark:text-gray-400">Token Earnings Chart</p>
+              <p className="text-gray-500 dark:text-gray-400">Interactive charts coming soon</p>
             </div>
           </div>
         </div>
 
         {/* Farm Visualization */}
-        <div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-          className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm mb-8"
-        >
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm mb-8">
           <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
             Farm Health Visualization
           </h3>
@@ -127,7 +94,6 @@ export default function CarbonDashboard() {
                   <div
                     key={i}
                     className={`${color} rounded cursor-pointer hover:scale-110 transition-transform`}
-                    whileHover={{ scale: 1.1 }}
                     title={`Plot ${i + 1}: NDVI ${health.toFixed(2)}`}
                   />
                 );
@@ -136,7 +102,7 @@ export default function CarbonDashboard() {
             <div className="mt-4 flex justify-center space-x-6 text-sm">
               <div className="flex items-center">
                 <div className="w-4 h-4 bg-green-500 rounded mr-2"></div>
-                <span className="text-gray-700 dark:text-gray-300">Healthy (NDVI > 0.8)</span>
+                <span className="text-gray-700 dark:text-gray-300">Healthy (NDVI &gt; 0.8)</span>
               </div>
               <div className="flex items-center">
                 <div className="w-4 h-4 bg-yellow-500 rounded mr-2"></div>
@@ -144,19 +110,14 @@ export default function CarbonDashboard() {
               </div>
               <div className="flex items-center">
                 <div className="w-4 h-4 bg-red-500 rounded mr-2"></div>
-                <span className="text-gray-700 dark:text-gray-300">Needs Attention (< 0.6)</span>
+                <span className="text-gray-700 dark:text-gray-300">Needs Attention (&lt; 0.6)</span>
               </div>
             </div>
           </div>
         </div>
 
         {/* Performance Metrics */}
-        <div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.7 }}
-          className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm"
-        >
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
           <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
             Performance Metrics
           </h3>
