@@ -56,7 +56,7 @@ export default function Marketplace() {
     const matchesSearch = !searchTerm ||
       listing.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       listing.farmer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      listing.description?.toLowerCase().includes(searchTerm.toLowerCase());
+      listing.location.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesCrop = !selectedCrop || listing.cropType === selectedCrop;
     const matchesLocation = !selectedLocation ||
