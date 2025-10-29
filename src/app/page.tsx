@@ -126,7 +126,7 @@ export default function Home() {
               <div className="flex-1">
                 <Image
                   src={slides[currentSlide].image}
-                  alt={slides[currentSlide].title}
+                  alt={currentFeature.title}
                   width={600}
                   height={256}
                   className="w-full h-64 object-contain"
