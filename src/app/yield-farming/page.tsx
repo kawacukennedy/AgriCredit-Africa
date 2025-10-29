@@ -23,6 +23,24 @@ export default function YieldFarmingPage() {
   const [depositAmount, setDepositAmount] = useState('');
   const [withdrawAmount, setWithdrawAmount] = useState('');
 
+  // Mock data for yield performance chart
+  const yieldData = [
+    { day: '1', yield: 0.02 },
+    { day: '2', yield: 0.05 },
+    { day: '3', yield: 0.08 },
+    { day: '4', yield: 0.12 },
+    { day: '5', yield: 0.18 },
+    { day: '6', yield: 0.25 },
+    { day: '7', yield: 0.32 },
+    { day: '8', yield: 0.41 },
+    { day: '9', yield: 0.52 },
+    { day: '10', yield: 0.65 },
+    { day: '11', yield: 0.78 },
+    { day: '12', yield: 0.93 },
+    { day: '13', yield: 1.08 },
+    { day: '14', yield: 1.25 },
+  ];
+
   useEffect(() => {
     if (isConnected && address) {
       loadPosition();
@@ -317,10 +335,10 @@ export default function YieldFarmingPage() {
           className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm"
         >
           <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
-            Yield Performance
+            Yield Performance (Last 14 Days)
           </h3>
           <div className="h-64 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center">
-            <p className="text-gray-500 dark:text-gray-400">Performance chart would display here</p>
+            <p className="text-gray-500 dark:text-gray-400">Yield Performance Chart</p>
           </div>
         </motion.div>
 

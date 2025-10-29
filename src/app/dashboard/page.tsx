@@ -37,7 +37,7 @@ export default function Dashboard() {
   return (
     <>
       <OnboardingModal isOpen={showOnboarding} onClose={handleOnboardingClose} />
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <header className="bg-white dark:bg-gray-800 shadow-sm">
         <div className="container mx-auto px-6 py-4">
           <div className="flex justify-between items-center">
@@ -197,6 +197,7 @@ export default function Dashboard() {
            </div>
         </motion.div>
       </main>
+      </div>
     </>
   );
 }

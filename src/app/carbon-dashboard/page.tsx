@@ -1,10 +1,13 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import { useState } from 'react';
+import React, { useState } from 'react';
 
 export default function CarbonDashboard() {
   const [isSelling, setIsSelling] = useState(false);
+
+  // Mock data for charts
+  // const co2Data = [];
+  // const tokenData = [];
 
   const handleSellTokens = async () => {
     setIsSelling(true);
@@ -35,7 +38,7 @@ export default function CarbonDashboard() {
       <main className="container mx-auto px-6 py-8">
         {/* Impact Analytics */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <motion.div
+          <div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm"
@@ -43,98 +46,112 @@ export default function CarbonDashboard() {
             <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-2">CO2 Offset</h3>
             <div className="text-3xl font-bold text-teal-600">2.4 tons</div>
             <p className="text-sm text-gray-600 dark:text-gray-400">This month</p>
-          </motion.div>
+          </div>
 
-          <motion.div
+          <div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
             className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm"
           >
             <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-2">CARBT Tokens</h3>
             <div className="text-3xl font-bold text-green-600">1,247</div>
             <p className="text-sm text-gray-600 dark:text-gray-400">Earned this year</p>
-          </motion.div>
+          </div>
 
-          <motion.div
+          <div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
             className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm"
           >
             <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-2">Token Value</h3>
             <div className="text-3xl font-bold text-blue-600">$2,494</div>
             <p className="text-sm text-gray-600 dark:text-gray-400">Current market value</p>
-          </motion.div>
+          </div>
 
-          <motion.div
+          <div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
             className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm"
           >
             <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-2">NDVI Score</h3>
             <div className="text-3xl font-bold text-purple-600">0.72</div>
             <p className="text-sm text-gray-600 dark:text-gray-400">Vegetation health</p>
-          </motion.div>
+          </div>
         </div>
 
         {/* Charts Placeholder */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          <motion.div
+          <div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
             className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm"
           >
             <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
               Monthly CO2 Sequestration
             </h3>
             <div className="h-64 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center">
-              <p className="text-gray-500 dark:text-gray-400">Chart visualization would go here</p>
+              <p className="text-gray-500 dark:text-gray-400">CO2 Sequestration Chart</p>
             </div>
-          </motion.div>
+          </div>
 
-          <motion.div
+          <div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
             className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm"
           >
             <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
               Token Earnings Over Time
             </h3>
             <div className="h-64 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center">
-              <p className="text-gray-500 dark:text-gray-400">Chart visualization would go here</p>
+              <p className="text-gray-500 dark:text-gray-400">Token Earnings Chart</p>
             </div>
-          </motion.div>
+          </div>
         </div>
 
         {/* Farm Visualization */}
-        <motion.div
+        <div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
           className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm mb-8"
         >
           <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
-            3D Farm Visualization
+            Farm Health Visualization
           </h3>
-          <div className="h-96 bg-gradient-to-br from-green-100 to-green-200 dark:from-green-900 dark:to-green-800 rounded-lg flex items-center justify-center">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-green-500 rounded-full mx-auto mb-4 flex items-center justify-center">
-                <span className="text-white text-2xl">🌱</span>
+          <div className="h-96 bg-gradient-to-br from-green-100 to-green-200 dark:from-green-900 dark:to-green-800 rounded-lg p-6">
+            <div className="grid grid-cols-8 grid-rows-6 gap-2 h-full">
+              {Array.from({ length: 48 }, (_, i) => {
+                const health = Math.random();
+                const color = health > 0.8 ? 'bg-green-500' : health > 0.6 ? 'bg-yellow-500' : 'bg-red-500';
+                return (
+                  <div
+                    key={i}
+                    className={`${color} rounded cursor-pointer hover:scale-110 transition-transform`}
+                    whileHover={{ scale: 1.1 }}
+                    title={`Plot ${i + 1}: NDVI ${health.toFixed(2)}`}
+                  />
+                );
+              })}
+            </div>
+            <div className="mt-4 flex justify-center space-x-6 text-sm">
+              <div className="flex items-center">
+                <div className="w-4 h-4 bg-green-500 rounded mr-2"></div>
+                <span className="text-gray-700 dark:text-gray-300">Healthy (NDVI > 0.8)</span>
               </div>
-              <p className="text-gray-700 dark:text-gray-300">Interactive 3D farm map would display here</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                Showing NDVI data, carbon sequestration zones, and IoT sensor locations
-              </p>
+              <div className="flex items-center">
+                <div className="w-4 h-4 bg-yellow-500 rounded mr-2"></div>
+                <span className="text-gray-700 dark:text-gray-300">Moderate (0.6-0.8)</span>
+              </div>
+              <div className="flex items-center">
+                <div className="w-4 h-4 bg-red-500 rounded mr-2"></div>
+                <span className="text-gray-700 dark:text-gray-300">Needs Attention (< 0.6)</span>
+              </div>
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* Performance Metrics */}
-        <motion.div
+        <div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.7 }}
@@ -157,7 +174,7 @@ export default function CarbonDashboard() {
               <p className="text-sm text-gray-600 dark:text-gray-400">Additional income from carbon credits</p>
             </div>
           </div>
-        </motion.div>
+        </div>
       </main>
     </div>
   );
