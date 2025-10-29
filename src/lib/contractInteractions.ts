@@ -15,18 +15,23 @@ import {
 } from './contracts';
 
 export class ContractInteractions {
-  private provider: ethers.providers.Web3Provider | null = null;
-  private signer: ethers.Signer | null = null;
+  private provider: ethers.BrowserProvider | null = null;
 
   constructor() {
     if (typeof window !== 'undefined' && window.ethereum) {
-      this.provider = new ethers.providers.Web3Provider(window.ethereum);
-      this.signer = this.provider.getSigner();
+      this.provider = new ethers.BrowserProvider(window.ethereum);
     }
   }
 
+  private async getSigner(): Promise<ethers.Signer> {
+    if (!this.provider) {
+      throw new Error('Web3 provider not available. Please connect your wallet.');
+    }
+    return await this.provider.getSigner();
+  }
+
   private async ensureConnection(): Promise<void> {
-    if (!this.provider || !this.signer) {
+    if (!this.provider) {
       throw new Error('Web3 provider not available. Please connect your wallet.');
     }
 
@@ -38,166 +43,172 @@ export class ContractInteractions {
   }
 
   // Identity Registry Contract
-  getIdentityRegistryContract() {
+  async getIdentityRegistryContract() {
     if (!this.provider) throw new Error('Provider not available');
-    return new ethers.Contract(CONTRACT_ADDRESSES.IdentityRegistry, IDENTITY_REGISTRY_ABI, this.signer || this.provider);
+    const signer = await this.getSigner();
+    return new ethers.Contract(CONTRACT_ADDRESSES.IdentityRegistry, IDENTITY_REGISTRY_ABI, signer);
   }
 
   async createIdentity(did: string, userAddress: string) {
-    const contract = this.getIdentityRegistryContract();
+    const contract = await this.getIdentityRegistryContract();
     const tx = await contract.createIdentity(did, userAddress);
     return await tx.wait();
   }
 
   async getIdentity(userAddress: string) {
-    const contract = this.getIdentityRegistryContract();
+    const contract = await this.getIdentityRegistryContract();
     return await contract.getIdentity(userAddress);
   }
 
   async isIdentityVerified(userAddress: string): Promise<boolean> {
-    const contract = this.getIdentityRegistryContract();
+    const contract = await this.getIdentityRegistryContract();
     return await contract.isIdentityVerified(userAddress);
   }
 
   // Loan Manager Contract
-  getLoanManagerContract() {
+  async getLoanManagerContract() {
     if (!this.provider) throw new Error('Provider not available');
-    return new ethers.Contract(CONTRACT_ADDRESSES.LoanManager, LOAN_MANAGER_ABI, this.signer || this.provider);
+    const signer = await this.getSigner();
+    return new ethers.Contract(CONTRACT_ADDRESSES.LoanManager, LOAN_MANAGER_ABI, signer);
   }
 
   async createLoan(borrower: string, amount: string, interestRate: number, duration: number) {
-    const contract = this.getLoanManagerContract();
-    const tx = await contract.createLoan(borrower, ethers.utils.parseEther(amount), interestRate * 100, duration);
+    const contract = await this.getLoanManagerContract();
+    const tx = await contract.createLoan(borrower, ethers.parseEther(amount), interestRate * 100, duration);
     return await tx.wait();
   }
 
   async repayLoan(loanId: number, amount: string) {
-    const contract = this.getLoanManagerContract();
-    const tx = await contract.repayLoan(loanId, ethers.utils.parseEther(amount));
+    const contract = await this.getLoanManagerContract();
+    const tx = await contract.repayLoan(loanId, ethers.parseEther(amount));
     return await tx.wait();
   }
 
   async getLoan(loanId: number) {
-    const contract = this.getLoanManagerContract();
+    const contract = await this.getLoanManagerContract();
     return await contract.getLoan(loanId);
   }
 
   async getUserLoans(userAddress: string) {
-    const contract = this.getLoanManagerContract();
+    const contract = await this.getLoanManagerContract();
     return await contract.getUserLoans(userAddress);
   }
 
   async calculateTotalOwed(loanId: number) {
-    const contract = this.getLoanManagerContract();
+    const contract = await this.getLoanManagerContract();
     const total = await contract.calculateTotalOwed(loanId);
-    return ethers.utils.formatEther(total);
+    return ethers.formatEther(total);
   }
 
   // Marketplace Escrow Contract
-  getMarketplaceEscrowContract() {
+  async getMarketplaceEscrowContract() {
     if (!this.provider) throw new Error('Provider not available');
-    return new ethers.Contract(CONTRACT_ADDRESSES.MarketplaceEscrow, MARKETPLACE_ESCROW_ABI, this.signer || this.provider);
+    const signer = await this.getSigner();
+    return new ethers.Contract(CONTRACT_ADDRESSES.MarketplaceEscrow, MARKETPLACE_ESCROW_ABI, signer);
   }
 
   async createEscrow(seller: string, amount: string, tokenAddress: string) {
-    const contract = this.getMarketplaceEscrowContract();
-    const tx = await contract.createEscrow(seller, ethers.utils.parseEther(amount), tokenAddress);
+    const contract = await this.getMarketplaceEscrowContract();
+    const tx = await contract.createEscrow(seller, ethers.parseEther(amount), tokenAddress);
     return await tx.wait();
   }
 
   async fundEscrow(escrowId: number) {
-    const contract = this.getMarketplaceEscrowContract();
+    const contract = await this.getMarketplaceEscrowContract();
     const tx = await contract.fundEscrow(escrowId);
     return await tx.wait();
   }
 
   async confirmDelivery(escrowId: number, proof: string) {
-    const contract = this.getMarketplaceEscrowContract();
+    const contract = await this.getMarketplaceEscrowContract();
     const tx = await contract.confirmDelivery(escrowId, proof);
     return await tx.wait();
   }
 
   async completeEscrow(escrowId: number) {
-    const contract = this.getMarketplaceEscrowContract();
+    const contract = await this.getMarketplaceEscrowContract();
     const tx = await contract.completeEscrow(escrowId);
     return await tx.wait();
   }
 
   // Governance DAO Contract
-  getGovernanceDAOContract() {
+  async getGovernanceDAOContract() {
     if (!this.provider) throw new Error('Provider not available');
-    return new ethers.Contract(CONTRACT_ADDRESSES.GovernanceDAO, GOVERNANCE_DAO_ABI, this.signer || this.provider);
+    const signer = await this.getSigner();
+    return new ethers.Contract(CONTRACT_ADDRESSES.GovernanceDAO, GOVERNANCE_DAO_ABI, signer);
   }
 
   async propose(description: string) {
-    const contract = this.getGovernanceDAOContract();
+    const contract = await this.getGovernanceDAOContract();
     const tx = await contract.propose(description);
     return await tx.wait();
   }
 
   async vote(proposalId: number, support: boolean) {
-    const contract = this.getGovernanceDAOContract();
+    const contract = await this.getGovernanceDAOContract();
     const tx = await contract.vote(proposalId, support);
     return await tx.wait();
   }
 
   async executeProposal(proposalId: number) {
-    const contract = this.getGovernanceDAOContract();
+    const contract = await this.getGovernanceDAOContract();
     const tx = await contract.executeProposal(proposalId);
     return await tx.wait();
   }
 
   async getProposal(proposalId: number) {
-    const contract = this.getGovernanceDAOContract();
+    const contract = await this.getGovernanceDAOContract();
     return await contract.getProposal(proposalId);
   }
 
   // Carbon Token Contract
-  getCarbonTokenContract() {
+  async getCarbonTokenContract() {
     if (!this.provider) throw new Error('Provider not available');
-    return new ethers.Contract(CONTRACT_ADDRESSES.CarbonToken, CARBON_TOKEN_ABI, this.signer || this.provider);
+    const signer = await this.getSigner();
+    return new ethers.Contract(CONTRACT_ADDRESSES.CarbonToken, CARBON_TOKEN_ABI, signer);
   }
 
   async mintCarbonTokens(to: string, carbonAmount: string, verificationProof: string) {
-    const contract = this.getCarbonTokenContract();
-    const tx = await contract.mintCarbonTokens(to, ethers.utils.parseEther(carbonAmount), verificationProof);
+    const contract = await this.getCarbonTokenContract();
+    const tx = await contract.mintCarbonTokens(to, ethers.parseEther(carbonAmount), verificationProof);
     return await tx.wait();
   }
 
   async burnCarbonTokens(amount: string) {
-    const contract = this.getCarbonTokenContract();
-    const tx = await contract.burnCarbonTokens(ethers.utils.parseEther(amount));
+    const contract = await this.getCarbonTokenContract();
+    const tx = await contract.burnCarbonTokens(ethers.parseEther(amount));
     return await tx.wait();
   }
 
   async getCarbonOffset(userAddress: string) {
-    const contract = this.getCarbonTokenContract();
+    const contract = await this.getCarbonTokenContract();
     const offset = await contract.getCarbonOffset(userAddress);
-    return ethers.utils.formatEther(offset);
+    return ethers.formatEther(offset);
   }
 
   // Carbon Marketplace functions using MarketplaceEscrow
   async listCarbonTokens(amount: string, price: string) {
     // First approve the marketplace escrow to transfer tokens
-    const carbonContract = this.getCarbonTokenContract();
+    const carbonContract = await this.getCarbonTokenContract();
     const escrowAddress = CONTRACT_ADDRESSES.MarketplaceEscrow;
 
     // Approve escrow contract to transfer tokens
-    const approveTx = await carbonContract.approve(escrowAddress, ethers.utils.parseEther(amount));
+    const approveTx = await carbonContract.approve(escrowAddress, ethers.parseEther(amount));
     await approveTx.wait();
 
     // Create escrow listing
-    const escrowContract = this.getMarketplaceEscrowContract();
+    const escrowContract = await this.getMarketplaceEscrowContract();
+    const signer = await this.getSigner();
     const tx = await escrowContract.createEscrow(
-      await this.signer!.getAddress(),
-      ethers.utils.parseEther(amount),
+      await signer.getAddress(),
+      ethers.parseEther(amount),
       CONTRACT_ADDRESSES.CarbonToken
     );
     return await tx.wait();
   }
 
   async buyCarbonTokens(escrowId: number, amount: string) {
-    const escrowContract = this.getMarketplaceEscrowContract();
+    const escrowContract = await this.getMarketplaceEscrowContract();
     const tx = await escrowContract.fundEscrow(escrowId);
     return await tx.wait();
   }
@@ -209,39 +220,41 @@ export class ContractInteractions {
   }
 
   // Liquidity Pool Contract
-  getLiquidityPoolContract() {
+  async getLiquidityPoolContract() {
     if (!this.provider) throw new Error('Provider not available');
-    return new ethers.Contract(CONTRACT_ADDRESSES.LiquidityPool, LIQUIDITY_POOL_ABI, this.signer || this.provider);
+    const signer = await this.getSigner();
+    return new ethers.Contract(CONTRACT_ADDRESSES.LiquidityPool, LIQUIDITY_POOL_ABI, signer);
   }
 
   async addLiquidity(tokenAddress: string, amount: string) {
-    const contract = this.getLiquidityPoolContract();
-    const tx = await contract.addLiquidity(tokenAddress, ethers.utils.parseEther(amount));
+    const contract = await this.getLiquidityPoolContract();
+    const tx = await contract.addLiquidity(tokenAddress, ethers.parseEther(amount));
     return await tx.wait();
   }
 
   async removeLiquidity(tokenAddress: string, amount: string) {
-    const contract = this.getLiquidityPoolContract();
-    const tx = await contract.removeLiquidity(tokenAddress, ethers.utils.parseEther(amount));
+    const contract = await this.getLiquidityPoolContract();
+    const tx = await contract.removeLiquidity(tokenAddress, ethers.parseEther(amount));
     return await tx.wait();
   }
 
   async getPoolInfo(tokenAddress: string) {
-    const contract = this.getLiquidityPoolContract();
+    const contract = await this.getLiquidityPoolContract();
     return await contract.getPoolInfo(tokenAddress);
   }
 
   // Yield Token Contract
-  getYieldTokenContract() {
+  async getYieldTokenContract() {
     if (!this.provider) throw new Error('Provider not available');
-    return new ethers.Contract(CONTRACT_ADDRESSES.YieldToken, YIELD_TOKEN_ABI, this.signer || this.provider);
+    const signer = await this.getSigner();
+    return new ethers.Contract(CONTRACT_ADDRESSES.YieldToken, YIELD_TOKEN_ABI, signer);
   }
 
   async deposit(amount: string) {
     await this.ensureConnection();
     try {
-      const contract = this.getYieldTokenContract();
-      const tx = await contract.deposit(ethers.utils.parseEther(amount));
+      const contract = await this.getYieldTokenContract();
+      const tx = await contract.deposit(ethers.parseEther(amount));
       return await tx.wait();
     } catch (error) {
       console.error('Deposit failed:', error);
@@ -250,15 +263,15 @@ export class ContractInteractions {
   }
 
   async withdraw(amount: string) {
-    const contract = this.getYieldTokenContract();
-    const tx = await contract.withdraw(ethers.utils.parseEther(amount));
+    const contract = await this.getYieldTokenContract();
+    const tx = await contract.withdraw(ethers.parseEther(amount));
     return await tx.wait();
   }
 
   async claimYield() {
     await this.ensureConnection();
     try {
-      const contract = this.getYieldTokenContract();
+      const contract = await this.getYieldTokenContract();
       const tx = await contract.claimYield();
       return await tx.wait();
     } catch (error) {
@@ -270,64 +283,66 @@ export class ContractInteractions {
   async getPosition(userAddress: string) {
     await this.ensureConnection();
     try {
-      const contract = this.getYieldTokenContract();
+      const contract = await this.getYieldTokenContract();
       return await contract.getPosition(userAddress);
     } catch (error) {
       console.error('Get position failed:', error);
       // Return mock data as fallback
       return {
-        amount: ethers.BigNumber.from('0'),
-        depositTime: ethers.BigNumber.from(Math.floor(Date.now() / 1000)),
-        lastClaimTime: ethers.BigNumber.from(Math.floor(Date.now() / 1000)),
-        pendingYield: ethers.BigNumber.from('0'),
-        totalAccumulated: ethers.BigNumber.from('0')
+        amount: BigInt('0'),
+        depositTime: BigInt(Math.floor(Date.now() / 1000)),
+        lastClaimTime: BigInt(Math.floor(Date.now() / 1000)),
+        pendingYield: BigInt('0'),
+        totalAccumulated: BigInt('0')
       };
     }
   }
 
   // NFT Farming Contract
-  getNFTFarmingContract() {
+  async getNFTFarmingContract() {
     if (!this.provider) throw new Error('Provider not available');
-    return new ethers.Contract(CONTRACT_ADDRESSES.NFTFarming, NFT_FARMING_ABI, this.signer || this.provider);
+    const signer = await this.getSigner();
+    return new ethers.Contract(CONTRACT_ADDRESSES.NFTFarming, NFT_FARMING_ABI, signer);
   }
 
   async mintFarmNFT(farmer: string, farmName: string, location: string, size: number, cropType: string, expectedYield: number, metadataURI: string) {
-    const contract = this.getNFTFarmingContract();
+    const contract = await this.getNFTFarmingContract();
     const tx = await contract.mintFarmNFT(farmer, farmName, location, size, cropType, expectedYield, metadataURI);
     return await tx.wait();
   }
 
   async recordHarvest(tokenId: number, actualYield: number) {
-    const contract = this.getNFTFarmingContract();
+    const contract = await this.getNFTFarmingContract();
     const tx = await contract.recordHarvest(tokenId, actualYield);
     return await tx.wait();
   }
 
   async getFarmNFT(tokenId: number) {
-    const contract = this.getNFTFarmingContract();
+    const contract = await this.getNFTFarmingContract();
     return await contract.getFarmNFT(tokenId);
   }
 
   async getFarmerNFTs(farmer: string) {
-    const contract = this.getNFTFarmingContract();
+    const contract = await this.getNFTFarmingContract();
     return await contract.getFarmerNFTs(farmer);
   }
 
   // AgriCredit Token Contract
-  getAgriCreditContract() {
+  async getAgriCreditContract() {
     if (!this.provider) throw new Error('Provider not available');
-    return new ethers.Contract(CONTRACT_ADDRESSES.AgriCredit, AGRI_CREDIT_ABI, this.signer || this.provider);
+    const signer = await this.getSigner();
+    return new ethers.Contract(CONTRACT_ADDRESSES.AgriCredit, AGRI_CREDIT_ABI, signer);
   }
 
   async getAgriCreditBalance(address: string) {
-    const contract = this.getAgriCreditContract();
+    const contract = await this.getAgriCreditContract();
     const balance = await contract.balanceOf(address);
-    return ethers.utils.formatEther(balance);
+    return ethers.formatEther(balance);
   }
 
   async transferAgriCredit(to: string, amount: string) {
-    const contract = this.getAgriCreditContract();
-    const tx = await contract.transfer(to, ethers.utils.parseEther(amount));
+    const contract = await this.getAgriCreditContract();
+    const tx = await contract.transfer(to, ethers.parseEther(amount));
     return await tx.wait();
   }
 }

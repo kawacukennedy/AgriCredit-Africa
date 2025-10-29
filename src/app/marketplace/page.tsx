@@ -14,6 +14,7 @@ const listings = [
     price: 250,
     quantity: '10 tons',
     quality: 'Grade A',
+    cropType: 'maize',
     image: '/file.svg'
   },
   {
@@ -24,6 +25,7 @@ const listings = [
     price: 400,
     quantity: '5 tons',
     quality: 'Organic',
+    cropType: 'rice',
     image: '/file.svg'
   },
   {
@@ -34,6 +36,7 @@ const listings = [
     price: 180,
     quantity: '8 tons',
     quality: 'Fresh',
+    cropType: 'cassava',
     image: '/file.svg'
   }
 ];

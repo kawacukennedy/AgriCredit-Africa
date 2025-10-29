@@ -130,9 +130,14 @@ export async function sendSensorData(data: IoTSensorData): Promise<{ status: str
 
 export async function getSensorData(deviceId: string, hours: number = 24): Promise<{ status: string; data: IoTSensorReading[] }> {
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+
     const response = await fetch(`${API_BASE_URL}/iot/sensor-data/${deviceId}?hours=${hours}`, {
-      timeout: 5000, // 5 second timeout
+      signal: controller.signal,
     });
+
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       throw new Error(`Failed to get sensor data: ${response.statusText}`);
@@ -151,9 +156,14 @@ export async function getSensorData(deviceId: string, hours: number = 24): Promi
 
 export async function getLatestSensorData(deviceId: string): Promise<{ status: string; data: IoTSensorReading }> {
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+
     const response = await fetch(`${API_BASE_URL}/iot/sensor-data/${deviceId}/latest`, {
-      timeout: 5000,
+      signal: controller.signal,
     });
+
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       throw new Error(`Failed to get latest sensor data: ${response.statusText}`);
