@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { useState } from 'react';
+import { useWallet } from '@/hooks/useWallet';
 
 const slides = [
   {
@@ -23,18 +24,41 @@ const slides = [
 
 export default function Home() {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const { address, isConnected, connectWallet, isConnecting, error, disconnectWallet } = useWallet();
 
   const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % slides.length);
   const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
+
+  const handleWalletAction = async () => {
+    if (isConnected) {
+      await disconnectWallet();
+    } else {
+      await connectWallet();
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
       {/* Header */}
       <header className="flex justify-between items-center p-6">
         <h1 className="text-2xl font-bold text-green-800 dark:text-green-400">AgriCredit</h1>
-        <button className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
-          Connect Wallet
-        </button>
+        <div className="flex items-center gap-4">
+          {isConnected && address && (
+            <span className="text-sm text-gray-600 dark:text-gray-400">
+              {address.slice(0, 6)}...{address.slice(-4)}
+            </span>
+          )}
+          <button
+            onClick={handleWalletAction}
+            disabled={isConnecting}
+            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
+          >
+            {isConnecting ? 'Connecting...' : isConnected ? 'Disconnect' : 'Connect Wallet'}
+          </button>
+        </div>
+        {error && (
+          <div className="text-red-500 text-sm mt-2">{error}</div>
+        )}
       </header>
 
       {/* Hero Section with Carousel */}
