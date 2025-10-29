@@ -2,10 +2,8 @@
 
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { appWithTranslation } from 'next-i18next';
 import { useEffect } from 'react';
 import "./globals.css";
-import "../utils/i18n";
 import { AccessibilityPanel } from "@/components/AccessibilityPanel";
 
 const geistSans = Geist({
@@ -55,4 +53,4 @@ function RootLayout({
   );
 }
 
-export default appWithTranslation(RootLayout);
+export default RootLayout;
