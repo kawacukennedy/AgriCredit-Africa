@@ -24,12 +24,12 @@ export function AccessibilityPanel() {
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
 
-    recognition.onresult = (event) => {
+    recognition.onresult = (event: any) => {
       const command = event.results[0][0].transcript.toLowerCase();
       handleVoiceCommand(command);
     };
 
-    recognition.onerror = (event) => {
+    recognition.onerror = (event: any) => {
       console.error('Voice recognition error:', event.error);
     };
 
