@@ -1,0 +1,255 @@
+title AgriCredit DApp: AI-Blockchain Agri-Finance Architecture
+
+// USER ROLES & EXTERNAL INTEGRATIONS
+Users & Roles [icon: users] {
+  Farmer [icon: user]
+  Investor [icon: dollar-sign]
+  Cooperative [icon: users, label: "Cooperative/Agent"]
+  DAO Governance [icon: shield]
+  AI Data Provider [icon: cpu]
+}
+
+External Integrations [icon: globe] {
+  Mobile Money API [icon: smartphone]
+  Satellite Data Provider [icon: satellite]
+  IoT Hardware [icon: cpu]
+  Blockchain Oracle [icon: link]
+  "Third-party KYC" [icon: id-card]
+}
+
+// UI/UX LAYER
+UI Layer [icon: monitor] {
+  Web App [icon: monitor, label: "Next.js DApp"]
+  Mobile App [icon: smartphone]
+  Accessibility Engine [icon: eye]
+}
+
+// DATA ORACLE & IOT LAYER
+Data Oracle & IoT Layer [icon: cpu, color: orange] {
+  LoRa Soil Sensors [icon: thermometer]
+  Drone Imaging [icon: airplay]
+  IoT Weather Station [icon: cloud-rain]
+  Edge AI Security [icon: shield]
+  Oracle Aggregator [icon: link]
+}
+
+// CORE ECOSYSTEM MODULES
+Ecosystem Modules [icon: package] {
+  // 1. Decentralized Identity System
+  DID Identity System [icon: fingerprint, color: blue] {
+    "AI-KYC Engine" [icon: user-check]
+    DID Registry [icon: key]
+    ZK Privacy Layer [icon: eye-off]
+    Reputation Scoring [icon: star]
+    Revocation Registry [icon: x-circle]
+    Recovery Protocol [icon: refresh-ccw]
+    Identity Oracles [icon: users]
+  }
+
+  // 2. AI Credit Scoring Engine
+  AI Credit Scoring Engine [icon: activity, color: green] {
+    Data Pipeline [icon: shuffle]
+    Model Training [icon: cpu]
+    Credit Scoring Model [icon: bar-chart-2]
+    Explainability Module [icon: help-circle]
+    Federated Learning [icon: share-2]
+    Continuous Retraining [icon: repeat]
+    Credit Score Output [icon: trending-up]
+    Explainability Report [icon: file-text]
+  }
+
+  // 3. Lending Protocol
+  Lending Protocol [icon: dollar-sign, color: purple] {
+    MicroLoan Contract [icon: file-text, label: "MicroLoan"]
+    Liquidity Pool Contract [icon: layers, label: "LiquidityPool"]
+    Yield Token Contract [icon: award, label: "YieldToken"]
+    Repayment Logic [icon: repeat]
+    Penalty Enforcement [icon: alert-triangle]
+    Smart Insurance [icon: umbrella]
+    Funding Sources [icon: users]
+    Supported Tokens [icon: coins]
+  }
+
+  // 4. Marketplace & Supply Chain
+  Marketplace & Supply Chain [icon: shopping-cart, color: yellow] {
+    NFT Farming Contract [icon: hexagon]
+    "Geo-Tagging" [icon: map-pin]
+    AI Recommendations [icon: thumbs-up]
+    Escrow Contract [icon: lock]
+    IoT Tracking [icon: truck]
+    Payment Release Oracle [icon: check-circle]
+    Supply Chain Traceability [icon: activity]
+  }
+
+  // 5. Carbon Credit & Climate Module
+  Carbon Credit & Climate Module [icon: cloud, color: teal] {
+    Climate AI Engine [icon: cpu]
+    Carbon Tokenomics [icon: leaf]
+    CARBT Token [icon: droplet]
+    Satellite Data Ingest [icon: satellite]
+    CO2 Verification Oracle [icon: check]
+  }
+}
+
+// BACKEND INFRASTRUCTURE
+Backend Infrastructure [icon: server] {
+  // AI/ML Microservices
+  AI Services [icon: cpu] {
+    CreditScoringService [icon: activity]
+    YieldPredictor [icon: trending-up]
+    ClimateAI [icon: cloud]
+    RecommendationEngine [icon: thumbs-up]
+    Model Registry [icon: archive]
+    Model Versioning [icon: git-branch]
+  }
+
+  // Blockchain Layer
+  Blockchain Layer [icon: cube] {
+    LoanManager Contract [icon: file-text]
+    IdentityRegistry Contract [icon: key]
+    MarketplaceEscrow Contract [icon: lock]
+    GovernanceDAO Contract [icon: shield]
+    Supported Chains [icon: layers]
+    Gas Optimization [icon: zap]
+    Subgraph Indexer [icon: search]
+  }
+
+  // Data Storage
+  Data Storage [icon: database] {
+    MongoDB [icon: database]
+    IPFS [icon: cloud]
+    Arweave [icon: archive]
+    Data Encryption [icon: lock]
+    The Graph Indexing [icon: search]
+  }
+}
+
+// SECURITY, COMPLIANCE & GOVERNANCE
+Security & Governance [icon: shield, color: red] {
+  DAO Tiers [icon: users]
+  Voting Mechanism [icon: check-square]
+  Treasury Management [icon: dollar-sign]
+  Smart Contract Audits [icon: check-circle]
+  AI Fraud Detection [icon: alert-octagon]
+  ZK Proofs [icon: eye-off]
+  Threat Intelligence [icon: alert-triangle]
+  Data Ethics & AI Transparency [icon: book-open]
+  Audit Trail [icon: file-text]
+}
+
+// MONITORING & DEVOPS
+Monitoring & DevOps [icon: activity] {
+  Prometheus [icon: activity]
+  Grafana [icon: bar-chart-2]
+  Tenderly [icon: search]
+  Sentry [icon: alert-circle]
+  "CI/CD Pipeline" [icon: git-merge]
+  Error Handling [icon: alert-triangle]
+}
+
+// CONNECTIONS
+
+// User entry points
+
+Farmer > Mobile App
+Investor > Mobile App
+Cooperative > Mobile App
+
+// UI Layer to Ecosystem
+Web App > DID Identity System
+Mobile App > DID Identity System
+Web App > AI Credit Scoring Engine
+Web App > Lending Protocol
+Web App > Marketplace & Supply Chain
+Web App > Carbon Credit & Climate Module
+
+// External Integrations to Data Oracle/IoT
+Mobile Money API > Data Oracle & IoT Layer
+Satellite Data Provider > Data Oracle & IoT Layer
+IoT Hardware > Data Oracle & IoT Layer
+Blockchain Oracle > Data Oracle & IoT Layer
+
+// Data Oracle/IoT to Backend
+
+Data Pipeline > Model Training
+Model Training > Credit Scoring Model
+Model Training > Climate AI Engine
+Model Training > RecommendationEngine
+
+// AI/ML to Core Modules
+
+// Core Modules to Blockchain Layer
+DID Registry > IdentityRegistry Contract
+MicroLoan Contract > LoanManager Contract
+Liquidity Pool Contract > LoanManager Contract
+Yield Token Contract > LoanManager Contract
+Escrow Contract > MarketplaceEscrow Contract
+NFT Farming Contract > MarketplaceEscrow Contract
+CARBT Token > GovernanceDAO Contract
+CARBT Token > Supported Chains
+
+// Smart contract triggers
+"AI-KYC Engine" > DID Registry
+DID Registry > Reputation Scoring
+Reputation Scoring > Lending Protocol
+AI Credit Scoring Engine > Lending Protocol
+Lending Protocol > Marketplace & Supply Chain
+Marketplace & Supply Chain > Carbon Credit & Climate Module
+
+// Payment and settlement flows
+Lending Protocol > Mobile Money API
+Marketplace & Supply Chain > Mobile Money API
+Payment Release Oracle > Mobile Money API
+
+// Data storage and indexing
+All: AI Credit Scoring Engine, Lending Protocol, Marketplace & Supply Chain, Carbon Credit & Climate Module > Data Storage
+
+// Security, compliance, and monitoring
+All: Blockchain Layer, Data Storage, AI Services > Security & Governance
+
+// Monitoring and DevOps
+All: Backend Infrastructure > Monitoring & DevOps
+
+// Feedback loop to UI
+
+// DAO Governance flows
+DAO Governance > GovernanceDAO Contract
+GovernanceDAO Contract > Treasury Management
+GovernanceDAO Contract > Voting Mechanism
+GovernanceDAO Contract > DAO Tiers
+
+// Accessibility
+Accessibility Engine > Web App
+Accessibility Engine > Mobile App
+Users & Roles > Web App
+Web App > Ecosystem Modules
+"AI-KYC Engine" < "Third-party KYC"
+AI Credit Scoring Engine < CreditScoringService
+AI Credit Scoring Engine < YieldPredictor
+Carbon Credit & Climate Module < ClimateAI
+Marketplace & Supply Chain < RecommendationEngine
+Web App < Data Storage
+Web App < Blockchain Layer
+Web App < AI Services
+Web App < Security & Governance
+Web App > Ecosystem Modules
+Web App < Backend Infrastructure
+Data Pipeline < Data Oracle & IoT Layer
+Web App > Ecosystem Modules
+Web App < Backend Infrastructure
+Web App > Ecosystem Modules
+Web App < Backend Infrastructure
+Web App > Ecosystem Modules
+Web App < Backend Infrastructure
+Web App > Ecosystem Modules
+Web App < Backend Infrastructure
+Web App > Ecosystem Modules
+Web App < Backend Infrastructure
+Web App > Ecosystem Modules
+Web App < Backend Infrastructure
+Web App > Ecosystem Modules
+Web App < Backend Infrastructure
+Web App > Ecosystem Modules
+Web App < Backend Infrastructure
+Web App > Ecosystem Modules
+Web App < Backend Infrastructure
