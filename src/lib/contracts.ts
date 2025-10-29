@@ -1,15 +1,16 @@
 // Contract ABIs and addresses for AgriCredit DApp
 
 export const CONTRACT_ADDRESSES = {
-  // Replace with actual deployed contract addresses
-  IdentityRegistry: '0x0000000000000000000000000000000000000000',
-  LoanManager: '0x0000000000000000000000000000000000000000',
-  MarketplaceEscrow: '0x0000000000000000000000000000000000000000',
-  GovernanceDAO: '0x0000000000000000000000000000000000000000',
-  CarbonToken: '0x0000000000000000000000000000000000000000',
-  LiquidityPool: '0x0000000000000000000000000000000000000000',
-  YieldToken: '0x0000000000000000000000000000000000000000',
-  NFTFarming: '0x0000000000000000000000000000000000000000',
+  // Mock deployed contract addresses for development
+  IdentityRegistry: '0x1234567890123456789012345678901234567890',
+  LoanManager: '0x2345678901234567890123456789012345678901',
+  MarketplaceEscrow: '0x3456789012345678901234567890123456789012',
+  GovernanceDAO: '0x4567890123456789012345678901234567890123',
+  CarbonToken: '0x5678901234567890123456789012345678901234',
+  LiquidityPool: '0x6789012345678901234567890123456789012345',
+  YieldToken: '0x7890123456789012345678901234567890123456',
+  NFTFarming: '0x8901234567890123456789012345678901234567',
+  AgriCredit: '0x9012345678901234567890123456789012345678',
 };
 
 export const IDENTITY_REGISTRY_ABI = [
@@ -73,4 +74,15 @@ export const NFT_FARMING_ABI = [
   "function recordHarvest(uint256 tokenId, uint256 actualYield) external",
   "function getFarmNFT(uint256 tokenId) external view returns (tuple(uint256 id, address farmer, string farmName, string location, uint256 size, string cropType, uint256 expectedYield, uint256 plantingDate, uint256 harvestDate, string metadataURI, bool isActive))",
   "function getFarmerNFTs(address farmer) external view returns (uint256[] memory)",
+];
+
+export const AGRI_CREDIT_ABI = [
+  "function transfer(address to, uint256 amount) external returns (bool)",
+  "function balanceOf(address account) external view returns (uint256)",
+  "function approve(address spender, uint256 amount) external returns (bool)",
+  "function allowance(address owner, address spender) external view returns (uint256)",
+  "function totalSupply() external view returns (uint256)",
+  "function name() external view returns (string memory)",
+  "function symbol() external view returns (string memory)",
+  "function decimals() external view returns (uint8)",
 ];

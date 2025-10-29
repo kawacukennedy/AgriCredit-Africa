@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useWallet } from '@/hooks/useWallet';
 import Image from 'next/image';
 import { ArrowRight, Shield, Zap, TrendingUp, Wallet, BarChart3 } from 'lucide-react';
@@ -42,6 +43,7 @@ const featureData = {
 export default function Home() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const { address, isConnected, connectWallet, isConnecting, error, disconnectWallet } = useWallet();
+  const router = useRouter();
 
   const currentFeature = featureData[slides[currentSlide].key as keyof typeof featureData];
 
@@ -62,6 +64,36 @@ export default function Home() {
     return 'Connect Wallet';
   };
 
+  const handleLearnMore = () => {
+    const slideKey = slides[currentSlide].key;
+    switch (slideKey) {
+      case 'credit':
+        router.push('/loan-application');
+        break;
+      case 'marketplace':
+        router.push('/marketplace');
+        break;
+      case 'carbon':
+        router.push('/carbon-dashboard');
+        break;
+      default:
+        router.push('/dashboard');
+    }
+  };
+
+  const handleGetStarted = () => {
+    if (isConnected) {
+      router.push('/dashboard');
+    } else {
+      // If not connected, prompt to connect wallet first
+      connectWallet();
+    }
+  };
+
+  const handleExploreFeatures = () => {
+    router.push('/dashboard');
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
       {/* Header */}
@@ -73,11 +105,11 @@ export default function Home() {
               {address.slice(0, 6)}...{address.slice(-4)}
             </span>
           )}
-              <button
-                onClick={isConnected ? handleDisconnect : handleConnect}
-                disabled={isConnecting}
-                className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-6 py-3 rounded-lg transition-colors flex items-center gap-2"
-              >
+               <button
+                 onClick={handleWalletAction}
+                 disabled={isConnecting}
+                 className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-6 py-3 rounded-lg transition-colors flex items-center gap-2"
+               >
                 <Wallet className="w-5 h-5" />
                 <span>{getWalletButtonText()}</span>
               </button>
@@ -129,10 +161,13 @@ export default function Home() {
                 <p className="text-lg text-gray-600 dark:text-gray-300 mb-6">
                   {currentFeature.description}
                 </p>
-                <button className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
-                  <span>Learn More</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
+                 <button
+                   onClick={handleLearnMore}
+                   className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                 >
+                   <span>Learn More</span>
+                   <ArrowRight className="w-4 h-4" />
+                 </button>
               </div>
               <div className="flex-1">
                 <Image
@@ -182,14 +217,20 @@ export default function Home() {
           <p className="text-gray-600 dark:text-gray-300 mb-8 max-w-xl mx-auto">
               Explore Features
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="bg-green-600 text-white px-8 py-4 rounded-lg hover:bg-green-700 transition-colors text-lg font-semibold">
-            Get Started
-            </button>
-            <button className="border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 px-8 py-4 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-lg font-semibold">
-            Explore Features
-            </button>
-          </div>
+           <div className="flex flex-col sm:flex-row gap-4 justify-center">
+             <button
+               onClick={handleGetStarted}
+               className="bg-green-600 text-white px-8 py-4 rounded-lg hover:bg-green-700 transition-colors text-lg font-semibold"
+             >
+               Get Started
+             </button>
+             <button
+               onClick={handleExploreFeatures}
+               className="border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 px-8 py-4 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-lg font-semibold"
+             >
+               Explore Features
+             </button>
+           </div>
         </div>
       </main>
     </div>

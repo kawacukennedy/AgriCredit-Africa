@@ -2,6 +2,9 @@
 
 import { motion } from 'framer-motion';
 import { useState } from 'react';
+import { getCreditScore, getYieldPrediction, CreditScoringRequest, YieldPredictionRequest } from '@/lib/api';
+import { contractInteractions } from '@/lib/contractInteractions';
+import { useWallet } from '@/hooks/useWallet';
 
 const steps = [
   { title: 'Crop Data', description: 'Enter your farming details' },
@@ -11,7 +14,17 @@ const steps = [
 ];
 
 export default function LoanApplication() {
+  const { address, isConnected } = useWallet();
   const [currentStep, setCurrentStep] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isDeploying, setIsDeploying] = useState(false);
+  const [aiResults, setAiResults] = useState<{
+    creditScore?: number;
+    riskLevel?: string;
+    predictedYield?: number;
+    confidence?: number;
+    explanation?: string;
+  }>({});
   const [formData, setFormData] = useState({
     cropType: '',
     farmSize: '',
@@ -19,7 +32,80 @@ export default function LoanApplication() {
     expectedYield: ''
   });
 
-  const nextStep = () => setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
+  const nextStep = async () => {
+    if (currentStep === 0) {
+      // Validate form data before proceeding
+      if (!formData.cropType || !formData.farmSize || !formData.location) {
+        alert('Please fill in all required fields');
+        return;
+      }
+
+      // Call AI APIs when moving to step 1
+      setIsLoading(true);
+      try {
+        const creditRequest: CreditScoringRequest = {
+          crop_type: formData.cropType,
+          farm_size: parseFloat(formData.farmSize),
+          location: formData.location,
+        };
+
+        const yieldRequest: YieldPredictionRequest = {
+          crop_type: formData.cropType,
+          farm_size: parseFloat(formData.farmSize),
+          location: formData.location,
+        };
+
+        const [creditResponse, yieldResponse] = await Promise.all([
+          getCreditScore(creditRequest),
+          getYieldPrediction(yieldRequest)
+        ]);
+
+        setAiResults({
+          creditScore: creditResponse.data.credit_score,
+          riskLevel: creditResponse.data.risk_level,
+          predictedYield: yieldResponse.data.predicted_yield,
+          confidence: Math.max(creditResponse.data.confidence, yieldResponse.data.confidence),
+          explanation: creditResponse.data.explanation,
+        });
+      } catch (error) {
+        console.error('AI prediction failed:', error);
+        alert('Failed to get AI predictions. Please try again.');
+        setIsLoading(false);
+        return;
+      }
+      setIsLoading(false);
+    } else if (currentStep === steps.length - 1) {
+      // Deploy contract on final step
+      if (!isConnected || !address) {
+        alert('Please connect your wallet to deploy the loan contract.');
+        return;
+      }
+
+      setIsDeploying(true);
+      try {
+        // Deploy loan contract
+        const loanAmount = "2500"; // $2500 loan
+        const interestRate = 850; // 8.5% APR in basis points
+        const duration = 365 * 24 * 60 * 60; // 1 year in seconds
+
+        const result = await contractInteractions.createLoan(address, loanAmount, interestRate, duration);
+
+        alert(`Loan contract deployed successfully! Transaction hash: ${result.transactionHash}`);
+        // Redirect to dashboard or loan management page
+        window.location.href = '/dashboard';
+      } catch (error) {
+        console.error('Contract deployment failed:', error);
+        alert('Failed to deploy loan contract. Please try again.');
+        setIsDeploying(false);
+        return;
+      }
+      setIsDeploying(false);
+      return;
+    }
+
+    setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
+  };
+
   const prevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 0));
 
   return (
@@ -127,30 +213,46 @@ export default function LoanApplication() {
             </div>
           )}
 
-          {currentStep === 1 && (
-            <div>
-              <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">AI Prediction</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-green-50 dark:bg-green-900 p-6 rounded-lg">
-                  <h3 className="text-lg font-semibold text-green-800 dark:text-green-400 mb-2">Predicted Yield</h3>
-                  <div className="text-3xl font-bold text-green-600">8.5 tons</div>
-                  <p className="text-sm text-green-700 dark:text-green-300">Confidence: 92%</p>
-                </div>
-                <div className="bg-blue-50 dark:bg-blue-900 p-6 rounded-lg">
-                  <h3 className="text-lg font-semibold text-blue-800 dark:text-blue-400 mb-2">Credit Score</h3>
-                  <div className="text-3xl font-bold text-blue-600">785</div>
-                  <p className="text-sm text-blue-700 dark:text-blue-300">Trust Level: High</p>
-                </div>
-              </div>
-              <div className="mt-6">
-                <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-2">AI Explainability Report</h3>
-                <p className="text-gray-600 dark:text-gray-400">
-                  Your credit score is based on historical repayment data, farm size, crop type, and regional weather patterns.
-                  The AI predicts a 15% higher yield than average for maize in your region.
-                </p>
-              </div>
-            </div>
-          )}
+           {currentStep === 1 && (
+             <div>
+               <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">AI Prediction</h2>
+               {isLoading ? (
+                 <div className="text-center py-8">
+                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
+                   <p className="mt-4 text-gray-600 dark:text-gray-400">Analyzing your data with AI...</p>
+                 </div>
+               ) : (
+                 <>
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                     <div className="bg-green-50 dark:bg-green-900 p-6 rounded-lg">
+                       <h3 className="text-lg font-semibold text-green-800 dark:text-green-400 mb-2">Predicted Yield</h3>
+                       <div className="text-3xl font-bold text-green-600">
+                         {aiResults.predictedYield ? `${aiResults.predictedYield.toFixed(1)} tons` : 'N/A'}
+                       </div>
+                       <p className="text-sm text-green-700 dark:text-green-300">
+                         Confidence: {aiResults.confidence ? `${(aiResults.confidence * 100).toFixed(0)}%` : 'N/A'}
+                       </p>
+                     </div>
+                     <div className="bg-blue-50 dark:bg-blue-900 p-6 rounded-lg">
+                       <h3 className="text-lg font-semibold text-blue-800 dark:text-blue-400 mb-2">Credit Score</h3>
+                       <div className="text-3xl font-bold text-blue-600">
+                         {aiResults.creditScore ? aiResults.creditScore.toFixed(0) : 'N/A'}
+                       </div>
+                       <p className="text-sm text-blue-700 dark:text-blue-300">
+                         Risk Level: {aiResults.riskLevel || 'N/A'}
+                       </p>
+                     </div>
+                   </div>
+                   <div className="mt-6">
+                     <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-2">AI Explainability Report</h3>
+                     <p className="text-gray-600 dark:text-gray-400">
+                       {aiResults.explanation || 'Your credit score is based on historical repayment data, farm size, crop type, and regional weather patterns. The AI predicts yield based on weather data, soil quality, and farming practices.'}
+                     </p>
+                   </div>
+                 </>
+               )}
+             </div>
+           )}
 
           {currentStep === 2 && (
             <div>
@@ -187,37 +289,43 @@ export default function LoanApplication() {
             </div>
           )}
 
-          {currentStep === 3 && (
-            <div>
-              <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">Review & Deploy</h2>
-              <div className="bg-gray-50 dark:bg-gray-700 p-6 rounded-lg mb-6">
-                <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">Smart Contract Summary</h3>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Loan Amount:</span>
-                    <span className="font-medium">$2,500</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Interest Rate:</span>
-                    <span className="font-medium">8.5% APR</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Repayment Period:</span>
-                    <span className="font-medium">12 months</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Monthly Payment:</span>
-                    <span className="font-medium">$225</span>
-                  </div>
-                </div>
-              </div>
-              <div className="bg-yellow-50 dark:bg-yellow-900 p-4 rounded-lg">
-                <p className="text-yellow-800 dark:text-yellow-200 text-sm">
-                  By confirming, you agree to deploy this loan contract on the blockchain. Funds will be disbursed instantly upon approval.
-                </p>
-              </div>
-            </div>
-          )}
+           {currentStep === 3 && (
+             <div>
+               <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">Review & Deploy</h2>
+               <div className="bg-gray-50 dark:bg-gray-700 p-6 rounded-lg mb-6">
+                 <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">Smart Contract Summary</h3>
+                 <div className="space-y-2 text-sm">
+                   <div className="flex justify-between">
+                     <span className="text-gray-600 dark:text-gray-400">Loan Amount:</span>
+                     <span className="font-medium">$2,500</span>
+                   </div>
+                   <div className="flex justify-between">
+                     <span className="text-gray-600 dark:text-gray-400">Interest Rate:</span>
+                     <span className="font-medium">8.5% APR</span>
+                   </div>
+                   <div className="flex justify-between">
+                     <span className="text-gray-600 dark:text-gray-400">Repayment Period:</span>
+                     <span className="font-medium">12 months</span>
+                   </div>
+                   <div className="flex justify-between">
+                     <span className="text-gray-600 dark:text-gray-400">Monthly Payment:</span>
+                     <span className="font-medium">$225</span>
+                   </div>
+                 </div>
+               </div>
+               <div className="bg-yellow-50 dark:bg-yellow-900 p-4 rounded-lg mb-6">
+                 <p className="text-yellow-800 dark:text-yellow-200 text-sm">
+                   By confirming, you agree to deploy this loan contract on the blockchain. Funds will be disbursed instantly upon approval.
+                 </p>
+               </div>
+               <div className="bg-blue-50 dark:bg-blue-900 p-4 rounded-lg">
+                 <p className="text-blue-800 dark:text-blue-200 text-sm">
+                   <strong>AI Credit Assessment:</strong> Based on your farm data and credit score, this loan has been pre-approved.
+                   The smart contract will automatically disburse funds upon confirmation.
+                 </p>
+               </div>
+             </div>
+           )}
         </motion.div>
 
         {/* Navigation */}
@@ -229,12 +337,13 @@ export default function LoanApplication() {
           >
             Previous
           </button>
-          <button
-            onClick={nextStep}
-            className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-          >
-            {currentStep === steps.length - 1 ? 'Deploy Contract' : 'Next'}
-          </button>
+           <button
+             onClick={nextStep}
+             disabled={isDeploying}
+             className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+           >
+             {isDeploying ? 'Deploying Contract...' : currentStep === steps.length - 1 ? 'Deploy Contract' : 'Next'}
+           </button>
         </div>
       </main>
     </div>

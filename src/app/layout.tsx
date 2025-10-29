@@ -5,6 +5,8 @@ import Head from 'next/head';
 import "./globals.css";
 import { AccessibilityPanel } from "@/components/AccessibilityPanel";
 import { NavBar } from "@/components/NavBar";
+import { Footer } from "@/components/Footer";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 
 
@@ -39,7 +41,12 @@ function RootLayout({
           className="antialiased"
         >
           <NavBar />
-          {children}
+          <ErrorBoundary>
+            <main className="flex-1">
+              {children}
+            </main>
+          </ErrorBoundary>
+          <Footer />
           <AccessibilityPanel />
         </body>
       </html>

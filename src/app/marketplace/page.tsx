@@ -1,6 +1,8 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 
 const listings = [
@@ -37,13 +39,47 @@ const listings = [
 ];
 
 export default function Marketplace() {
+  const router = useRouter();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCrop, setSelectedCrop] = useState('');
+  const [selectedLocation, setSelectedLocation] = useState('');
+
+  const handleListProduce = () => {
+    router.push('/marketplace/list');
+  };
+
+  const handleViewDetails = (listingId: number) => {
+    router.push(`/marketplace/${listingId}`);
+  };
+
+  const filteredListings = listings.filter((listing) => {
+    const matchesSearch = !searchTerm ||
+      listing.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      listing.farmer.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      listing.description?.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesCrop = !selectedCrop || listing.cropType === selectedCrop;
+    const matchesLocation = !selectedLocation ||
+      listing.location.toLowerCase().includes(selectedLocation.toLowerCase());
+
+    return matchesSearch && matchesCrop && matchesLocation;
+  });
+
+  const handleSearch = () => {
+    // The filtering is handled by the filteredListings computed value
+    console.log('Filtered results:', filteredListings.length, 'listings');
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <header className="bg-white dark:bg-gray-800 shadow-sm">
         <div className="container mx-auto px-6 py-4">
           <div className="flex justify-between items-center">
             <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Marketplace</h1>
-            <button className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
+            <button
+              onClick={handleListProduce}
+              className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+            >
               List Produce
             </button>
           </div>
@@ -57,21 +93,34 @@ export default function Marketplace() {
             <input
               type="text"
               placeholder="Search produce..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               className="flex-1 p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white"
             />
-            <select className="p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white">
+            <select
+              value={selectedCrop}
+              onChange={(e) => setSelectedCrop(e.target.value)}
+              className="p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white"
+            >
               <option value="">All Crops</option>
               <option value="maize">Maize</option>
               <option value="rice">Rice</option>
               <option value="cassava">Cassava</option>
             </select>
-            <select className="p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white">
+            <select
+              value={selectedLocation}
+              onChange={(e) => setSelectedLocation(e.target.value)}
+              className="p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white"
+            >
               <option value="">All Locations</option>
               <option value="kenya">Kenya</option>
               <option value="uganda">Uganda</option>
               <option value="nigeria">Nigeria</option>
             </select>
-            <button className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+            <button
+              onClick={handleSearch}
+              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
               Search
             </button>
           </div>
@@ -111,7 +160,10 @@ export default function Marketplace() {
                   <span className="text-2xl font-bold text-green-600">
                     ${listing.price}/ton
                   </span>
-                  <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                  <button
+                    onClick={() => handleViewDetails(listing.id)}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
                     View Details
                   </button>
                 </div>

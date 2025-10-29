@@ -1,9 +1,42 @@
 'use client';
 
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
+import { OnboardingModal } from '@/components/OnboardingModal';
 
 export default function Dashboard() {
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    // Check if user has completed onboarding
+    const hasCompletedOnboarding = localStorage.getItem('agricredit_onboarding_completed');
+    if (!hasCompletedOnboarding) {
+      setShowOnboarding(true);
+    }
+  }, []);
+
+  const handleOnboardingClose = () => {
+    setShowOnboarding(false);
+    localStorage.setItem('agricredit_onboarding_completed', 'true');
+  };
+
+  const handleApplyForLoan = () => {
+    router.push('/loan-application');
+  };
+
+  const handleListProduce = () => {
+    router.push('/marketplace');
+  };
+
+  const handleViewCarbonImpact = () => {
+    router.push('/carbon-dashboard');
+  };
+
   return (
+    <>
+      <OnboardingModal isOpen={showOnboarding} onClose={handleOnboardingClose} />
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <header className="bg-white dark:bg-gray-800 shadow-sm">
         <div className="container mx-auto px-6 py-4">
@@ -104,22 +137,52 @@ export default function Dashboard() {
           className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm"
         >
           <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">Quick Actions</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <button className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-              <h4 className="font-medium text-gray-800 dark:text-white">Apply for Loan</h4>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Get AI-powered credit assessment</p>
-            </button>
-            <button className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-              <h4 className="font-medium text-gray-800 dark:text-white">List Produce</h4>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Sell on the marketplace</p>
-            </button>
-            <button className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-              <h4 className="font-medium text-gray-800 dark:text-white">View Carbon Impact</h4>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Track your environmental contribution</p>
-            </button>
-          </div>
+           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+             <button
+               onClick={handleApplyForLoan}
+               className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+             >
+               <h4 className="font-medium text-gray-800 dark:text-white">Apply for Loan</h4>
+               <p className="text-sm text-gray-600 dark:text-gray-400">Get AI-powered credit assessment</p>
+             </button>
+             <button
+               onClick={handleListProduce}
+               className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+             >
+               <h4 className="font-medium text-gray-800 dark:text-white">List Produce</h4>
+               <p className="text-sm text-gray-600 dark:text-gray-400">Sell on the marketplace</p>
+             </button>
+              <button
+                onClick={handleViewCarbonImpact}
+                className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              >
+                <h4 className="font-medium text-gray-800 dark:text-white">View Carbon Impact</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Track your environmental contribution</p>
+              </button>
+              <button
+                onClick={() => router.push('/nft-farming')}
+                className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              >
+                <h4 className="font-medium text-gray-800 dark:text-white">NFT Farming</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Manage tokenized farm assets</p>
+              </button>
+              <button
+                onClick={() => router.push('/liquidity-pool')}
+                className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              >
+                <h4 className="font-medium text-gray-800 dark:text-white">Liquidity Pools</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Provide liquidity and earn rewards</p>
+              </button>
+              <button
+                onClick={() => router.push('/yield-farming')}
+                className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              >
+                <h4 className="font-medium text-gray-800 dark:text-white">Yield Farming</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Stake tokens for passive income</p>
+              </button>
+           </div>
         </motion.div>
       </main>
-    </div>
+    </>
   );
 }

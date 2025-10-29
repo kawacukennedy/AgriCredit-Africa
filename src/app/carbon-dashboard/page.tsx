@@ -1,16 +1,32 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import { useState } from 'react';
 
 export default function CarbonDashboard() {
+  const [isSelling, setIsSelling] = useState(false);
+
+  const handleSellTokens = async () => {
+    setIsSelling(true);
+    // Simulate selling tokens
+    setTimeout(() => {
+      alert('CARBT tokens sold successfully! Transaction pending on blockchain.');
+      setIsSelling(false);
+    }, 2000);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <header className="bg-white dark:bg-gray-800 shadow-sm">
         <div className="container mx-auto px-6 py-4">
           <div className="flex justify-between items-center">
             <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Carbon Dashboard</h1>
-            <button className="bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700 transition-colors">
-              Sell CARBT Tokens
+            <button
+              onClick={handleSellTokens}
+              disabled={isSelling}
+              className="bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSelling ? 'Selling...' : 'Sell CARBT Tokens'}
             </button>
           </div>
         </div>
