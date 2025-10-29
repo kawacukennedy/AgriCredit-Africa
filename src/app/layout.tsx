@@ -1,20 +1,9 @@
 'use client';
 
-import { Inter, JetBrains_Mono } from "next/font/google";
 import { useEffect } from 'react';
 import Head from 'next/head';
 import "./globals.css";
 import { AccessibilityPanel } from "@/components/AccessibilityPanel";
-
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-});
-
-const jetbrainsMono = JetBrains_Mono({
-  variable: "--font-jetbrains-mono",
-  subsets: ["latin"],
-});
 
 
 
@@ -46,7 +35,7 @@ function RootLayout({
       </Head>
       <html lang="en">
         <body
-          className={`${inter.variable} ${jetbrainsMono.variable} antialiased`}
+          className="antialiased"
         >
           {children}
           <AccessibilityPanel />
