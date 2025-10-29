@@ -1,71 +1,76 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-import tensorflow as tf
 import numpy as np
-from typing import Dict, Any
+from typing import Dict, Any, Optional
+from models.credit_scoring_model import CreditScoringModel
+from models.yield_prediction_model import YieldPredictionModel
+from models.climate_model import ClimateAnalysisModel
 
 app = FastAPI(title="AgriCredit AI Services", version="1.0.0")
+
+# Initialize AI models
+credit_model = CreditScoringModel()
+yield_model = YieldPredictionModel()
+climate_model = ClimateAnalysisModel()
 
 class CreditScoringRequest(BaseModel):
     crop_type: str
     farm_size: float
     location: str
-    historical_data: Dict[str, Any]
+    historical_data: Optional[Dict[str, Any]] = None
+    mobile_money_usage: Optional[float] = None
+    cooperative_membership: Optional[bool] = None
 
 class YieldPredictionRequest(BaseModel):
     crop_type: str
     farm_size: float
     location: str
-    weather_data: Dict[str, Any]
+    weather_data: Optional[Dict[str, Any]] = None
+    soil_quality: Optional[float] = None
+    irrigation_access: Optional[bool] = None
 
 class ClimateAnalysisRequest(BaseModel):
     satellite_data: Dict[str, Any]
-    iot_sensors: Dict[str, Any]
+    iot_sensors: Optional[Dict[str, Any]] = None
 
-# Mock AI models (in production, load trained models)
-def mock_credit_score(features: Dict[str, Any]) -> Dict[str, Any]:
-    # Simple mock scoring based on inputs
-    base_score = 500
-    if features.get('farm_size', 0) > 5:
-        base_score += 100
-    if features.get('crop_type') in ['maize', 'rice']:
-        base_score += 50
+def extract_credit_features(request: CreditScoringRequest) -> np.ndarray:
+    """Extract features for credit scoring model"""
+    # Default values for missing data
+    features = [
+        request.farm_size,
+        request.historical_data.get('repayment_rate', 0.7) if request.historical_data else 0.7,
+        request.mobile_money_usage or 5.0,
+        request.historical_data.get('satellite_ndvi', 0.6) if request.historical_data else 0.6,
+        request.historical_data.get('weather_risk', 0.3) if request.historical_data else 0.3,
+        1.0 if request.cooperative_membership else 0.0,
+        request.historical_data.get('loan_history', 1) if request.historical_data else 1,
+        request.historical_data.get('income_stability', 0.7) if request.historical_data else 0.7,
+        request.historical_data.get('location_risk', 0.2) if request.historical_data else 0.2,
+        request.historical_data.get('crop_diversity', 2) if request.historical_data else 2
+    ]
+    return np.array(features)
 
-    return {
-        "credit_score": min(base_score, 850),
-        "trust_level": "High" if base_score > 700 else "Medium",
-        "confidence": 0.85,
-        "explainability": "Score based on farm size, crop type, and location stability"
-    }
-
-def mock_yield_prediction(features: Dict[str, Any]) -> Dict[str, Any]:
-    base_yield = 8.0
-    if features.get('crop_type') == 'maize':
-        base_yield = 9.5
-    elif features.get('crop_type') == 'rice':
-        base_yield = 7.2
-
-    return {
-        "predicted_yield": base_yield,
-        "unit": "tons/hectare",
-        "confidence_interval": [base_yield * 0.8, base_yield * 1.2],
-        "factors": ["weather_patterns", "soil_quality", "historical_performance"]
-    }
-
-def mock_climate_analysis(data: Dict[str, Any]) -> Dict[str, Any]:
-    # Mock carbon sequestration calculation
-    base_co2 = 2.5  # tons per hectare
-    return {
-        "co2_sequestered": base_co2,
-        "ndvi_score": 0.72,
-        "carbon_tokens_mintable": base_co2,
-        "recommendations": ["Increase tree cover", "Implement no-till farming"]
-    }
+def extract_yield_features(request: YieldPredictionRequest) -> np.ndarray:
+    """Extract features for yield prediction model"""
+    features = [
+        request.farm_size,
+        request.soil_quality or 0.7,
+        request.weather_data.get('rainfall', 800) if request.weather_data else 800,
+        request.weather_data.get('temperature', 25) if request.weather_data else 25,
+        request.weather_data.get('fertilizer_usage', 1.5) if request.weather_data else 1.5,
+        1.0 if request.weather_data and request.weather_data.get('pest_control') else 0.0,
+        request.weather_data.get('crop_variety', 2) if request.weather_data else 2,
+        request.weather_data.get('farming_experience', 8) if request.weather_data else 8,
+        1.0 if request.irrigation_access else 0.0,
+        request.weather_data.get('market_distance', 1.0) if request.weather_data else 1.0
+    ]
+    return np.array(features)
 
 @app.post("/credit-scoring")
 async def credit_scoring(request: CreditScoringRequest):
     try:
-        result = mock_credit_score(request.dict())
+        features = extract_credit_features(request)
+        result = credit_model.predict(features)
         return {"status": "success", "data": result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -73,7 +78,8 @@ async def credit_scoring(request: CreditScoringRequest):
 @app.post("/yield-prediction")
 async def yield_prediction(request: YieldPredictionRequest):
     try:
-        result = mock_yield_prediction(request.dict())
+        features = extract_yield_features(request)
+        result = yield_model.predict(features)
         return {"status": "success", "data": result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -81,8 +87,24 @@ async def yield_prediction(request: YieldPredictionRequest):
 @app.post("/climate-analysis")
 async def climate_analysis(request: ClimateAnalysisRequest):
     try:
-        result = mock_climate_analysis(request.dict())
+        result = climate_model.analyze_climate_impact(request.satellite_data, request.iot_sensors or {})
         return {"status": "success", "data": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/train-models")
+async def train_models():
+    """Train AI models with sample data (for development)"""
+    try:
+        # Train credit scoring model
+        X_credit, y_credit = credit_model.generate_sample_data(1000)
+        credit_model.train(X_credit, y_credit, epochs=20)
+
+        # Train yield prediction model
+        X_yield, y_yield = yield_model.generate_sample_data(1000)
+        yield_model.train(X_yield, y_yield)
+
+        return {"status": "success", "message": "Models trained successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
