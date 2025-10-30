@@ -4,9 +4,11 @@ import { useEffect } from 'react';
 import Head from 'next/head';
 import "./globals.css";
 import { AccessibilityPanel } from "@/components/AccessibilityPanel";
+import { AccessibilityProvider } from "@/components/AccessibilityProvider";
 import { NavBar } from "@/components/NavBar";
 import { Footer } from "@/components/Footer";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { OfflineIndicator } from "@/components/OfflineIndicator";
 
 
 
@@ -40,14 +42,18 @@ function RootLayout({
         <body
           className="antialiased"
         >
-          <NavBar />
-          <ErrorBoundary>
-            <main className="flex-1">
-              {children}
-            </main>
-          </ErrorBoundary>
-          <Footer />
-          <AccessibilityPanel />
+          <a href="#main-content" className="skip-link">Skip to main content</a>
+          <AccessibilityProvider>
+            <NavBar />
+            <ErrorBoundary>
+              <main id="main-content" className="flex-1">
+                {children}
+              </main>
+            </ErrorBoundary>
+            <Footer />
+            <AccessibilityPanel />
+            <OfflineIndicator />
+          </AccessibilityProvider>
         </body>
       </html>
     </>

@@ -52,44 +52,155 @@ jobs:
     - name: Run frontend tests
       run: npm test -- --watchAll=false --passWithNoTests
 
-  test-backend:
-    runs-on: ubuntu-latest
+   test-backend:
+     runs-on: ubuntu-latest
 
-    steps:
-    - uses: actions/checkout@v4
+     services:
+       postgres:
+         image: postgres:15
+         env:
+           POSTGRES_PASSWORD: postgres
+         options: >-
+           --health-cmd pg_isready
+           --health-interval 10s
+           --health-timeout 5s
+           --health-retries 5
 
-    - name: Setup Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.10'
+       redis:
+         image: redis:7
+         options: >-
+           --health-cmd "redis-cli ping"
+           --health-interval 10s
+           --health-timeout 5s
+           --health-retries 5
 
-    - name: Install dependencies
-      run: |
-        cd backend
-        pip install -r requirements.txt
+     steps:
+     - uses: actions/checkout@v4
 
-    - name: Run backend tests
-      run: |
-        cd backend
-        python -m pytest --tb=short
+     - name: Setup Python
+       uses: actions/setup-python@v4
+       with:
+         python-version: '3.11'
 
-  deploy:
-    needs: [test-contracts, test-frontend, test-backend]
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+     - name: Cache pip dependencies
+       uses: actions/cache@v3
+       with:
+         path: ~/.cache/pip
+         key: ${{ runner.os }}-pip-${{ hashFiles('backend/requirements.txt') }}
+         restore-keys: |
+           ${{ runner.os }}-pip-
 
-    steps:
-    - uses: actions/checkout@v4
+     - name: Install dependencies
+       run: |
+         cd backend
+         pip install -r requirements.txt
 
-    - name: Deploy to Vercel
-      uses: amondnet/vercel-action@v25
-      with:
-        vercel-token: ${{ secrets.VERCEL_TOKEN }}
-        vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-        vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-        working-directory: ./
+     - name: Run linting and type checking
+       run: |
+         cd backend
+         # Install additional dev dependencies if needed
+         pip install flake8 black mypy
+         # Run linting
+         flake8 app --count --select=E9,F63,F7,F82 --show-source --statistics
+         # Run type checking
+         mypy app --ignore-missing-imports
 
-    - name: Deploy contracts
-      run: |
-        echo "Contract deployment would go here"
-        # npx hardhat run scripts/deploy.js --network polygon
+     - name: Run backend tests
+       run: |
+         cd backend
+         python -m pytest tests/ -v --tb=short --cov=app --cov-report=xml
+       env:
+         DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+         REDIS_URL: redis://localhost:6379
+
+     - name: Upload coverage to Codecov
+       uses: codecov/codecov-action@v3
+       with:
+         file: ./backend/coverage.xml
+         flags: backend
+         name: backend-coverage
+
+   security-scan:
+     runs-on: ubuntu-latest
+     needs: [test-contracts, test-frontend, test-backend]
+
+     steps:
+     - uses: actions/checkout@v4
+
+     - name: Run Trivy vulnerability scanner
+       uses: aquasecurity/trivy-action@master
+       with:
+         scan-type: 'fs'
+         scan-ref: '.'
+         format: 'sarif'
+         output: 'trivy-results.sarif'
+
+     - name: Upload Trivy scan results to GitHub Security tab
+       uses: github/codeql-action/upload-sarif@v2
+       if: always()
+       with:
+         sarif_file: 'trivy-results.sarif'
+
+   docker-build:
+     runs-on: ubuntu-latest
+     needs: [security-scan]
+     if: github.ref == 'refs/heads/main'
+
+     steps:
+     - uses: actions/checkout@v4
+
+     - name: Set up Docker Buildx
+       uses: docker/setup-buildx-action@v3
+
+     - name: Log in to Docker Hub
+       uses: docker/login-action@v3
+       with:
+         username: ${{ secrets.DOCKER_USERNAME }}
+         password: ${{ secrets.DOCKER_PASSWORD }}
+
+     - name: Build and push backend image
+       uses: docker/build-push-action@v5
+       with:
+         context: ./backend
+         push: true
+         tags: ${{ secrets.DOCKER_USERNAME }}/agricredit-backend:latest
+         cache-from: type=gha
+         cache-to: type=gha,mode=max
+
+     - name: Build and push frontend image
+       uses: docker/build-push-action@v5
+       with:
+         context: ./src
+         push: true
+         tags: ${{ secrets.DOCKER_USERNAME }}/agricredit-frontend:latest
+         cache-from: type=gha
+         cache-to: type=gha,mode=max
+
+   deploy:
+     needs: [docker-build]
+     runs-on: ubuntu-latest
+     if: github.ref == 'refs/heads/main'
+
+     steps:
+     - uses: actions/checkout@v4
+
+     - name: Deploy to production
+       run: |
+         echo "Deploying to production environment"
+         # Add your deployment commands here
+         # Example: kubectl apply -f k8s/ or docker-compose up -d on remote server
+
+     - name: Deploy contracts (staging)
+       run: |
+         echo "Deploying contracts to staging"
+         # npx hardhat run scripts/deploy.js --network polygon-mumbai
+
+     - name: Run smoke tests
+       run: |
+         echo "Running smoke tests on deployed environment"
+         # curl -f https://api.agricredit.africa/health || exit 1
+
+     - name: Notify deployment success
+       run: |
+         echo "Deployment completed successfully"
+         # Add notification logic here (Slack, Discord, etc.)

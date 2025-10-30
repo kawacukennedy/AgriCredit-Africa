@@ -118,6 +118,9 @@ Once running, visit:
 - **Swagger UI**: http://localhost:8000/docs
 - **ReDoc**: http://localhost:8000/redoc
 - **OpenAPI Schema**: http://localhost:8000/openapi.json
+- **GraphQL Playground**: http://localhost:8000/graphql
+- **Health Check**: http://localhost:8000/health
+- **Metrics**: http://localhost:8000/metrics
 
 ## 🔑 Authentication
 
@@ -157,6 +160,22 @@ The API uses JWT (JSON Web Tokens) for authentication:
 ### Notifications
 - `GET /notifications` - Get user notifications
 - `PUT /notifications/{id}/read` - Mark as read
+
+### Real-time Features
+- `WebSocket /ws/{user_id}` - Real-time notifications and sensor alerts
+- `POST /iot/process-sensor-batch` - Batch IoT sensor data processing
+- `POST /oracle/update-feeds` - Update oracle data feeds
+
+### Decentralized Storage
+- `POST /ipfs/upload` - Upload files to IPFS
+- `GET /ipfs/{cid}` - Retrieve IPFS content
+
+### GraphQL API
+- `POST /graphql` - GraphQL endpoint for flexible queries and mutations
+  - User management and profiles
+  - Sensor data and analytics
+  - Marketplace operations
+  - Loan and credit information
 
 ## 🧪 Testing
 

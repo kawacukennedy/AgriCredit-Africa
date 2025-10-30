@@ -74,6 +74,37 @@ class Cache:
         except Exception:
             pass
 
+    # Oracle data caching methods
+    async def set_oracle_price(self, key: str, price: float) -> bool:
+        """Cache oracle price data"""
+        cache_key = f"oracle_price:{key}"
+        return await self.set(cache_key, price, expire=300)  # 5 minutes
+
+    async def get_oracle_price(self, key: str) -> Optional[float]:
+        """Get cached oracle price data"""
+        cache_key = f"oracle_price:{key}"
+        return await self.get(cache_key)
+
+    async def set_weather_data(self, key: str, data: Any) -> bool:
+        """Cache weather data"""
+        cache_key = f"weather:{key}"
+        return await self.set(cache_key, data, expire=1800)  # 30 minutes
+
+    async def get_weather_data(self, key: str) -> Optional[Any]:
+        """Get cached weather data"""
+        cache_key = f"weather:{key}"
+        return await self.get(cache_key)
+
+    async def set_crop_yield_data(self, key: str, data: Any) -> bool:
+        """Cache crop yield data"""
+        cache_key = f"crop_yield:{key}"
+        return await self.set(cache_key, data, expire=3600)  # 1 hour
+
+    async def get_crop_yield_data(self, key: str) -> Optional[Any]:
+        """Get cached crop yield data"""
+        cache_key = f"crop_yield:{key}"
+        return await self.get(cache_key)
+
 # Global cache instance
 cache = Cache()
 

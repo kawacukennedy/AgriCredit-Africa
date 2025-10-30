@@ -52,15 +52,15 @@ export function Footer() {
             <ul className="space-y-2">
               <li className="flex items-center space-x-2">
                 <Mail className="w-4 h-4 text-gray-400" />
-                <span className="text-gray-300">support@agricredit.africa</span>
+                <span className="text-gray-300">kawacukent@gmail.com</span>
               </li>
               <li className="flex items-center space-x-2">
                 <Phone className="w-4 h-4 text-gray-400" />
-                <span className="text-gray-300">+254 700 123 456</span>
+                <span className="text-gray-300">+250 785 256 553</span>
               </li>
               <li className="flex items-center space-x-2">
                 <MapPin className="w-4 h-4 text-gray-400" />
-                <span className="text-gray-300">Nairobi, Kenya</span>
+                <span className="text-gray-300">Kigali, Rwanda</span>
               </li>
             </ul>
           </div>

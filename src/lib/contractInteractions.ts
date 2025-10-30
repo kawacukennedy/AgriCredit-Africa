@@ -327,6 +327,243 @@ export class ContractInteractions {
     return await contract.getFarmerNFTs(farmer);
   }
 
+  // Chainlink Oracle Integration
+  async getPriceFeed(priceFeedAddress: string) {
+    // Simplified Chainlink price feed integration
+    await this.ensureConnection();
+    try {
+      // This is a placeholder for Chainlink price feed integration
+      // In a real implementation, you would:
+      // 1. Use Chainlink price feed contracts
+      // 2. Call latestRoundData() to get price data
+
+      // Mock price feeds for common agricultural commodities
+      const mockPrices: { [key: string]: number } = {
+        '0x1234567890123456789012345678901234567890': 1850.50, // Corn price per bushel
+        '0x2345678901234567890123456789012345678901': 420.75,  // Wheat price per bushel
+        '0x3456789012345678901234567890123456789012': 1250.25, // Soybean price per bushel
+        '0x4567890123456789012345678901234567890123': 0.85,    // USD/NGN exchange rate
+        '0x5678901234567890123456789012345678901234': 1.08     // EUR/USD exchange rate
+      };
+
+      const price = mockPrices[priceFeedAddress] || 1000 + Math.random() * 100;
+
+      return {
+        price: price,
+        timestamp: Math.floor(Date.now() / 1000),
+        roundId: Math.floor(Math.random() * 1000000)
+      };
+    } catch (error) {
+      console.error('Price feed fetch failed:', error);
+      throw new Error('Failed to fetch price data from oracle.');
+    }
+  }
+
+  async getWeatherData(location: string) {
+    // Simplified weather oracle integration
+    await this.ensureConnection();
+    try {
+      // This is a placeholder for weather oracle integration
+      // In a real implementation, you would:
+      // 1. Use Chainlink Functions or external APIs
+      // 2. Fetch weather data for agricultural planning
+
+      // Mock weather data
+      return {
+        location: location,
+        temperature: 24 + Math.random() * 10, // 24-34°C
+        humidity: 50 + Math.random() * 30,    // 50-80%
+        rainfall: Math.random() * 20,         // 0-20mm
+        windSpeed: Math.random() * 15,        // 0-15 km/h
+        timestamp: Math.floor(Date.now() / 1000)
+      };
+    } catch (error) {
+      console.error('Weather data fetch failed:', error);
+      throw new Error('Failed to fetch weather data from oracle.');
+    }
+  }
+
+  async getCropYieldData(cropType: string, region: string) {
+    // Simplified agricultural data oracle
+    await this.ensureConnection();
+    try {
+      // This is a placeholder for agricultural data oracle
+      // In a real implementation, you would:
+      // 1. Use specialized agricultural oracles
+      // 2. Fetch yield data, pest alerts, etc.
+
+      // Mock crop yield data
+      const baseYields: { [key: string]: number } = {
+        'corn': 8.5,
+        'wheat': 3.2,
+        'rice': 6.8,
+        'soybean': 3.8,
+        'cassava': 25.0
+      };
+
+      const baseYield = baseYields[cropType.toLowerCase()] || 5.0;
+      const actualYield = baseYield * (0.8 + Math.random() * 0.4); // ±20% variation
+
+      return {
+        cropType: cropType,
+        region: region,
+        averageYield: baseYield,
+        predictedYield: actualYield,
+        unit: 'tons/hectare',
+        confidence: 0.85,
+        timestamp: Math.floor(Date.now() / 1000)
+      };
+    } catch (error) {
+      console.error('Crop yield data fetch failed:', error);
+      throw new Error('Failed to fetch crop yield data from oracle.');
+    }
+  }
+
+  // DeFi Integrations
+  async swapTokens(
+    fromToken: string,
+    toToken: string,
+    amount: string,
+    minAmountOut: string,
+    deadline: number = Math.floor(Date.now() / 1000) + 3600
+  ) {
+    // Simplified Uniswap-like swap (would need actual DEX contract)
+    await this.ensureConnection();
+    try {
+      // This is a placeholder for DEX integration
+      // In a real implementation, you would:
+      // 1. Approve the DEX router to spend tokens
+      // 2. Call swapExactTokensForTokens on Uniswap V3 router
+
+      console.log(`Swapping ${amount} ${fromToken} to ${toToken} with min output ${minAmountOut}`);
+
+      // Mock implementation - in reality would interact with DEX
+      return {
+        success: true,
+        txHash: "0x" + Math.random().toString(16).substr(2, 64),
+        amountOut: minAmountOut
+      };
+    } catch (error) {
+      console.error('Token swap failed:', error);
+      throw new Error('Failed to execute token swap. Please try again.');
+    }
+  }
+
+  async provideLiquidity(
+    tokenA: string,
+    tokenB: string,
+    amountA: string,
+    amountB: string,
+    slippage: number = 0.5
+  ) {
+    // Simplified liquidity provision (would need actual AMM contract)
+    await this.ensureConnection();
+    try {
+      // This is a placeholder for AMM liquidity provision
+      // In a real implementation, you would:
+      // 1. Approve tokens to the AMM contract
+      // 2. Call addLiquidity on the AMM contract
+
+      console.log(`Providing liquidity: ${amountA} ${tokenA} + ${amountB} ${tokenB}`);
+
+      // Mock implementation
+      return {
+        success: true,
+        txHash: "0x" + Math.random().toString(16).substr(2, 64),
+        lpTokens: "1000" // Mock LP tokens received
+      };
+    } catch (error) {
+      console.error('Liquidity provision failed:', error);
+      throw new Error('Failed to provide liquidity. Please try again.');
+    }
+  }
+
+  async stakeTokens(
+    tokenAddress: string,
+    amount: string,
+    lockPeriod: number = 30 // days
+  ) {
+    // Simplified staking (would need actual staking contract)
+    await this.ensureConnection();
+    try {
+      // This is a placeholder for staking functionality
+      // In a real implementation, you would:
+      // 1. Approve tokens to the staking contract
+      // 2. Call stake function with lock period
+
+      console.log(`Staking ${amount} tokens for ${lockPeriod} days`);
+
+      // Mock implementation
+      return {
+        success: true,
+        txHash: "0x" + Math.random().toString(16).substr(2, 64),
+        stakingId: Math.floor(Math.random() * 10000),
+        apy: "12.5" // Mock APY
+      };
+    } catch (error) {
+      console.error('Staking failed:', error);
+      throw new Error('Failed to stake tokens. Please try again.');
+    }
+  }
+
+  async lendTokens(
+    tokenAddress: string,
+    amount: string,
+    interestRate: number = 8 // 8% APY
+  ) {
+    // Simplified lending (Aave-like functionality)
+    await this.ensureConnection();
+    try {
+      // This is a placeholder for lending protocol integration
+      // In a real implementation, you would:
+      // 1. Approve tokens to the lending contract
+      // 2. Call deposit function
+
+      console.log(`Lending ${amount} tokens at ${interestRate}% APY`);
+
+      // Mock implementation
+      return {
+        success: true,
+        txHash: "0x" + Math.random().toString(16).substr(2, 64),
+        lendingId: Math.floor(Math.random() * 10000),
+        interestEarned: "0" // Will accumulate over time
+      };
+    } catch (error) {
+      console.error('Lending failed:', error);
+      throw new Error('Failed to lend tokens. Please try again.');
+    }
+  }
+
+  async borrowTokens(
+    tokenAddress: string,
+    amount: string,
+    collateralToken: string,
+    collateralAmount: string
+  ) {
+    // Simplified borrowing (Aave-like functionality)
+    await this.ensureConnection();
+    try {
+      // This is a placeholder for borrowing from lending protocol
+      // In a real implementation, you would:
+      // 1. Approve collateral to the lending contract
+      // 2. Call borrow function
+
+      console.log(`Borrowing ${amount} tokens with ${collateralAmount} ${collateralToken} collateral`);
+
+      // Mock implementation
+      return {
+        success: true,
+        txHash: "0x" + Math.random().toString(16).substr(2, 64),
+        loanId: Math.floor(Math.random() * 10000),
+        interestRate: "8.5",
+        liquidationPrice: "0.85" // Mock liquidation price
+      };
+    } catch (error) {
+      console.error('Borrowing failed:', error);
+      throw new Error('Failed to borrow tokens. Please try again.');
+    }
+  }
+
   // AgriCredit Token Contract
   async getAgriCreditContract() {
     if (!this.provider) throw new Error('Provider not available');
