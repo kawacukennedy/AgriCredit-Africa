@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, Text, Boolean, ForeignKey, JSON
+from sqlalchemy import Column, Integer, String, Float, DateTime, Text, Boolean, ForeignKey, JSON, Index
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from .config import Base
@@ -51,7 +51,7 @@ class SensorReading(Base):
     __tablename__ = "sensor_readings"
 
     id = Column(Integer, primary_key=True, index=True)
-    device_id = Column(Integer, ForeignKey("sensor_devices.id"), nullable=False)
+    device_id = Column(Integer, ForeignKey("sensor_devices.id"), nullable=False, index=True)
     soil_moisture = Column(Float)
     temperature = Column(Float)
     humidity = Column(Float)
@@ -63,10 +63,13 @@ class SensorReading(Base):
     rainfall = Column(Float)
     wind_speed = Column(Float)
     solar_radiation = Column(Float)
-    timestamp = Column(DateTime(timezone=True), server_default=func.now())
+    timestamp = Column(DateTime(timezone=True), server_default=func.now(), index=True)
 
     # Relationships
     device = relationship("SensorDevice", back_populates="sensor_readings")
+
+# Composite index for device readings queries
+Index('idx_sensor_readings_device_timestamp', SensorReading.device_id, SensorReading.timestamp)
 
 class CreditScore(Base):
     __tablename__ = "credit_scores"
@@ -119,15 +122,15 @@ class Loan(Base):
     __tablename__ = "loans"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     amount = Column(Float, nullable=False)
     interest_rate = Column(Float, nullable=False)
     duration_months = Column(Integer, nullable=False)
-    status = Column(String, default="pending")  # pending, approved, rejected, active, completed
+    status = Column(String, default="pending", index=True)  # pending, approved, rejected, active, completed
     purpose = Column(String)
     collateral = Column(JSON)
     repayment_schedule = Column(JSON)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
     approved_at = Column(DateTime(timezone=True))
     disbursed_at = Column(DateTime(timezone=True))
 
@@ -153,43 +156,181 @@ class MarketplaceListing(Base):
     __tablename__ = "marketplace_listings"
 
     id = Column(Integer, primary_key=True, index=True)
-    seller_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    seller_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     title = Column(String, nullable=False)
     description = Column(Text)
-    crop_type = Column(String, nullable=False)
+    crop_type = Column(String, nullable=False, index=True)
     quantity = Column(Float, nullable=False)
     unit = Column(String, default="tons")
     price_per_unit = Column(Float, nullable=False)
-    location = Column(String)
+    location = Column(String, index=True)
     quality_grade = Column(String)
     harvest_date = Column(DateTime(timezone=True))
     expiry_date = Column(DateTime(timezone=True))
-    status = Column(String, default="active")  # active, sold, expired
+    status = Column(String, default="active", index=True)  # active, sold, expired
     images = Column(JSON)  # Array of image URLs
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
 
 class Notification(Base):
     __tablename__ = "notifications"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     title = Column(String, nullable=False)
     message = Column(Text, nullable=False)
-    type = Column(String, default="info")  # info, warning, success, error
-    is_read = Column(Boolean, default=False)
+    type = Column(String, default="info", index=True)  # info, warning, success, error
+    is_read = Column(Boolean, default=False, index=True)
     data = Column(JSON)  # Additional data for the notification
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
 
     # Relationships
     user = relationship("User", back_populates="notifications")
+
+# Composite index for unread notifications
+Index('idx_notifications_user_unread', Notification.user_id, Notification.is_read)
 
 class CarbonCredit(Base):
     __tablename__ = "carbon_credits"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     amount = Column(Float, nullable=False)
-    transaction_type = Column(String, nullable=False)  # minted, transferred, retired
-    transaction_hash = Column(String)
+    transaction_type = Column(String, nullable=False, index=True)  # minted, transferred, retired
+    transaction_hash = Column(String, index=True)
     verification_proof = Column(JSON)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
+
+class GovernanceProposal(Base):
+    __tablename__ = "governance_proposals"
+
+    id = Column(Integer, primary_key=True, index=True)
+    proposal_id = Column(Integer, unique=True, index=True)  # Blockchain proposal ID
+    proposer_address = Column(String, nullable=False, index=True)
+    title = Column(String, nullable=False)
+    description = Column(Text, nullable=False)
+    targets = Column(JSON)  # Array of contract addresses
+    values = Column(JSON)  # Array of ETH values
+    signatures = Column(JSON)  # Array of function signatures
+    calldatas = Column(JSON)  # Array of function call data
+    start_block = Column(Integer)
+    end_block = Column(Integer)
+    state = Column(String, default="pending", index=True)  # pending, active, canceled, defeated, succeeded, queued, expired, executed
+    transaction_hash = Column(String, index=True)
+    execution_tx_hash = Column(String)
+    executed_at = Column(DateTime(timezone=True))
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
+
+    # Relationships
+    votes = relationship("GovernanceVote", back_populates="proposal")
+
+class GovernanceVote(Base):
+    __tablename__ = "governance_votes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    proposal_id = Column(Integer, ForeignKey("governance_proposals.proposal_id"), nullable=False, index=True)
+    voter_address = Column(String, nullable=False, index=True)
+    support = Column(Boolean, nullable=False)  # True for yes, False for no
+    voting_power = Column(Integer, nullable=False)
+    reason = Column(Text)  # Optional voting reason
+    transaction_hash = Column(String, index=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
+
+    # Relationships
+    proposal = relationship("GovernanceProposal", back_populates="votes")
+
+# Composite index for proposal votes
+Index('idx_governance_votes_proposal_voter', GovernanceVote.proposal_id, GovernanceVote.voter_address)
+
+class FarmNFT(Base):
+    __tablename__ = "farm_nfts"
+
+    id = Column(Integer, primary_key=True, index=True)
+    token_id = Column(Integer, unique=True, index=True)  # Blockchain token ID
+    farmer_address = Column(String, nullable=False, index=True)
+    farm_name = Column(String, nullable=False)
+    location = Column(String, nullable=False, index=True)
+    size = Column(Float, nullable=False)  # Size in hectares
+    crop_type = Column(String, nullable=False, index=True)
+    expected_yield = Column(Float, nullable=False)  # Expected yield in tons
+    soil_type = Column(String)
+    irrigation_type = Column(String)
+    certifications = Column(JSON)  # List of certifications
+    metadata_uri = Column(String)  # IPFS metadata URI
+    status = Column(String, default="minting", index=True)  # minting, minted, harvested
+    transaction_hash = Column(String, index=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
+
+    # Relationships
+    harvests = relationship("HarvestRecord", back_populates="nft")
+
+class HarvestRecord(Base):
+    __tablename__ = "harvest_records"
+
+    id = Column(Integer, primary_key=True, index=True)
+    token_id = Column(Integer, ForeignKey("farm_nfts.token_id"), nullable=False, index=True)
+    actual_yield = Column(Float, nullable=False)  # Actual yield in tons
+    harvest_date = Column(DateTime(timezone=True), nullable=False, index=True)
+    quality_grade = Column(String)  # A, B, C, etc.
+    notes = Column(Text)  # Additional harvest notes
+    transaction_hash = Column(String, index=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
+
+    # Relationships
+    nft = relationship("FarmNFT", back_populates="harvests")
+
+# Composite index for harvest records
+Index('idx_harvest_records_token_date', HarvestRecord.token_id, HarvestRecord.harvest_date)
+
+class LiquidityPosition(Base):
+    __tablename__ = "liquidity_positions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_address = Column(String, nullable=False, index=True)
+    token_a = Column(String, nullable=False, index=True)
+    token_b = Column(String, nullable=False, index=True)
+    amount_a = Column(Float, nullable=False)
+    amount_b = Column(Float, nullable=False)
+    liquidity_tokens = Column(Float, nullable=False)
+    fee = Column(Integer, default=30)  # Fee in basis points (0.3%)
+    pool_address = Column(String, index=True)  # Blockchain pool address
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
+
+    # Relationships
+    rewards = relationship("PoolReward", back_populates="position")
+
+class PoolReward(Base):
+    __tablename__ = "pool_rewards"
+
+    id = Column(Integer, primary_key=True, index=True)
+    position_id = Column(Integer, ForeignKey("liquidity_positions.id"), nullable=False, index=True)
+    user_address = Column(String, nullable=False, index=True)
+    reward_amount = Column(Float, nullable=False)
+    reward_token = Column(String, nullable=False)
+    claimed_at = Column(DateTime(timezone=True), nullable=False, index=True)
+
+    # Relationships
+    position = relationship("LiquidityPosition", back_populates="rewards")
+
+# Composite index for pool rewards
+Index('idx_pool_rewards_position_claimed', PoolReward.position_id, PoolReward.claimed_at)
+
+class CrossChainTransaction(Base):
+    __tablename__ = "cross_chain_transactions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_address = Column(String, nullable=False, index=True)
+    from_chain = Column(String, nullable=False, index=True)
+    to_chain = Column(String, nullable=False, index=True)
+    token_symbol = Column(String, nullable=False, index=True)
+    amount = Column(Float, nullable=False)
+    recipient_address = Column(String, nullable=False)
+    bridge_fee = Column(Float, nullable=False)
+    status = Column(String, default="initiated", index=True)  # initiated, locked, bridging, completed, failed
+    source_tx_hash = Column(String, index=True)
+    destination_tx_hash = Column(String, index=True)
+    estimated_completion = Column(DateTime(timezone=True))
+    completed_at = Column(DateTime(timezone=True))
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
+
+# Composite index for cross-chain transactions
+Index('idx_cross_chain_user_status', CrossChainTransaction.user_address, CrossChainTransaction.status)
