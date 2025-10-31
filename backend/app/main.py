@@ -1,9 +1,10 @@
-from fastapi import FastAPI, Depends, HTTPException, status, BackgroundTasks, Request, WebSocket, UploadFile, File, Form
+from fastapi import FastAPI, Depends, HTTPException, status, BackgroundTasks, Request, WebSocket, UploadFile, File, Form, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from datetime import datetime, timedelta
 from typing import List, Optional, Dict, Any
 import structlog
@@ -36,6 +37,11 @@ from .core.tasks import (
     send_notification_async,
     update_oracle_feeds_async,
     process_loan_application_async
+)
+from .core.advanced_ai import advanced_ai_service
+from .core.api_utils import (
+    PaginationParams, PaginatedResponse, FilterParams,
+    api_response, pagination_helper, filter_helper, audit_helper
 )
 from .api.graphql import graphql_app
 from .api.schemas import (
@@ -685,6 +691,142 @@ async def climate_analysis_endpoint(
         logger.error("Climate analysis failed", error=str(e), user_id=current_user.id)
         raise HTTPException(status_code=500, detail=str(e))
 
+# Advanced AI endpoints
+@app.post(
+    "/ai/crop-health-analysis",
+    summary="Advanced Crop Health Analysis",
+    description="""Analyze crop health using computer vision and AI models.
+    Supports disease detection, pest identification, and growth stage assessment.""",
+    responses={
+        200: {"description": "Crop health analysis completed successfully"},
+        500: {"description": "Internal server error during analysis"}
+    }
+)
+async def analyze_crop_health(
+    file: UploadFile = File(...),
+    crop_type: str = Form(...),
+    location: str = Form(...),
+    current_user: User = Depends(get_current_active_user)
+):
+    """Advanced crop health analysis using AI vision models"""
+    try:
+        # Read image data
+        image_data = await file.read()
+
+        # Analyze crop health
+        result = await advanced_ai_service.analyze_crop_health(image_data, crop_type, location)
+
+        if "error" in result:
+            raise HTTPException(status_code=500, detail=result["error"])
+
+        logger.info("Crop health analysis completed", user_id=current_user.id, crop_type=crop_type)
+        return {"status": "success", "data": result}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Crop health analysis failed", error=str(e), user_id=current_user.id)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post(
+    "/ai/market-price-prediction",
+    summary="Advanced Market Price Prediction",
+    description="""Predict agricultural commodity prices using advanced time series analysis
+    and market sentiment analysis. Provides short-term and long-term forecasts.""",
+    responses={
+        200: {"description": "Market price prediction completed successfully"},
+        500: {"description": "Internal server error during prediction"}
+    }
+)
+async def predict_market_prices(
+    commodity: str,
+    location: str,
+    historical_data: List[Dict[str, Any]],
+    days_ahead: int = 7,
+    current_user: User = Depends(get_current_active_user)
+):
+    """Advanced market price prediction"""
+    try:
+        result = await advanced_ai_service.predict_market_prices(
+            commodity, location, historical_data, days_ahead
+        )
+
+        if "error" in result:
+            raise HTTPException(status_code=400, detail=result["error"])
+
+        logger.info("Market price prediction completed", user_id=current_user.id, commodity=commodity)
+        return {"status": "success", "data": result}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Market price prediction failed", error=str(e), user_id=current_user.id)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post(
+    "/ai/climate-risk-assessment",
+    summary="Advanced Climate Risk Assessment",
+    description="""Comprehensive climate risk assessment using weather forecasts,
+    historical data, and crop-specific vulnerability analysis.""",
+    responses={
+        200: {"description": "Climate risk assessment completed successfully"},
+        500: {"description": "Internal server error during assessment"}
+    }
+)
+async def assess_climate_risk(
+    location: str,
+    crop_type: str,
+    weather_forecast: List[Dict[str, Any]],
+    current_user: User = Depends(get_current_active_user)
+):
+    """Advanced climate risk assessment"""
+    try:
+        result = await advanced_ai_service.assess_climate_risk(
+            location, crop_type, weather_forecast
+        )
+
+        if "error" in result:
+            raise HTTPException(status_code=400, detail=result["error"])
+
+        logger.info("Climate risk assessment completed", user_id=current_user.id, location=location)
+        return {"status": "success", "data": result}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Climate risk assessment failed", error=str(e), user_id=current_user.id)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post(
+    "/ai/farmer-sentiment-analysis",
+    summary="Farmer Sentiment Analysis",
+    description="""Analyze farmer sentiment from text data using NLP models.
+    Useful for understanding farmer satisfaction, market sentiment, and community feedback.""",
+    responses={
+        200: {"description": "Sentiment analysis completed successfully"},
+        500: {"description": "Internal server error during analysis"}
+    }
+)
+async def analyze_farmer_sentiment(
+    text_data: List[str],
+    current_user: User = Depends(get_current_active_user)
+):
+    """Analyze farmer sentiment from text data"""
+    try:
+        result = await advanced_ai_service.analyze_farmer_sentiment(text_data)
+
+        if "error" in result:
+            raise HTTPException(status_code=500, detail=result["error"])
+
+        logger.info("Farmer sentiment analysis completed", user_id=current_user.id, text_count=len(text_data))
+        return {"status": "success", "data": result}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Sentiment analysis failed", error=str(e), user_id=current_user.id)
+        raise HTTPException(status_code=500, detail=str(e))
+
 # Loan management
 @app.post("/loans", response_model=LoanSchema)
 async def create_loan_request(
@@ -732,22 +874,73 @@ async def create_listing(
     logger.info("Marketplace listing created", user_id=current_user.id, listing_id=db_listing.id)
     return db_listing
 
-@app.get("/marketplace/listings", response_model=List[MarketplaceListingSchema])
+@app.get(
+    "/marketplace/listings",
+    response_model=PaginatedResponse[MarketplaceListingSchema],
+    summary="Get Marketplace Listings",
+    description="Retrieve paginated marketplace listings with advanced filtering and sorting options"
+)
 async def get_marketplace_listings(
-    crop_type: Optional[str] = None,
-    location: Optional[str] = None,
-    db: Session = Depends(get_db)
+    pagination: PaginationParams = Depends(),
+    crop_type: Optional[str] = Query(None, description="Filter by crop type"),
+    location: Optional[str] = Query(None, description="Filter by location"),
+    min_price: Optional[float] = Query(None, ge=0, description="Minimum price filter"),
+    max_price: Optional[float] = Query(None, ge=0, description="Maximum price filter"),
+    quality_grade: Optional[str] = Query(None, description="Filter by quality grade"),
+    db: Session = Depends(get_db),
+    request: Request = None
 ):
-    """Get marketplace listings with optional filters"""
-    query = db.query(MarketplaceListing).filter(MarketplaceListing.status == "active")
+    """Get marketplace listings with advanced filtering and pagination"""
+    try:
+        # Build base query
+        query = db.query(MarketplaceListing).filter(MarketplaceListing.status == "active")
 
-    if crop_type:
-        query = query.filter(MarketplaceListing.crop_type == crop_type)
-    if location:
-        query = query.filter(MarketplaceListing.location.ilike(f"%{location}%"))
+        # Apply filters
+        filters = {
+            "crop_type": crop_type,
+            "location": location,
+            "quality_grade": quality_grade
+        }
 
-    listings = query.all()
-    return listings
+        query = filter_helper.apply_filters(query, MarketplaceListing, filters)
+
+        # Additional price filters
+        if min_price is not None:
+            query = query.filter(MarketplaceListing.price_per_unit >= min_price)
+        if max_price is not None:
+            query = query.filter(MarketplaceListing.price_per_unit <= max_price)
+
+        # Apply pagination
+        result = pagination_helper.paginate_query(query, pagination, MarketplaceListing)
+
+        # Add metadata
+        meta = {
+            "filters_applied": {
+                k: v for k, v in {
+                    "crop_type": crop_type,
+                    "location": location,
+                    "min_price": min_price,
+                    "max_price": max_price,
+                    "quality_grade": quality_grade
+                }.items() if v is not None
+            },
+            "request_id": getattr(request.state, 'request_id', None) if request else None
+        }
+
+        logger.info("Marketplace listings retrieved",
+                   total_items=result["pagination"]["total_items"],
+                   page=pagination.page,
+                   filters_applied=len(meta["filters_applied"]))
+
+        return PaginatedResponse(
+            data=result["items"],
+            pagination=result["pagination"],
+            meta=meta
+        )
+
+    except Exception as e:
+        logger.error("Marketplace listings retrieval failed", error=str(e))
+        raise HTTPException(status_code=500, detail=str(e))
 
 # Notifications
 @app.get("/notifications", response_model=List[NotificationSchema])
@@ -1948,6 +2141,222 @@ async def get_commodity_price(commodity: str):
         return {"status": "success", "price": price, "cached": False}
     except Exception as e:
         logger.error("Price retrieval failed", error=str(e), commodity=commodity)
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Analytics and Insights endpoints
+@app.get(
+    "/analytics/dashboard-overview",
+    summary="Dashboard Analytics Overview",
+    description="Get comprehensive analytics overview for the AgriCredit platform"
+)
+async def get_dashboard_analytics(
+    days: int = Query(30, ge=1, le=365, description="Number of days to analyze"),
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db),
+    cache_client = Depends(get_cache)
+):
+    """Get comprehensive dashboard analytics"""
+    try:
+        # Check cache first
+        cache_key = f"dashboard_analytics_{days}"
+        cached_data = await cache_client.get_dashboard_analytics(cache_key)
+        if cached_data:
+            logger.info("Dashboard analytics served from cache", user_id=current_user.id, days=days)
+            return api_response.success(cached_data, "Analytics retrieved from cache")
+
+        # Calculate date range
+        cutoff_date = datetime.utcnow() - timedelta(days=days)
+
+        # User statistics
+        total_users = db.query(User).count()
+        active_users = db.query(User).filter(User.last_login >= cutoff_date).count()
+
+        # Loan statistics
+        total_loans = db.query(Loan).count()
+        active_loans = db.query(Loan).filter(Loan.status == "active").count()
+        recent_loans = db.query(Loan).filter(Loan.created_at >= cutoff_date).count()
+        total_loan_amount = db.query(Loan).with_entities(func.sum(Loan.amount)).scalar() or 0
+
+        # Marketplace statistics
+        total_listings = db.query(MarketplaceListing).count()
+        active_listings = db.query(MarketplaceListing).filter(MarketplaceListing.status == "active").count()
+        recent_listings = db.query(MarketplaceListing).filter(MarketplaceListing.created_at >= cutoff_date).count()
+
+        # Sensor data statistics
+        total_devices = db.query(SensorDevice).count()
+        active_devices = db.query(SensorDevice).filter(
+            SensorDevice.last_seen >= cutoff_date
+        ).count()
+        total_readings = db.query(SensorReading).filter(
+            SensorReading.timestamp >= cutoff_date
+        ).count()
+
+        # Carbon credit statistics
+        total_credits = db.query(CarbonCredit).count()
+        recent_credits = db.query(CarbonCredit).filter(
+            CarbonCredit.created_at >= cutoff_date
+        ).count()
+
+        # AI model usage statistics
+        credit_scores_count = db.query(CreditScore).filter(
+            CreditScore.created_at >= cutoff_date
+        ).count()
+        yield_predictions_count = db.query(YieldPrediction).filter(
+            YieldPrediction.created_at >= cutoff_date
+        ).count()
+        climate_analyses_count = db.query(ClimateAnalysis).filter(
+            ClimateAnalysis.created_at >= cutoff_date
+        ).count()
+
+        analytics_data = {
+            "time_range_days": days,
+            "users": {
+                "total": total_users,
+                "active": active_users,
+                "growth_rate": round((active_users / max(total_users, 1)) * 100, 2)
+            },
+            "loans": {
+                "total": total_loans,
+                "active": active_loans,
+                "recent": recent_loans,
+                "total_amount": float(total_loan_amount),
+                "utilization_rate": round((active_loans / max(total_loans, 1)) * 100, 2)
+            },
+            "marketplace": {
+                "total_listings": total_listings,
+                "active_listings": active_listings,
+                "recent_listings": recent_listings,
+                "activity_rate": round((active_listings / max(total_listings, 1)) * 100, 2)
+            },
+            "iot": {
+                "total_devices": total_devices,
+                "active_devices": active_devices,
+                "total_readings": total_readings,
+                "device_utilization": round((active_devices / max(total_devices, 1)) * 100, 2)
+            },
+            "carbon_credits": {
+                "total_credits": total_credits,
+                "recent_credits": recent_credits
+            },
+            "ai_usage": {
+                "credit_scores": credit_scores_count,
+                "yield_predictions": yield_predictions_count,
+                "climate_analyses": climate_analyses_count,
+                "total_predictions": credit_scores_count + yield_predictions_count + climate_analyses_count
+            },
+            "generated_at": datetime.utcnow().isoformat()
+        }
+
+        # Cache the results
+        await cache_client.set_dashboard_analytics(cache_key, analytics_data)
+
+        logger.info("Dashboard analytics generated", user_id=current_user.id, days=days)
+        return api_response.success(analytics_data, "Analytics generated successfully")
+
+    except Exception as e:
+        logger.error("Dashboard analytics generation failed", error=str(e), user_id=current_user.id)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get(
+    "/analytics/user-insights/{user_id}",
+    summary="User-Specific Analytics",
+    description="Get detailed analytics and insights for a specific user"
+)
+async def get_user_insights(
+    user_id: int,
+    days: int = Query(90, ge=7, le=365, description="Analysis period in days"),
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """Get detailed user-specific analytics"""
+    try:
+        # Verify access (users can only see their own data or admins can see all)
+        if current_user.id != user_id and current_user.role != "admin":
+            raise HTTPException(status_code=403, detail="Access denied")
+
+        cutoff_date = datetime.utcnow() - timedelta(days=days)
+
+        # User loans
+        user_loans = db.query(Loan).filter(
+            Loan.user_id == user_id,
+            Loan.created_at >= cutoff_date
+        ).all()
+
+        # User devices and sensor data
+        user_devices = db.query(SensorDevice).filter(SensorDevice.owner_id == user_id).all()
+        device_ids = [d.id for d in user_devices]
+
+        sensor_readings = db.query(SensorReading).filter(
+            SensorReading.device_id.in_(device_ids),
+            SensorReading.timestamp >= cutoff_date
+        ).count() if device_ids else 0
+
+        # User marketplace activity
+        user_listings = db.query(MarketplaceListing).filter(
+            MarketplaceListing.seller_id == user_id,
+            MarketplaceListing.created_at >= cutoff_date
+        ).count()
+
+        # User AI usage
+        credit_scores = db.query(CreditScore).filter(
+            CreditScore.user_id == user_id,
+            CreditScore.created_at >= cutoff_date
+        ).count()
+
+        yield_predictions = db.query(YieldPrediction).filter(
+            YieldPrediction.user_id == user_id,
+            YieldPrediction.created_at >= cutoff_date
+        ).count()
+
+        climate_analyses = db.query(ClimateAnalysis).filter(
+            ClimateAnalysis.user_id == user_id,
+            ClimateAnalysis.created_at >= cutoff_date
+        ).count()
+
+        # Calculate insights
+        loan_amount = sum(loan.amount for loan in user_loans) if user_loans else 0
+        avg_loan_amount = loan_amount / len(user_loans) if user_loans else 0
+
+        insights = {
+            "user_id": user_id,
+            "analysis_period_days": days,
+            "loans": {
+                "count": len(user_loans),
+                "total_amount": float(loan_amount),
+                "average_amount": round(avg_loan_amount, 2),
+                "active_loans": len([l for l in user_loans if l.status == "active"])
+            },
+            "devices": {
+                "total_devices": len(user_devices),
+                "active_devices": len([d for d in user_devices if d.last_seen and d.last_seen >= cutoff_date]),
+                "total_readings": sensor_readings,
+                "avg_readings_per_device": round(sensor_readings / max(len(user_devices), 1), 1)
+            },
+            "marketplace": {
+                "listings_created": user_listings
+            },
+            "ai_usage": {
+                "credit_scores_requested": credit_scores,
+                "yield_predictions_requested": yield_predictions,
+                "climate_analyses_requested": climate_analyses,
+                "total_ai_requests": credit_scores + yield_predictions + climate_analyses
+            },
+            "engagement_score": min(100, (
+                len(user_loans) * 10 +
+                len(user_devices) * 15 +
+                user_listings * 5 +
+                (credit_scores + yield_predictions + climate_analyses) * 2
+            )),
+            "generated_at": datetime.utcnow().isoformat()
+        }
+
+        logger.info("User insights generated", user_id=user_id, analysis_days=days)
+        return api_response.success(insights, "User insights generated successfully")
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("User insights generation failed", error=str(e), user_id=user_id)
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get(
