@@ -29,6 +29,14 @@
 4. Paste it into the SQL Editor
 5. Click **Run** (or press Ctrl+Enter)
 
+#### If You Get RLS Security Warnings
+
+If Supabase reports RLS (Row Level Security) issues after deployment:
+
+1. Go to **SQL Editor** → "New query"
+2. Copy and run the content from `fix_rls_security.sql`
+3. This will enable RLS for all tables and add proper security policies
+
 ### Step 4: Verify Deployment
 
 After running the schema, you should see:
@@ -115,6 +123,10 @@ You should see:
 ### Security Features
 
 - **Row Level Security (RLS)**: Users can only access their own data
+- **Comprehensive RLS Policies**: All 18 tables protected with proper access controls
+- **Multi-tenant Security**: Isolated data access per user
+- **Admin Override**: Administrative users can access all data
+- **Public Access**: Marketplace and governance data available to all users
 - **Proper indexing**: Optimized for query performance
 - **Foreign key constraints**: Data integrity
 - **Enum types**: Data validation at database level
