@@ -44,7 +44,17 @@ export function NavBar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const { theme, toggleTheme } = useTheme();
+
+  // Handle SSR where theme might not be available
+  let theme = 'light';
+  let toggleTheme = () => {};
+  try {
+    const themeContext = useTheme();
+    theme = themeContext.theme;
+    toggleTheme = themeContext.toggleTheme;
+  } catch {
+    // Fallback for SSR
+  }
 
   const isActive = (href: string) => {
     if (href === '/') return pathname === '/';
