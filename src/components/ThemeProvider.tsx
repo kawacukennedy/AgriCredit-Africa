@@ -2,10 +2,12 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 
-type Theme = 'light' | 'dark';
+type Theme = 'light' | 'dark' | 'system';
 
 interface ThemeContextType {
   theme: Theme;
+  actualTheme: 'light' | 'dark';
+  setTheme: (theme: Theme) => void;
   toggleTheme: () => void;
 }
 
@@ -24,38 +26,63 @@ interface ThemeProviderProps {
 }
 
 export function ThemeProvider({ children }: ThemeProviderProps) {
-  const [theme, setTheme] = useState<Theme>('light');
+  const [theme, setThemeState] = useState<Theme>('system');
+  const [actualTheme, setActualTheme] = useState<'light' | 'dark'>('light');
   const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    // Get theme from localStorage or system preference
-    const savedTheme = localStorage.getItem('theme') as Theme;
-    const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    const initialTheme = savedTheme || systemTheme;
+  const applyTheme = (newTheme: 'light' | 'dark') => {
+    setActualTheme(newTheme);
+    document.documentElement.classList.remove('light', 'dark');
+    document.documentElement.classList.add(newTheme);
+    // Add smooth transition
+    document.documentElement.style.setProperty('--theme-transition', 'background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease');
+    setTimeout(() => {
+      document.documentElement.style.removeProperty('--theme-transition');
+    }, 300);
+  };
 
-    setTheme(initialTheme);
-    if (initialTheme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
+  const resolveTheme = (selectedTheme: Theme): 'light' | 'dark' => {
+    if (selectedTheme === 'system') {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
     }
+    return selectedTheme;
+  };
+
+  const setTheme = (newTheme: Theme) => {
+    setThemeState(newTheme);
+    localStorage.setItem('theme', newTheme);
+    const resolvedTheme = resolveTheme(newTheme);
+    applyTheme(resolvedTheme);
+  };
+
+  useEffect(() => {
+    const savedTheme = (localStorage.getItem('theme') as Theme) || 'system';
+    const resolvedTheme = resolveTheme(savedTheme);
+
+    setThemeState(savedTheme);
+    applyTheme(resolvedTheme);
     setMounted(true);
+
+    // Listen for system theme changes
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = (e: MediaQueryListEvent) => {
+      if (savedTheme === 'system') {
+        const newResolvedTheme = e.matches ? 'dark' : 'light';
+        applyTheme(newResolvedTheme);
+      }
+    };
+
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
 
   const toggleTheme = () => {
-    const newTheme = theme === 'light' ? 'dark' : 'light';
-    console.log('Toggling theme to:', newTheme);
+    const newTheme = actualTheme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
-    localStorage.setItem('theme', newTheme);
-    if (newTheme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+    <ThemeContext.Provider value={{ theme, actualTheme, setTheme, toggleTheme }}>
       {children}
     </ThemeContext.Provider>
   );

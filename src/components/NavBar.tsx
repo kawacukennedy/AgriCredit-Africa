@@ -20,7 +20,9 @@ import {
   TrendingUp,
   Moon,
   Sun,
-  Search
+  Monitor,
+  Search,
+  ChevronDown
 } from 'lucide-react';
 import { useTheme } from './ThemeProvider';
 
@@ -45,7 +47,20 @@ export function NavBar() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
-  const { theme, toggleTheme } = useTheme();
+  const { theme, actualTheme, setTheme } = useTheme();
+  const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
+
+  // Close theme menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (isThemeMenuOpen && !(event.target as Element).closest('.theme-selector')) {
+        setIsThemeMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isThemeMenuOpen]);
 
   const isActive = (href: string) => {
     if (href === '/') return pathname === '/';
@@ -81,26 +96,61 @@ export function NavBar() {
 
             {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center space-x-1">
-              {/* Theme Toggle */}
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={toggleTheme}
-                className="flex items-center justify-center w-10 h-10 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-              >
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={theme}
-                    initial={{ opacity: 0, rotate: -90 }}
-                    animate={{ opacity: 1, rotate: 0 }}
-                    exit={{ opacity: 0, rotate: 90 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    {theme === 'light' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
-                  </motion.div>
+              {/* Theme Selector */}
+              <div className="relative theme-selector">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setIsThemeMenuOpen(!isThemeMenuOpen)}
+                  className="flex items-center justify-center w-10 h-10 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  aria-label="Theme selector"
+                >
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={actualTheme}
+                      initial={{ opacity: 0, rotate: -90 }}
+                      animate={{ opacity: 1, rotate: 0 }}
+                      exit={{ opacity: 0, rotate: 90 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      {actualTheme === 'light' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                    </motion.div>
+                  </AnimatePresence>
+                  <ChevronDown className="w-3 h-3 ml-1" />
+                </motion.button>
+
+                <AnimatePresence>
+                  {isThemeMenuOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                      className="absolute right-0 top-full mt-2 w-40 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50"
+                    >
+                      {[
+                        { value: 'light', label: 'Light', icon: Sun },
+                        { value: 'dark', label: 'Dark', icon: Moon },
+                        { value: 'system', label: 'System', icon: Monitor }
+                      ].map(({ value, label, icon: Icon }) => (
+                        <button
+                          key={value}
+                          onClick={() => {
+                            setTheme(value as any);
+                            setIsThemeMenuOpen(false);
+                          }}
+                          className={`w-full flex items-center px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
+                            theme === value ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'
+                          }`}
+                        >
+                          <Icon className="w-4 h-4 mr-2" />
+                          {label}
+                          {theme === value && <span className="ml-auto">✓</span>}
+                        </button>
+                      ))}
+                    </motion.div>
+                  )}
                 </AnimatePresence>
-              </motion.button>
+              </div>
 
               {/* Search */}
               <div className="relative">
@@ -182,26 +232,60 @@ export function NavBar() {
 
             {/* Mobile menu button */}
             <div className="lg:hidden flex items-center space-x-2">
-              {/* Theme Toggle */}
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={toggleTheme}
-                className="flex items-center justify-center w-10 h-10 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-              >
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={theme}
-                    initial={{ opacity: 0, rotate: -90 }}
-                    animate={{ opacity: 1, rotate: 0 }}
-                    exit={{ opacity: 0, rotate: 90 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    {theme === 'light' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
-                  </motion.div>
+              {/* Theme Selector */}
+              <div className="relative theme-selector">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setIsThemeMenuOpen(!isThemeMenuOpen)}
+                  className="flex items-center justify-center w-10 h-10 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  aria-label="Theme selector"
+                >
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={actualTheme}
+                      initial={{ opacity: 0, rotate: -90 }}
+                      animate={{ opacity: 1, rotate: 0 }}
+                      exit={{ opacity: 0, rotate: 90 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      {actualTheme === 'light' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                    </motion.div>
+                  </AnimatePresence>
+                </motion.button>
+
+                <AnimatePresence>
+                  {isThemeMenuOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                      className="absolute right-0 top-full mt-2 w-40 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50"
+                    >
+                      {[
+                        { value: 'light', label: 'Light', icon: Sun },
+                        { value: 'dark', label: 'Dark', icon: Moon },
+                        { value: 'system', label: 'System', icon: Monitor }
+                      ].map(({ value, label, icon: Icon }) => (
+                        <button
+                          key={value}
+                          onClick={() => {
+                            setTheme(value as any);
+                            setIsThemeMenuOpen(false);
+                          }}
+                          className={`w-full flex items-center px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
+                            theme === value ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'
+                          }`}
+                        >
+                          <Icon className="w-4 h-4 mr-2" />
+                          {label}
+                          {theme === value && <span className="ml-auto">✓</span>}
+                        </button>
+                      ))}
+                    </motion.div>
+                  )}
                 </AnimatePresence>
-              </motion.button>
+              </div>
 
               <motion.button
                 whileTap={{ scale: 0.95 }}
