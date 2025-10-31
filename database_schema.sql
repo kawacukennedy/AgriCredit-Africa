@@ -445,9 +445,19 @@ ALTER TABLE sensor_devices ENABLE ROW LEVEL SECURITY;
 ALTER TABLE sensor_readings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE credit_scores ENABLE ROW LEVEL SECURITY;
 ALTER TABLE yield_predictions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE climate_analyses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE loans ENABLE ROW LEVEL SECURITY;
+ALTER TABLE loan_repayments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE marketplace_listings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE carbon_credits ENABLE ROW LEVEL SECURITY;
+ALTER TABLE governance_proposals ENABLE ROW LEVEL SECURITY;
+ALTER TABLE governance_votes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE farm_nfts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE harvest_records ENABLE ROW LEVEL SECURITY;
+ALTER TABLE liquidity_positions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE pool_rewards ENABLE ROW LEVEL SECURITY;
+ALTER TABLE cross_chain_transactions ENABLE ROW LEVEL SECURITY;
 
 -- Basic RLS policies (users can only access their own data)
 CREATE POLICY "Users can view own profile" ON users FOR SELECT USING (auth.uid()::text = id::text);
@@ -465,6 +475,39 @@ CREATE POLICY "Users can view own yield predictions" ON yield_predictions FOR SE
 CREATE POLICY "Users can view own loans" ON loans FOR SELECT USING (user_id::text = auth.uid()::text);
 CREATE POLICY "Users can view own notifications" ON notifications FOR SELECT USING (user_id::text = auth.uid()::text);
 CREATE POLICY "Users can view own carbon credits" ON carbon_credits FOR SELECT USING (user_id::text = auth.uid()::text);
+
+-- Climate analyses policies
+CREATE POLICY "Users can view own climate analyses" ON climate_analyses FOR SELECT USING (user_id::text = auth.uid()::text OR user_id IS NULL);
+
+-- Loan repayments policies
+CREATE POLICY "Users can view own loan repayments" ON loan_repayments FOR SELECT USING (
+    loan_id IN (SELECT id FROM loans WHERE user_id::text = auth.uid()::text)
+);
+
+-- Governance policies (public read, admin write)
+CREATE POLICY "Anyone can view governance proposals" ON governance_proposals FOR SELECT USING (true);
+CREATE POLICY "Admins can manage governance proposals" ON governance_proposals FOR ALL USING (
+    EXISTS (SELECT 1 FROM users WHERE id::text = auth.uid()::text AND role = 'admin')
+);
+
+CREATE POLICY "Anyone can view governance votes" ON governance_votes FOR SELECT USING (true);
+CREATE POLICY "Users can create governance votes" ON governance_votes FOR INSERT WITH CHECK (voter_address = auth.jwt() ->> 'wallet_address');
+
+-- NFT policies (public read for some, owner write)
+CREATE POLICY "Anyone can view farm NFTs" ON farm_nfts FOR SELECT USING (true);
+CREATE POLICY "Farmers can manage own NFTs" ON farm_nfts FOR ALL USING (farmer_address = auth.jwt() ->> 'wallet_address');
+
+CREATE POLICY "Anyone can view harvest records" ON harvest_records FOR SELECT USING (true);
+
+-- DeFi policies
+CREATE POLICY "Users can view own liquidity positions" ON liquidity_positions FOR SELECT USING (user_address = auth.jwt() ->> 'wallet_address');
+CREATE POLICY "Users can manage own liquidity positions" ON liquidity_positions FOR ALL USING (user_address = auth.jwt() ->> 'wallet_address');
+
+CREATE POLICY "Users can view own pool rewards" ON pool_rewards FOR SELECT USING (user_address = auth.jwt() ->> 'wallet_address');
+
+-- Cross-chain policies
+CREATE POLICY "Users can view own cross-chain transactions" ON cross_chain_transactions FOR SELECT USING (user_address = auth.jwt() ->> 'wallet_address');
+CREATE POLICY "Users can create cross-chain transactions" ON cross_chain_transactions FOR INSERT WITH CHECK (user_address = auth.jwt() ->> 'wallet_address');
 
 -- Admin policies (admins can access everything)
 CREATE POLICY "Admins can access all users" ON users FOR ALL USING (
@@ -519,9 +562,10 @@ GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated;
 DO $$
 BEGIN
     RAISE NOTICE '🎉 AgriCredit database schema deployed successfully!';
-    RAISE NOTICE '📊 Created 17 tables with proper indexes and relationships';
-    RAISE NOTICE '🔒 Enabled Row Level Security for data protection';
+    RAISE NOTICE '📊 Created 18 tables with proper indexes and relationships';
+    RAISE NOTICE '🔒 Enabled Row Level Security for ALL tables';
     RAISE NOTICE '📈 Created analytics views for dashboard';
     RAISE NOTICE '⚡ Enabled realtime subscriptions for key tables';
     RAISE NOTICE '👤 Inserted sample data for testing';
+    RAISE NOTICE '🛡️  Configured comprehensive RLS policies';
 END $$;
