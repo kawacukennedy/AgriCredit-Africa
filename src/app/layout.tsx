@@ -5,6 +5,7 @@ import Head from 'next/head';
 import "./globals.css";
 import { AccessibilityPanel } from "@/components/AccessibilityPanel";
 import { AccessibilityProvider } from "@/components/AccessibilityProvider";
+import { ThemeProvider } from "@/components/ThemeProvider";
 import { NavBar } from "@/components/NavBar";
 import { Footer } from "@/components/Footer";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
@@ -43,17 +44,19 @@ function RootLayout({
           className="antialiased"
         >
           <a href="#main-content" className="skip-link">Skip to main content</a>
-          <AccessibilityProvider>
-            <NavBar />
-            <ErrorBoundary>
-              <main id="main-content" className="flex-1">
-                {children}
-              </main>
-            </ErrorBoundary>
-            <Footer />
-            <AccessibilityPanel />
-            <OfflineIndicator />
-          </AccessibilityProvider>
+          <ThemeProvider>
+            <AccessibilityProvider>
+              <NavBar />
+              <ErrorBoundary>
+                <main id="main-content" className="flex-1">
+                  {children}
+                </main>
+              </ErrorBoundary>
+              <Footer />
+              <AccessibilityPanel />
+              <OfflineIndicator />
+            </AccessibilityProvider>
+          </ThemeProvider>
         </body>
       </html>
     </>

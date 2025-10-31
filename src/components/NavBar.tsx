@@ -17,8 +17,12 @@ import {
   Vote,
   Coins,
   Droplets,
-  TrendingUp
+  TrendingUp,
+  Moon,
+  Sun,
+  Search
 } from 'lucide-react';
+import { useTheme } from './ThemeProvider';
 
 const navItems = [
   { href: '/', label: 'Home', icon: Home },
@@ -38,11 +42,18 @@ const navItems = [
 export function NavBar() {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
 
   const isActive = (href: string) => {
     if (href === '/') return pathname === '/';
     return pathname.startsWith(href);
   };
+
+  const filteredNavItems = navItems.filter(item =>
+    item.label.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <>
@@ -69,6 +80,83 @@ export function NavBar() {
 
             {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center space-x-1">
+              {/* Theme Toggle */}
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={toggleTheme}
+                className="flex items-center justify-center w-10 h-10 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+              >
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={theme}
+                    initial={{ opacity: 0, rotate: -90 }}
+                    animate={{ opacity: 1, rotate: 0 }}
+                    exit={{ opacity: 0, rotate: 90 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    {theme === 'light' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+                  </motion.div>
+                </AnimatePresence>
+              </motion.button>
+
+              {/* Search */}
+              <div className="relative">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setIsSearchOpen(!isSearchOpen)}
+                  className="flex items-center justify-center w-10 h-10 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  aria-label="Search"
+                >
+                  <Search className="w-5 h-5" />
+                </motion.button>
+
+                <AnimatePresence>
+                  {isSearchOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                      className="absolute right-0 top-full mt-2 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-2 z-50"
+                    >
+                      <input
+                        type="text"
+                        placeholder="Search features..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                        autoFocus
+                      />
+                      {searchQuery && (
+                        <div className="mt-2 max-h-40 overflow-y-auto">
+                          {filteredNavItems.map((item) => (
+                            <Link
+                              key={item.href}
+                              href={item.href}
+                              onClick={() => {
+                                setIsSearchOpen(false);
+                                setSearchQuery('');
+                              }}
+                              className="flex items-center space-x-2 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md text-sm"
+                            >
+                              <item.icon className="w-4 h-4" />
+                              <span>{item.label}</span>
+                            </Link>
+                          ))}
+                          {filteredNavItems.length === 0 && (
+                            <div className="p-2 text-sm text-gray-500 dark:text-gray-400">
+                              No results found
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
               {navItems.slice(0, 8).map((item) => {
                 const Icon = item.icon;
                 const active = isActive(item.href);
@@ -92,7 +180,28 @@ export function NavBar() {
             </div>
 
             {/* Mobile menu button */}
-            <div className="lg:hidden flex items-center">
+            <div className="lg:hidden flex items-center space-x-2">
+              {/* Theme Toggle */}
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={toggleTheme}
+                className="flex items-center justify-center w-10 h-10 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+              >
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={theme}
+                    initial={{ opacity: 0, rotate: -90 }}
+                    animate={{ opacity: 1, rotate: 0 }}
+                    exit={{ opacity: 0, rotate: 90 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    {theme === 'light' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+                  </motion.div>
+                </AnimatePresence>
+              </motion.button>
+
               <motion.button
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}

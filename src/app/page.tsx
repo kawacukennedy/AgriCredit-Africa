@@ -1,14 +1,15 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { useWallet } from '@/hooks/useWallet';
-import { AuthModal } from '@/components/AuthModal';
 import { ToastContainer, ToastMessage } from '@/components/Toast';
+
+const AuthModal = lazy(() => import('@/components/AuthModal').then(mod => ({ default: mod.AuthModal })));
 import { getAuthToken, setAuthToken, getCurrentUser } from '@/lib/api';
 import Image from 'next/image';
-import { ArrowRight, Shield, Zap, TrendingUp, Wallet, BarChart3, LogOut } from 'lucide-react';
+import { ArrowRight, Shield, Zap, TrendingUp, Wallet, LogOut } from 'lucide-react';
 
 const slides = [
   {
@@ -50,6 +51,7 @@ export default function Home() {
   const [user, setUser] = useState<any>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const { address, isConnected, connectWallet, isConnecting, error, disconnectWallet } = useWallet();
   const router = useRouter();
 
@@ -78,6 +80,17 @@ export default function Home() {
 
   const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % slides.length);
   const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
+
+  // Auto-play carousel
+  useEffect(() => {
+    if (!isAutoPlaying) return;
+
+    const interval = setInterval(() => {
+      nextSlide();
+    }, 5000); // Change slide every 5 seconds
+
+    return () => clearInterval(interval);
+  }, [isAutoPlaying]);
 
   const handleWalletAction = async () => {
     if (isConnected) {
@@ -124,11 +137,7 @@ export default function Home() {
     setToasts(prev => prev.filter(toast => toast.id !== id));
   };
 
-  const handleLogout = () => {
-    setAuthToken(null);
-    setIsAuthenticated(false);
-    setUser(null);
-  };
+
 
   const getWalletButtonText = () => {
     if (isConnecting) return 'Connecting...';
@@ -242,7 +251,11 @@ export default function Home() {
         </div>
 
         {/* Carousel */}
-        <div className="relative max-w-4xl mx-auto">
+        <div
+          className="relative max-w-4xl mx-auto"
+          onMouseEnter={() => setIsAutoPlaying(false)}
+          onMouseLeave={() => setIsAutoPlaying(true)}
+        >
           <motion.div
             key={currentSlide}
             initial={{ opacity: 0, x: 100 }}
@@ -467,11 +480,13 @@ export default function Home() {
       </main>
 
       {/* Auth Modal */}
-      <AuthModal
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-        onSuccess={handleAuthSuccess}
-      />
+      <Suspense fallback={<div>Loading...</div>}>
+        <AuthModal
+          isOpen={showAuthModal}
+          onClose={() => setShowAuthModal(false)}
+          onSuccess={handleAuthSuccess}
+        />
+      </Suspense>
 
       {/* Toast Notifications */}
       <ToastContainer toasts={toasts} onClose={removeToast} />
