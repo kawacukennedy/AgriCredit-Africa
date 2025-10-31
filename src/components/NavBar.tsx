@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+'use client';
+
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Home,
@@ -58,8 +60,10 @@ export function NavBar() {
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    if (typeof window !== 'undefined') {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
   }, [isThemeMenuOpen]);
 
   const isActive = (href: string) => {
