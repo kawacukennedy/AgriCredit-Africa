@@ -77,6 +77,9 @@ CREATE TABLE IF NOT EXISTS users (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Enable RLS for users table
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+
 -- Sensor devices table
 CREATE TABLE IF NOT EXISTS sensor_devices (
     id SERIAL PRIMARY KEY,
@@ -92,6 +95,9 @@ CREATE TABLE IF NOT EXISTS sensor_devices (
     last_seen TIMESTAMPTZ,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Enable RLS for sensor_devices table
+ALTER TABLE sensor_devices ENABLE ROW LEVEL SECURITY;
 
 -- Sensor readings table
 CREATE TABLE IF NOT EXISTS sensor_readings (
@@ -111,6 +117,9 @@ CREATE TABLE IF NOT EXISTS sensor_readings (
     timestamp TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Enable RLS for sensor_readings table
+ALTER TABLE sensor_readings ENABLE ROW LEVEL SECURITY;
+
 -- Credit scores table
 CREATE TABLE IF NOT EXISTS credit_scores (
     id SERIAL PRIMARY KEY,
@@ -123,6 +132,9 @@ CREATE TABLE IF NOT EXISTS credit_scores (
     explanation JSONB,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Enable RLS for credit_scores table
+ALTER TABLE credit_scores ENABLE ROW LEVEL SECURITY;
 
 -- Yield predictions table
 CREATE TABLE IF NOT EXISTS yield_predictions (
@@ -138,6 +150,9 @@ CREATE TABLE IF NOT EXISTS yield_predictions (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Enable RLS for yield_predictions table
+ALTER TABLE yield_predictions ENABLE ROW LEVEL SECURITY;
+
 -- Climate analyses table
 CREATE TABLE IF NOT EXISTS climate_analyses (
     id SERIAL PRIMARY KEY,
@@ -151,6 +166,9 @@ CREATE TABLE IF NOT EXISTS climate_analyses (
     iot_data JSONB,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Enable RLS for climate_analyses table
+ALTER TABLE climate_analyses ENABLE ROW LEVEL SECURITY;
 
 -- Loans table
 CREATE TABLE IF NOT EXISTS loans (
@@ -168,6 +186,9 @@ CREATE TABLE IF NOT EXISTS loans (
     disbursed_at TIMESTAMPTZ
 );
 
+-- Enable RLS for loans table
+ALTER TABLE loans ENABLE ROW LEVEL SECURITY;
+
 -- Loan repayments table
 CREATE TABLE IF NOT EXISTS loan_repayments (
     id SERIAL PRIMARY KEY,
@@ -178,6 +199,9 @@ CREATE TABLE IF NOT EXISTS loan_repayments (
     status repayment_status DEFAULT 'pending',
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Enable RLS for loan_repayments table
+ALTER TABLE loan_repayments ENABLE ROW LEVEL SECURITY;
 
 -- Marketplace listings table
 CREATE TABLE IF NOT EXISTS marketplace_listings (
@@ -198,6 +222,9 @@ CREATE TABLE IF NOT EXISTS marketplace_listings (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Enable RLS for marketplace_listings table
+ALTER TABLE marketplace_listings ENABLE ROW LEVEL SECURITY;
+
 -- Notifications table
 CREATE TABLE IF NOT EXISTS notifications (
     id SERIAL PRIMARY KEY,
@@ -210,6 +237,9 @@ CREATE TABLE IF NOT EXISTS notifications (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Enable RLS for notifications table
+ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
+
 -- Carbon credits table
 CREATE TABLE IF NOT EXISTS carbon_credits (
     id SERIAL PRIMARY KEY,
@@ -220,6 +250,9 @@ CREATE TABLE IF NOT EXISTS carbon_credits (
     verification_proof JSONB,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Enable RLS for carbon_credits table
+ALTER TABLE carbon_credits ENABLE ROW LEVEL SECURITY;
 
 -- Governance proposals table
 CREATE TABLE IF NOT EXISTS governance_proposals (
@@ -241,6 +274,9 @@ CREATE TABLE IF NOT EXISTS governance_proposals (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Enable RLS for governance_proposals table
+ALTER TABLE governance_proposals ENABLE ROW LEVEL SECURITY;
+
 -- Governance votes table
 CREATE TABLE IF NOT EXISTS governance_votes (
     id SERIAL PRIMARY KEY,
@@ -252,6 +288,9 @@ CREATE TABLE IF NOT EXISTS governance_votes (
     transaction_hash VARCHAR(255),
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Enable RLS for governance_votes table
+ALTER TABLE governance_votes ENABLE ROW LEVEL SECURITY;
 
 -- Farm NFTs table
 CREATE TABLE IF NOT EXISTS farm_nfts (
@@ -272,6 +311,9 @@ CREATE TABLE IF NOT EXISTS farm_nfts (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Enable RLS for farm_nfts table
+ALTER TABLE farm_nfts ENABLE ROW LEVEL SECURITY;
+
 -- Harvest records table
 CREATE TABLE IF NOT EXISTS harvest_records (
     id SERIAL PRIMARY KEY,
@@ -283,6 +325,9 @@ CREATE TABLE IF NOT EXISTS harvest_records (
     transaction_hash VARCHAR(255),
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Enable RLS for harvest_records table
+ALTER TABLE harvest_records ENABLE ROW LEVEL SECURITY;
 
 -- Liquidity positions table
 CREATE TABLE IF NOT EXISTS liquidity_positions (
@@ -298,6 +343,9 @@ CREATE TABLE IF NOT EXISTS liquidity_positions (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Enable RLS for liquidity_positions table
+ALTER TABLE liquidity_positions ENABLE ROW LEVEL SECURITY;
+
 -- Pool rewards table
 CREATE TABLE IF NOT EXISTS pool_rewards (
     id SERIAL PRIMARY KEY,
@@ -307,6 +355,9 @@ CREATE TABLE IF NOT EXISTS pool_rewards (
     reward_token VARCHAR(255) NOT NULL,
     claimed_at TIMESTAMPTZ NOT NULL
 );
+
+-- Enable RLS for pool_rewards table
+ALTER TABLE pool_rewards ENABLE ROW LEVEL SECURITY;
 
 -- Cross-chain transactions table
 CREATE TABLE IF NOT EXISTS cross_chain_transactions (
@@ -325,6 +376,9 @@ CREATE TABLE IF NOT EXISTS cross_chain_transactions (
     completed_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Enable RLS for cross_chain_transactions table
+ALTER TABLE cross_chain_transactions ENABLE ROW LEVEL SECURITY;
 
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
@@ -440,24 +494,7 @@ VALUES
 ON CONFLICT DO NOTHING;
 
 -- Create Row Level Security (RLS) policies for multi-tenant security
-ALTER TABLE users ENABLE ROW LEVEL SECURITY;
-ALTER TABLE sensor_devices ENABLE ROW LEVEL SECURITY;
-ALTER TABLE sensor_readings ENABLE ROW LEVEL SECURITY;
-ALTER TABLE credit_scores ENABLE ROW LEVEL SECURITY;
-ALTER TABLE yield_predictions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE climate_analyses ENABLE ROW LEVEL SECURITY;
-ALTER TABLE loans ENABLE ROW LEVEL SECURITY;
-ALTER TABLE loan_repayments ENABLE ROW LEVEL SECURITY;
-ALTER TABLE marketplace_listings ENABLE ROW LEVEL SECURITY;
-ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
-ALTER TABLE carbon_credits ENABLE ROW LEVEL SECURITY;
-ALTER TABLE governance_proposals ENABLE ROW LEVEL SECURITY;
-ALTER TABLE governance_votes ENABLE ROW LEVEL SECURITY;
-ALTER TABLE farm_nfts ENABLE ROW LEVEL SECURITY;
-ALTER TABLE harvest_records ENABLE ROW LEVEL SECURITY;
-ALTER TABLE liquidity_positions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE pool_rewards ENABLE ROW LEVEL SECURITY;
-ALTER TABLE cross_chain_transactions ENABLE ROW LEVEL SECURITY;
+-- Note: RLS must be enabled BEFORE creating policies
 
 -- Basic RLS policies (users can only access their own data)
 CREATE POLICY "Users can view own profile" ON users FOR SELECT USING (auth.uid()::text = id::text);
