@@ -45,16 +45,7 @@ export function NavBar() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
-  // Handle SSR where theme might not be available
-  let theme = 'light';
-  let toggleTheme = () => {};
-  try {
-    const themeContext = useTheme();
-    theme = themeContext.theme;
-    toggleTheme = themeContext.toggleTheme;
-  } catch {
-    // Fallback for SSR
-  }
+  const { theme, toggleTheme } = useTheme();
 
   const isActive = (href: string) => {
     if (href === '/') return pathname === '/';

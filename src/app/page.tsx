@@ -203,14 +203,6 @@ export default function Home() {
               Sign In
             </button>
           )}
-          {!isAuthenticated && (
-            <button
-              onClick={() => setShowAuthModal(true)}
-              className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition-colors"
-            >
-              Sign In
-            </button>
-          )}
           {isConnected && address && (
             <span className="text-sm text-gray-600 dark:text-gray-400">
               {address.slice(0, 6)}...{address.slice(-4)}
