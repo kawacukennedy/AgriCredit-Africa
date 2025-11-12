@@ -105,6 +105,36 @@ class Cache:
         cache_key = f"crop_yield:{key}"
         return await self.get(cache_key)
 
+    async def get_model(self, model_name: str) -> Optional[Any]:
+        """Get cached ML model"""
+        try:
+            key = f"model:{model_name}"
+            pickled_data = self.redis_client.get(key)
+            if pickled_data:
+                return pickle.loads(pickled_data)
+            return None
+        except Exception:
+            return None
+
+    async def set_model(self, model_name: str, model: Any, expire: int = 86400) -> bool:
+        """Cache ML model with expiration (default 24 hours)"""
+        try:
+            key = f"model:{model_name}"
+            pickled_data = pickle.dumps(model)
+            return self.redis_client.setex(key, expire, pickled_data)
+        except Exception:
+            return False
+
+    async def get_sensor_insights(self, device_id: str, days: int) -> Optional[dict]:
+        """Get cached sensor insights"""
+        key = f"sensor_insights:{device_id}:{days}"
+        return await self.get(key)
+
+    async def set_sensor_insights(self, device_id: str, days: int, insights: dict) -> bool:
+        """Cache sensor insights for 30 minutes"""
+        key = f"sensor_insights:{device_id}:{days}"
+        return await self.set(key, insights, expire=1800)  # 30 minutes
+
 # Global cache instance
 cache = Cache()
 

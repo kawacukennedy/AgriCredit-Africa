@@ -83,6 +83,9 @@ logger = structlog.get_logger()
 # Initialize rate limiter
 limiter = Limiter(key_func=get_remote_address, default_limits=["100/minute"])
 
+# Specific limiters for AI endpoints
+ai_limiter = limiter.limit("10/minute")  # Stricter limits for AI endpoints
+
 # Create database tables
 Base.metadata.create_all(bind=engine)
 
@@ -691,7 +694,44 @@ async def climate_analysis_endpoint(
         logger.error("Climate analysis failed", error=str(e), user_id=current_user.id)
         raise HTTPException(status_code=500, detail=str(e))
 
-# Advanced AI endpoints
+# Input validation functions
+async def validate_image_upload(file: UploadFile):
+    """Validate image upload for AI analysis"""
+    # Check file size (max 10MB)
+    file_size = 0
+    content = await file.read()
+    file_size = len(content)
+    await file.seek(0)  # Reset file pointer
+
+    if file_size > 10 * 1024 * 1024:  # 10MB
+        raise HTTPException(status_code=400, detail="File size too large. Maximum size is 10MB")
+
+    # Check file type
+    allowed_types = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp']
+    if file.content_type not in allowed_types:
+        raise HTTPException(status_code=400, detail=f"Invalid file type. Allowed types: {', '.join(allowed_types)}")
+
+    # Basic image validation (check if it's actually an image)
+    if not content.startswith(b'\xff\xd8') and not content.startswith(b'\x89PNG') and not content.startswith(b'RIFF'):
+        raise HTTPException(status_code=400, detail="Invalid image file")
+
+def validate_text_input(text: str, max_length: int = 1000):
+    """Validate text input for AI analysis"""
+    if not text or len(text.strip()) == 0:
+        raise HTTPException(status_code=400, detail="Text input cannot be empty")
+
+    if len(text) > max_length:
+        raise HTTPException(status_code=400, detail=f"Text input too long. Maximum length is {max_length} characters")
+
+    # Check for potentially harmful content
+    harmful_patterns = ['<script', 'javascript:', 'onload=', 'onerror=']
+    text_lower = text.lower()
+    for pattern in harmful_patterns:
+        if pattern in text_lower:
+            raise HTTPException(status_code=400, detail="Invalid input content detected")
+
+# Advanced AI endpoints with specific rate limits
+@ai_limiter
 @app.post(
     "/ai/crop-health-analysis",
     summary="Advanced Crop Health Analysis",
@@ -710,6 +750,20 @@ async def analyze_crop_health(
 ):
     """Advanced crop health analysis using AI vision models"""
     try:
+        # Validate file
+        await validate_image_upload(file)
+
+        # Validate inputs
+        if not crop_type or len(crop_type.strip()) == 0:
+            raise HTTPException(status_code=400, detail="Crop type is required")
+        if not location or len(location.strip()) == 0:
+            raise HTTPException(status_code=400, detail="Location is required")
+
+        # Validate crop type
+        valid_crop_types = ['corn', 'wheat', 'rice', 'soybean', 'maize', 'barley', 'oats']
+        if crop_type.lower() not in valid_crop_types:
+            raise HTTPException(status_code=400, detail=f"Invalid crop type. Valid types: {', '.join(valid_crop_types)}")
+
         # Read image data
         image_data = await file.read()
 
@@ -728,6 +782,7 @@ async def analyze_crop_health(
         logger.error("Crop health analysis failed", error=str(e), user_id=current_user.id)
         raise HTTPException(status_code=500, detail=str(e))
 
+@ai_limiter
 @app.post(
     "/ai/market-price-prediction",
     summary="Advanced Market Price Prediction",
@@ -747,6 +802,29 @@ async def predict_market_prices(
 ):
     """Advanced market price prediction"""
     try:
+        # Validate inputs
+        if not commodity or len(commodity.strip()) == 0:
+            raise HTTPException(status_code=400, detail="Commodity is required")
+        if not location or len(location.strip()) == 0:
+            raise HTTPException(status_code=400, detail="Location is required")
+
+        # Validate days_ahead
+        if days_ahead < 1 or days_ahead > 30:
+            raise HTTPException(status_code=400, detail="Days ahead must be between 1 and 30")
+
+        # Validate historical data
+        if not historical_data or len(historical_data) < 7:
+            raise HTTPException(status_code=400, detail="At least 7 days of historical data required")
+
+        # Validate data structure
+        for item in historical_data:
+            if not isinstance(item, dict) or 'price' not in item:
+                raise HTTPException(status_code=400, detail="Historical data must contain 'price' field")
+
+        # Validate commodity type
+        valid_commodities = ['corn', 'wheat', 'rice', 'soybean', 'maize', 'barley', 'oats', 'coffee', 'cocoa']
+        if commodity.lower() not in valid_commodities:
+            raise HTTPException(status_code=400, detail=f"Invalid commodity. Valid types: {', '.join(valid_commodities)}")
         result = await advanced_ai_service.predict_market_prices(
             commodity, location, historical_data, days_ahead
         )
@@ -763,6 +841,7 @@ async def predict_market_prices(
         logger.error("Market price prediction failed", error=str(e), user_id=current_user.id)
         raise HTTPException(status_code=500, detail=str(e))
 
+@ai_limiter
 @app.post(
     "/ai/climate-risk-assessment",
     summary="Advanced Climate Risk Assessment",
@@ -797,6 +876,7 @@ async def assess_climate_risk(
         logger.error("Climate risk assessment failed", error=str(e), user_id=current_user.id)
         raise HTTPException(status_code=500, detail=str(e))
 
+@ai_limiter
 @app.post(
     "/ai/farmer-sentiment-analysis",
     summary="Farmer Sentiment Analysis",
@@ -813,6 +893,18 @@ async def analyze_farmer_sentiment(
 ):
     """Analyze farmer sentiment from text data"""
     try:
+        # Validate input
+        if not text_data or len(text_data) == 0:
+            raise HTTPException(status_code=400, detail="Text data is required")
+
+        if len(text_data) > 100:
+            raise HTTPException(status_code=400, detail="Maximum 100 text samples allowed")
+
+        # Validate each text entry
+        for i, text in enumerate(text_data):
+            if not isinstance(text, str):
+                raise HTTPException(status_code=400, detail=f"Text data at index {i} must be a string")
+            validate_text_input(text, max_length=1000)
         result = await advanced_ai_service.analyze_farmer_sentiment(text_data)
 
         if "error" in result:

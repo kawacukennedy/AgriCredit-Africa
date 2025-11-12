@@ -8,6 +8,8 @@ import pandas as pd
 from typing import Dict, List, Any, Optional, Tuple
 from datetime import datetime, timedelta
 import logging
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingClassifier
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
@@ -20,63 +22,187 @@ from transformers import pipeline
 import joblib
 import os
 import json
+import hashlib
 
 logger = logging.getLogger(__name__)
 
 class AdvancedAIService:
-    """Advanced AI service with multiple ML models"""
+    """Advanced AI service with multiple ML models and optimized loading"""
 
-    def __init__(self):
+    def __init__(self, cache_client=None):
         self.models_dir = os.path.join(os.path.dirname(__file__), '../../models')
         os.makedirs(self.models_dir, exist_ok=True)
 
-        # Initialize models
-        self.crop_disease_model = None
-        self.market_prediction_model = None
-        self.climate_risk_model = None
-        self.farmer_behavior_model = None
-        self.sentiment_analyzer = None
+        # Cache client for model caching
+        self.cache_client = cache_client
 
-        self._load_models()
+        # Model loading state
+        self._models_loaded = {
+            'crop_disease': False,
+            'market_prediction': False,
+            'climate_risk': False,
+            'sentiment': False
+        }
 
-    def _load_models(self):
-        """Load or initialize ML models"""
+        # Model instances (lazy loaded)
+        self._crop_disease_model = None
+        self._market_prediction_model = None
+        self._climate_risk_model = None
+        self._sentiment_analyzer = None
+
+        # Thread pool for async model loading
+        self.executor = ThreadPoolExecutor(max_workers=2)
+
+        # Model metadata for versioning
+        self.model_versions = {}
+
+        # Start background model preloading
+        asyncio.create_task(self._preload_critical_models())
+
+    async def _preload_critical_models(self):
+        """Preload critical models in background"""
         try:
-            # Load crop disease detection model (CNN)
-            disease_model_path = os.path.join(self.models_dir, 'crop_disease_model.h5')
-            if os.path.exists(disease_model_path):
-                self.crop_disease_model = keras.models.load_model(disease_model_path)
-            else:
-                self.crop_disease_model = self._create_crop_disease_model()
+            # Preload market prediction model (most frequently used)
+            await self._ensure_market_model_loaded()
+            # Preload climate risk model (used for risk assessment)
+            await self._ensure_climate_model_loaded()
+            logger.info("Critical AI models preloaded successfully")
+        except Exception as e:
+            logger.warning(f"Background model preloading failed: {e}")
 
-            # Load market prediction model (XGBoost)
-            market_model_path = os.path.join(self.models_dir, 'market_prediction_model.pkl')
-            if os.path.exists(market_model_path):
-                self.market_prediction_model = joblib.load(market_model_path)
-            else:
-                self.market_prediction_model = self._create_market_prediction_model()
-
-            # Load climate risk model (LightGBM)
-            climate_model_path = os.path.join(self.models_dir, 'climate_risk_model.pkl')
-            if os.path.exists(climate_model_path):
-                self.climate_risk_model = joblib.load(climate_model_path)
-            else:
-                self.climate_risk_model = self._create_climate_risk_model()
-
-            # Initialize sentiment analyzer
+    async def _ensure_crop_model_loaded(self):
+        """Lazy load crop disease model"""
+        if not self._models_loaded['crop_disease']:
             try:
-                self.sentiment_analyzer = pipeline("sentiment-analysis",
-                                                 model="cardiffnlp/twitter-roberta-base-sentiment-latest")
+                # Check cache first
+                if self.cache_client:
+                    cached_model = await self.cache_client.get_model('crop_disease')
+                    if cached_model:
+                        self._crop_disease_model = cached_model
+                        self._models_loaded['crop_disease'] = True
+                        return
+
+                # Load from disk
+                disease_model_path = os.path.join(self.models_dir, 'crop_disease_model.h5')
+                if os.path.exists(disease_model_path):
+                    loop = asyncio.get_event_loop()
+                    self._crop_disease_model = await loop.run_in_executor(
+                        self.executor, keras.models.load_model, disease_model_path
+                    )
+                else:
+                    self._crop_disease_model = self._create_crop_disease_model()
+
+                self._models_loaded['crop_disease'] = True
+
+                # Cache the model
+                if self.cache_client:
+                    await self.cache_client.set_model('crop_disease', self._crop_disease_model)
+
+                logger.info("Crop disease model loaded")
+
+            except Exception as e:
+                logger.error(f"Failed to load crop disease model: {e}")
+                self._crop_disease_model = RandomForestRegressor(n_estimators=10, random_state=42)
+
+    async def _ensure_market_model_loaded(self):
+        """Lazy load market prediction model"""
+        if not self._models_loaded['market_prediction']:
+            try:
+                # Check cache first
+                if self.cache_client:
+                    cached_model = await self.cache_client.get_model('market_prediction')
+                    if cached_model:
+                        self._market_prediction_model = cached_model
+                        self._models_loaded['market_prediction'] = True
+                        return
+
+                # Load from disk
+                market_model_path = os.path.join(self.models_dir, 'market_prediction_model.pkl')
+                if os.path.exists(market_model_path):
+                    loop = asyncio.get_event_loop()
+                    self._market_prediction_model = await loop.run_in_executor(
+                        self.executor, joblib.load, market_model_path
+                    )
+                else:
+                    self._market_prediction_model = self._create_market_prediction_model()
+
+                self._models_loaded['market_prediction'] = True
+
+                # Cache the model
+                if self.cache_client:
+                    await self.cache_client.set_model('market_prediction', self._market_prediction_model)
+
+                logger.info("Market prediction model loaded")
+
+            except Exception as e:
+                logger.error(f"Failed to load market prediction model: {e}")
+                self._market_prediction_model = RandomForestRegressor(n_estimators=10, random_state=42)
+
+    async def _ensure_climate_model_loaded(self):
+        """Lazy load climate risk model"""
+        if not self._models_loaded['climate_risk']:
+            try:
+                # Check cache first
+                if self.cache_client:
+                    cached_model = await self.cache_client.get_model('climate_risk')
+                    if cached_model:
+                        self._climate_risk_model = cached_model
+                        self._models_loaded['climate_risk'] = True
+                        return
+
+                # Load from disk
+                climate_model_path = os.path.join(self.models_dir, 'climate_risk_model.pkl')
+                if os.path.exists(climate_model_path):
+                    loop = asyncio.get_event_loop()
+                    self._climate_risk_model = await loop.run_in_executor(
+                        self.executor, joblib.load, climate_model_path
+                    )
+                else:
+                    self._climate_risk_model = self._create_climate_risk_model()
+
+                self._models_loaded['climate_risk'] = True
+
+                # Cache the model
+                if self.cache_client:
+                    await self.cache_client.set_model('climate_risk', self._climate_risk_model)
+
+                logger.info("Climate risk model loaded")
+
+            except Exception as e:
+                logger.error(f"Failed to load climate risk model: {e}")
+                self._climate_risk_model = RandomForestRegressor(n_estimators=10, random_state=42)
+
+    async def _ensure_sentiment_analyzer_loaded(self):
+        """Lazy load sentiment analyzer"""
+        if not self._models_loaded['sentiment']:
+            try:
+                # Check cache first
+                if self.cache_client:
+                    cached_analyzer = await self.cache_client.get_model('sentiment_analyzer')
+                    if cached_analyzer:
+                        self._sentiment_analyzer = cached_analyzer
+                        self._models_loaded['sentiment'] = True
+                        return
+
+                # Load sentiment analyzer
+                loop = asyncio.get_event_loop()
+                self._sentiment_analyzer = await loop.run_in_executor(
+                    self.executor,
+                    lambda: pipeline("sentiment-analysis",
+                                   model="cardiffnlp/twitter-roberta-base-sentiment-latest")
+                )
+
+                self._models_loaded['sentiment'] = True
+
+                # Cache the analyzer
+                if self.cache_client:
+                    await self.cache_client.set_model('sentiment_analyzer', self._sentiment_analyzer)
+
+                logger.info("Sentiment analyzer loaded")
+
             except Exception as e:
                 logger.warning(f"Could not load sentiment analyzer: {e}")
-                self.sentiment_analyzer = None
-
-            logger.info("Advanced AI models loaded successfully")
-
-        except Exception as e:
-            logger.error(f"Error loading AI models: {e}")
-            # Create basic fallback models
-            self._create_fallback_models()
+                self._sentiment_analyzer = None
 
     def _create_crop_disease_model(self) -> keras.Model:
         """Create CNN model for crop disease detection"""
@@ -135,6 +261,8 @@ class AdvancedAIService:
         Analyze crop health from image using CNN model
         """
         try:
+            # Ensure model is loaded
+            await self._ensure_crop_model_loaded()
             # In a real implementation, you would preprocess the image
             # For now, return mock analysis
             diseases = {
@@ -179,12 +307,14 @@ class AdvancedAIService:
             }
 
     async def predict_market_prices(self, commodity: str, location: str,
-                                  historical_data: List[Dict[str, Any]],
-                                  days_ahead: int = 7) -> Dict[str, Any]:
+                                   historical_data: List[Dict[str, Any]],
+                                   days_ahead: int = 7) -> Dict[str, Any]:
         """
         Predict market prices using time series analysis
         """
         try:
+            # Ensure model is loaded
+            await self._ensure_market_model_loaded()
             if not historical_data:
                 return {
                     "error": "Insufficient historical data",
@@ -270,6 +400,8 @@ class AdvancedAIService:
         Assess climate-related risks for crop production
         """
         try:
+            # Ensure model is loaded
+            await self._ensure_climate_model_loaded()
             if not weather_forecast:
                 return {
                     "error": "Weather forecast data required",
@@ -400,7 +532,10 @@ class AdvancedAIService:
         Analyze farmer sentiment from text data using NLP
         """
         try:
-            if not self.sentiment_analyzer:
+            # Ensure sentiment analyzer is loaded
+            await self._ensure_sentiment_analyzer_loaded()
+
+            if not self._sentiment_analyzer:
                 return {
                     "error": "Sentiment analysis not available",
                     "overall_sentiment": "neutral"
@@ -409,7 +544,7 @@ class AdvancedAIService:
             sentiments = []
             for text in text_data:
                 if text.strip():
-                    result = self.sentiment_analyzer(text[:512])  # Limit text length
+                    result = self._sentiment_analyzer(text[:512])  # Limit text length
                     sentiments.append(result[0])
 
             if not sentiments:

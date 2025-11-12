@@ -11,6 +11,10 @@ A comprehensive FastAPI-based backend service for the AgriCredit agricultural cr
   - Credit scoring with risk assessment
   - Crop yield prediction
   - Climate impact analysis and carbon sequestration
+  - Advanced crop health analysis (CNN-based disease detection)
+  - Market price prediction (XGBoost time series)
+  - Climate risk assessment
+  - Farmer sentiment analysis (NLP)
 - **Marketplace**: Agricultural product listings and trading
 - **Loan Management**: Loan applications and repayment tracking
 - **Notification System**: Real-time alerts and updates
@@ -149,9 +153,18 @@ The API uses JWT (JSON Web Tokens) for authentication:
 - `POST /ai/yield-prediction` - Crop yield prediction
 - `POST /ai/climate-analysis` - Climate impact analysis
 
+### Advanced AI Services
+- `POST /ai/crop-health-analysis` - Crop disease detection and health analysis
+- `POST /ai/market-price-prediction` - Agricultural commodity price forecasting
+- `POST /ai/climate-risk-assessment` - Climate risk assessment for crops
+- `POST /ai/farmer-sentiment-analysis` - NLP-based sentiment analysis
+
+### Analytics & Insights
+- `GET /analytics/sensor-insights/{device_id}` - AI-powered sensor data insights
+
 ### Marketplace
 - `POST /marketplace/listings` - Create product listing
-- `GET /marketplace/listings` - Browse listings
+- `GET /marketplace/listings` - Browse listings with advanced filtering (crop type, location, price range, quality grade) and pagination
 
 ### Loans
 - `POST /loans` - Apply for loan
@@ -163,8 +176,22 @@ The API uses JWT (JSON Web Tokens) for authentication:
 
 ### Real-time Features
 - `WebSocket /ws/{user_id}` - Real-time notifications and sensor alerts
-- `POST /iot/process-sensor-batch` - Batch IoT sensor data processing
+- `POST /iot/process-sensor-batch` - Batch IoT sensor data processing with anomaly detection
 - `POST /oracle/update-feeds` - Update oracle data feeds
+
+### Decentralized Storage
+- `POST /ipfs/upload` - Upload files to IPFS
+- `GET /ipfs/{cid}` - Retrieve IPFS content
+
+### Blockchain Integration
+- `GET /blockchain/status` - Blockchain connection status
+- `POST /blockchain/identity/create` - Create decentralized identity
+- `POST /blockchain/loans` - Create blockchain-based loans
+- `POST /blockchain/carbon/mint` - Mint carbon credit tokens
+- `POST /blockchain/governance/propose` - Create governance proposals
+- `POST /blockchain/nft/farm/mint` - Mint farm NFTs
+- `POST /blockchain/pool/create` - Create liquidity pools
+- `POST /blockchain/bridge/transfer` - Cross-chain token transfers
 
 ### Decentralized Storage
 - `POST /ipfs/upload` - Upload files to IPFS
