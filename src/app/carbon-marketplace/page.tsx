@@ -4,28 +4,21 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useWallet } from '@/hooks/useWallet';
 import { contractInteractions } from '@/lib/contractInteractions';
+import {
+  getCarbonListings,
+  getCarbonOrders,
+  createCarbonListing,
+  createCarbonOrder,
+  purchaseCarbonCredit,
+  CarbonListing,
+  CarbonOrder,
+  connectWebSocket,
+  onWebSocketMessage,
+  disconnectWebSocket
+} from '@/lib/api';
 import { TrendingUp, TrendingDown, DollarSign, Leaf, ShoppingCart, BarChart3, Plus, Minus } from 'lucide-react';
 
-interface CarbonListing {
-  id: number;
-  seller: string;
-  amount: number;
-  price: number;
-  totalValue: number;
-  verificationProof: string;
-  timestamp: number;
-  status: 'active' | 'sold' | 'cancelled';
-}
-
-interface CarbonOrder {
-  id: number;
-  type: 'buy' | 'sell';
-  amount: number;
-  price: number;
-  user: string;
-  timestamp: number;
-  status: 'open' | 'filled' | 'cancelled';
-}
+// Interfaces moved to API file
 
 export default function CarbonMarketplacePage() {
   const { address, isConnected } = useWallet();
@@ -54,77 +47,91 @@ export default function CarbonMarketplacePage() {
   useEffect(() => {
     if (isConnected) {
       loadMarketData();
+
+      // Connect to WebSocket for real-time market updates
+      connectWebSocket(1, 'carbon_marketplace'); // Using dummy user ID
+
+      // Listen for market updates
+      onWebSocketMessage('market_update', (data: any) => {
+        console.log('Received market update:', data);
+        // Refresh data when market updates are received
+        loadMarketData();
+      });
     }
+
+    return () => {
+      disconnectWebSocket();
+    };
   }, [isConnected]);
 
   const loadMarketData = async () => {
     setIsLoading(true);
     try {
-      // Load carbon token balance
-      const balance = await contractInteractions.getCarbonOffset(address!);
+      const [listingsData, ordersData] = await Promise.allSettled([
+        getCarbonListings(),
+        getCarbonOrders()
+      ]);
 
-      // For now, keep mock data until full marketplace contract is implemented
-      const mockListings: CarbonListing[] = [
-        {
-          id: 1,
-          seller: '0x1234...5678',
-          amount: 100,
-          price: 25.50,
-          totalValue: 2550,
-          verificationProof: 'ipfs://QmVerification1',
-          timestamp: Date.now() - 3600000,
-          status: 'active'
-        },
-        {
-          id: 2,
-          seller: '0x9876...1234',
-          amount: 250,
-          price: 24.80,
-          totalValue: 6200,
-          verificationProof: 'ipfs://QmVerification2',
-          timestamp: Date.now() - 7200000,
-          status: 'active'
-        },
-        {
-          id: 3,
-          seller: '0xabcd...efgh',
-          amount: 500,
-          price: 26.00,
-          totalValue: 13000,
-          verificationProof: 'ipfs://QmVerification3',
-          timestamp: Date.now() - 10800000,
-          status: 'active'
-        }
-      ];
+      if (listingsData.status === 'fulfilled') {
+        setListings(listingsData.value);
+      } else {
+        // Fallback to mock data if API fails
+        console.warn('Failed to load listings, using mock data');
+        setListings([
+          {
+            id: 1,
+            seller: '0x1234...5678',
+            amount: 100,
+            price: 25.50,
+            total_value: 2550,
+            verification_proof: 'ipfs://QmVerification1',
+            timestamp: Date.now() - 3600000,
+            status: 'active'
+          },
+          {
+            id: 2,
+            seller: '0x9876...1234',
+            amount: 250,
+            price: 24.80,
+            total_value: 6200,
+            verification_proof: 'ipfs://QmVerification2',
+            timestamp: Date.now() - 7200000,
+            status: 'active'
+          }
+        ]);
+      }
 
-      const mockOrders: CarbonOrder[] = [
-        {
-          id: 1,
-          type: 'buy',
-          amount: 200,
-          price: 25.00,
-          user: '0x1111...2222',
-          timestamp: Date.now() - 1800000,
-          status: 'open'
-        },
-        {
-          id: 2,
-          type: 'sell',
-          amount: 150,
-          price: 26.50,
-          user: '0x3333...4444',
-          timestamp: Date.now() - 3600000,
-          status: 'open'
-        }
-      ];
+      if (ordersData.status === 'fulfilled') {
+        setOrders(ordersData.value);
+      } else {
+        // Fallback to mock data if API fails
+        console.warn('Failed to load orders, using mock data');
+        setOrders([
+          {
+            id: 1,
+            type: 'buy',
+            amount: 200,
+            price: 25.00,
+            user: '0x1111...2222',
+            timestamp: Date.now() - 1800000,
+            status: 'open'
+          },
+          {
+            id: 2,
+            type: 'sell',
+            amount: 150,
+            price: 26.50,
+            user: '0x3333...4444',
+            timestamp: Date.now() - 3600000,
+            status: 'open'
+          }
+        ]);
+      }
 
-      setListings(mockListings);
-      setOrders(mockOrders);
-
-      // Mock market stats
+      // Mock market stats for now
       setMarketStats({
         totalVolume: 45250,
-        activeListings: 8,
+        activeListings: listings.length,
         averagePrice: 25.30,
         priceChange24h: 2.5
       });
@@ -140,24 +147,20 @@ export default function CarbonMarketplacePage() {
 
     setIsLoading(true);
     try {
-      // First mint CARBT tokens if the user doesn't have enough
-      const currentBalance = await contractInteractions.getCarbonOffset(address!);
-      if (parseFloat(currentBalance) < parseFloat(listingForm.amount)) {
-        // Mint tokens (in production, this would require verification)
-        await contractInteractions.mintCarbonTokens(
-          address!,
-          listingForm.amount,
-          listingForm.verificationProof || 'user-verification'
-        );
+      const result = await createCarbonListing({
+        amount: parseFloat(listingForm.amount),
+        price: parseFloat(listingForm.price),
+        verification_proof: listingForm.verificationProof || 'user-verification'
+      });
+
+      if (result.success) {
+        alert('Carbon credit listing created successfully!');
+        setShowCreateListing(false);
+        setListingForm({ amount: '', price: '', verificationProof: '' });
+        loadMarketData();
+      } else {
+        alert(result.error || 'Failed to create listing. Please try again.');
       }
-
-      // Create marketplace listing
-      await contractInteractions.listCarbonTokens(listingForm.amount, listingForm.price);
-
-      alert('Carbon credit listing created successfully!');
-      setShowCreateListing(false);
-      setListingForm({ amount: '', price: '', verificationProof: '' });
-      loadMarketData();
     } catch (error) {
       console.error('Failed to create listing:', error);
       alert('Failed to create listing. Please try again.');
@@ -171,11 +174,20 @@ export default function CarbonMarketplacePage() {
 
     setIsLoading(true);
     try {
-      // Simulate order creation
-      alert(`${orderForm.type === 'buy' ? 'Buy' : 'Sell'} order created successfully!`);
-      setShowCreateOrder(false);
-      setOrderForm({ type: 'buy', amount: '', price: '' });
-      loadMarketData();
+      const result = await createCarbonOrder({
+        type: orderForm.type,
+        amount: parseFloat(orderForm.amount),
+        price: parseFloat(orderForm.price)
+      });
+
+      if (result.success) {
+        alert(`${orderForm.type === 'buy' ? 'Buy' : 'Sell'} order created successfully!`);
+        setShowCreateOrder(false);
+        setOrderForm({ type: 'buy', amount: '', price: '' });
+        loadMarketData();
+      } else {
+        alert(result.error || 'Failed to create order. Please try again.');
+      }
     } catch (error) {
       console.error('Failed to create order:', error);
       alert('Failed to create order. Please try again.');
@@ -187,10 +199,13 @@ export default function CarbonMarketplacePage() {
   const handlePurchase = async (listingId: number) => {
     setIsLoading(true);
     try {
-      // Execute purchase through escrow contract
-      await contractInteractions.buyCarbonTokens(listingId, '0'); // Amount will be determined by escrow
-      alert('Purchase completed successfully!');
-      loadMarketData();
+      const result = await purchaseCarbonCredit(listingId);
+      if (result.success) {
+        alert('Purchase completed successfully!');
+        loadMarketData();
+      } else {
+        alert(result.error || 'Purchase failed. Please try again.');
+      }
     } catch (error) {
       console.error('Purchase failed:', error);
       alert('Purchase failed. Please try again.');
@@ -346,7 +361,7 @@ export default function CarbonMarketplacePage() {
                         ${listing.price.toFixed(2)}
                       </div>
                       <div className="text-sm text-gray-600 dark:text-gray-400">
-                        ${listing.totalValue.toLocaleString()}
+                        ${listing.total_value.toLocaleString()}
                       </div>
                     </div>
                   </div>

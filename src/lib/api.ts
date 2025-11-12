@@ -1114,6 +1114,99 @@ export async function executeProposal(proposalId: number): Promise<{ success: bo
   }
 }
 
+// Carbon Marketplace API
+export interface CarbonCredit {
+  id: number;
+  user_id: number;
+  amount: number;
+  transaction_type: string;
+  transaction_hash?: string;
+  verification_proof?: Record<string, any>;
+  created_at: string;
+  price?: number;
+  status?: string;
+}
+
+export interface CarbonListing {
+  id: number;
+  seller: string;
+  amount: number;
+  price: number;
+  total_value: number;
+  verification_proof: string;
+  timestamp: number;
+  status: 'active' | 'sold' | 'cancelled';
+}
+
+export interface CarbonOrder {
+  id: number;
+  type: 'buy' | 'sell';
+  amount: number;
+  price: number;
+  user: string;
+  timestamp: number;
+  status: 'open' | 'filled' | 'cancelled';
+}
+
+export async function getCarbonCredits(userId?: number): Promise<CarbonCredit[]> {
+  const endpoint = userId ? `/carbon/credits?user_id=${userId}` : '/carbon/credits';
+  return apiRequest(endpoint);
+}
+
+export async function getCarbonListings(): Promise<CarbonListing[]> {
+  return apiRequest('/carbon/marketplace/listings');
+}
+
+export async function getCarbonOrders(): Promise<CarbonOrder[]> {
+  return apiRequest('/carbon/marketplace/orders');
+}
+
+export async function createCarbonListing(listingData: {
+  amount: number;
+  price: number;
+  verification_proof: string;
+}): Promise<{ success: boolean; listing_id?: number; error?: string }> {
+  try {
+    const response = await apiRequest('/carbon/marketplace/listings', {
+      method: 'POST',
+      body: JSON.stringify(listingData),
+    });
+    return { success: true, listing_id: response.listing_id };
+  } catch (error: any) {
+    console.error('Failed to create carbon listing:', error);
+    return { success: false, error: error.message || 'Failed to create listing' };
+  }
+}
+
+export async function createCarbonOrder(orderData: {
+  type: 'buy' | 'sell';
+  amount: number;
+  price: number;
+}): Promise<{ success: boolean; order_id?: number; error?: string }> {
+  try {
+    const response = await apiRequest('/carbon/marketplace/orders', {
+      method: 'POST',
+      body: JSON.stringify(orderData),
+    });
+    return { success: true, order_id: response.order_id };
+  } catch (error: any) {
+    console.error('Failed to create carbon order:', error);
+    return { success: false, error: error.message || 'Failed to create order' };
+  }
+}
+
+export async function purchaseCarbonCredit(listingId: number): Promise<{ success: boolean; error?: string }> {
+  try {
+    const response = await apiRequest(`/carbon/marketplace/purchase/${listingId}`, {
+      method: 'POST',
+    });
+    return { success: true };
+  } catch (error: any) {
+    console.error('Failed to purchase carbon credit:', error);
+    return { success: false, error: error.message || 'Failed to purchase carbon credit' };
+  }
+}
+
 // Legacy API functions for backward compatibility
 export async function trainModels(): Promise<{ status: string; message: string }> {
   return apiRequest('/admin/train-models', {
