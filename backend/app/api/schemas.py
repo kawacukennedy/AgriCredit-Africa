@@ -156,8 +156,13 @@ class ClimateAnalysis(BaseModel):
 class LoanBase(BaseModel):
     amount: float
     interest_rate: float
-    duration_months: int
+    duration: int  # in seconds
+    collateral_token: str
+    collateral_amount: float
     purpose: Optional[str] = None
+
+class LoanApplication(LoanBase):
+    farmer_data: Dict[str, Any]  # For credit scoring
 
 class LoanCreate(LoanBase):
     pass
@@ -165,14 +170,33 @@ class LoanCreate(LoanBase):
 class Loan(LoanBase):
     id: int
     user_id: int
-    status: str
+    borrower_address: str
+    credit_score: int
+    risk_level: str
+    trust_score: int
+    status: str  # active, repaid, defaulted
+    repaid_amount: float
+    total_owed: float
+    collateral_returned: bool
+    explainability: Dict[str, Any]
     repayment_schedule: Optional[Dict[str, Any]]
     created_at: datetime
     approved_at: Optional[datetime]
     disbursed_at: Optional[datetime]
+    repaid_at: Optional[datetime]
+    defaulted_at: Optional[datetime]
 
     class Config:
         from_attributes = True
+
+class LoanRepayment(BaseModel):
+    loan_id: int
+    amount: float
+
+class LoanStatus(BaseModel):
+    loan_id: int
+    status: str
+    details: Dict[str, Any]
 
 # Marketplace schemas
 class MarketplaceListingBase(BaseModel):

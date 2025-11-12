@@ -1,26 +1,122 @@
 global:
   scrape_interval: 15s
   evaluation_interval: 15s
+  scrape_timeout: 10s
 
 rule_files:
-  # - "first_rules.yml"
-  # - "second_rules.yml"
+  - "alert_rules.yml"
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
 
 scrape_configs:
+  # AgriCredit Backend API
   - job_name: 'agricredit-backend'
     static_configs:
-      - targets: ['localhost:8000']
+      - targets: ['backend:8000']
     metrics_path: '/metrics'
+    scrape_interval: 15s
+    scrape_timeout: 10s
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'backend'
+    # Health check
+    http_config:
+      follow_redirects: true
 
+  # AgriCredit Frontend
   - job_name: 'agricredit-frontend'
     static_configs:
-      - targets: ['localhost:3000']
+      - targets: ['frontend:3000']
     metrics_path: '/api/metrics'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'frontend'
 
+  # Database (PostgreSQL)
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+    scrape_interval: 30s
+
+  # Redis Cache
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+    scrape_interval: 30s
+
+  # Node Exporter (System metrics)
   - job_name: 'node-exporter'
     static_configs:
-      - targets: ['localhost:9100']
+      - targets: ['node-exporter:9100']
+    scrape_interval: 30s
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'system'
 
+  # Blockchain Node (if applicable)
+  - job_name: 'blockchain-node'
+    static_configs:
+      - targets: ['geth:6060']
+    metrics_path: '/debug/metrics/prometheus'
+    scrape_interval: 30s
+    scrape_timeout: 15s
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'blockchain'
+
+  # IoT Gateway (if applicable)
+  - job_name: 'iot-gateway'
+    static_configs:
+      - targets: ['iot-gateway:8080']
+    metrics_path: '/metrics'
+    scrape_interval: 60s
+    scrape_timeout: 30s
+
+  # Prometheus itself
   - job_name: 'prometheus'
     static_configs:
       - targets: ['localhost:9090']
+    scrape_interval: 60s
+
+  # Blackbox exporter for external endpoints
+  - job_name: 'blackbox'
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets:
+        - https://api.coingecko.com/api/v3/ping  # External API health
+        - https://polygon-rpc.com  # Blockchain RPC health
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115
+
+  # Service discovery for dynamic scaling
+  - job_name: 'agricredit-services'
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        filters:
+          - name: label
+            values: ['agricredit.service=true']
+    relabel_configs:
+      - source_labels: [__meta_docker_container_name]
+        target_label: container_name
+      - source_labels: [__meta_docker_container_label_agricredit_service_type]
+        target_label: service_type
+      - source_labels: [__meta_docker_port]
+        target_label: __address__
+        replacement: '$1:9090'  # Assume metrics on port 9090

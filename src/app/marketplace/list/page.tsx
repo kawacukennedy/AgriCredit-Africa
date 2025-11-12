@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Upload, X } from 'lucide-react';
+import { createMarketplaceListing } from '@/lib/api';
 
 interface ListingFormData {
   title: string;
@@ -57,14 +58,28 @@ export default function ListProducePage() {
     setIsSubmitting(true);
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const listingData = {
+        title: formData.title,
+        description: formData.description,
+        crop_type: formData.cropType,
+        quantity: parseFloat(formData.quantity),
+        unit: 'kg', // Default unit, could be made configurable
+        price_per_unit: parseFloat(formData.price),
+        location: formData.location,
+        quality_grade: formData.quality,
+        harvest_date: formData.harvestDate,
+        // Note: Images would need to be uploaded separately and URLs stored
+        // For now, we'll skip image handling
+      };
 
-      // In a real app, this would upload images and create the listing
-      console.log('Creating listing:', formData);
+      const result = await createMarketplaceListing(listingData);
 
-      alert('Listing created successfully!');
-      router.push('/marketplace');
+      if (result) {
+        alert('Listing created successfully!');
+        router.push('/marketplace');
+      } else {
+        alert('Failed to create listing. Please try again.');
+      }
     } catch (error) {
       console.error('Failed to create listing:', error);
       alert('Failed to create listing. Please try again.');

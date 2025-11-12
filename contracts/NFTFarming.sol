@@ -4,8 +4,10 @@ pragma solidity ^0.8.28;
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "./IdentityRegistry.sol";
 
-contract NFTFarming is ERC721, Ownable {
+contract NFTFarming is ERC721, Ownable, ReentrancyGuard {
     using Counters for Counters.Counter;
 
     struct FarmNFT {
@@ -20,18 +22,39 @@ contract NFTFarming is ERC721, Ownable {
         uint256 harvestDate;
         string metadataURI; // IPFS hash with farm details
         bool isActive;
+        uint256 qualityScore; // AI-determined quality score
+        string supplyChainData; // JSON string with supply chain tracking
+        uint256[] batchIds; // Associated marketplace batches
+    }
+
+    struct SupplyChainEvent {
+        uint256 timestamp;
+        string eventType; // planting, fertilizing, harvesting, processing, shipping
+        string location;
+        string description;
+        string proof; // IPFS hash of evidence (photos, sensor data)
+        address recordedBy;
     }
 
     Counters.Counter private _tokenIdCounter;
     mapping(uint256 => FarmNFT) public farmNFTs;
     mapping(address => uint256[]) public farmerNFTs;
+    mapping(uint256 => SupplyChainEvent[]) public supplyChainHistory;
+    mapping(uint256 => uint256) public nftBatchCount;
+
+    IdentityRegistry public identityRegistry;
 
     // Events
     event FarmNFTMinted(uint256 indexed tokenId, address indexed farmer, string farmName);
     event FarmNFTHarvested(uint256 indexed tokenId, uint256 actualYield);
     event FarmNFTTransferred(uint256 indexed tokenId, address indexed from, address indexed to);
+    event SupplyChainEventRecorded(uint256 indexed tokenId, string eventType, string location);
+    event QualityScoreUpdated(uint256 indexed tokenId, uint256 score);
+    event BatchAssociated(uint256 indexed tokenId, uint256 batchId);
 
-    constructor() ERC721("AgriCredit Farm NFT", "FARM") Ownable(msg.sender) {}
+    constructor(address _identityRegistry) ERC721("AgriCredit Farm NFT", "FARM") Ownable(msg.sender) {
+        identityRegistry = IdentityRegistry(_identityRegistry);
+    }
 
     /**
      * @dev Mint a new Farm NFT representing future yield
@@ -50,10 +73,16 @@ contract NFTFarming is ERC721, Ownable {
         uint256 size,
         string memory cropType,
         uint256 expectedYield,
-        string memory metadataURI
-    ) external onlyOwner returns (uint256) {
+        string memory metadataURI,
+        string memory initialSupplyChainData
+    ) external returns (uint256) {
+        require(identityRegistry.isIdentityVerified(farmer), "Farmer not verified");
+        require(msg.sender == farmer || msg.sender == owner(), "Not authorized");
+
         _tokenIdCounter.increment();
         uint256 tokenId = _tokenIdCounter.current();
+
+        uint256[] memory emptyBatches;
 
         farmNFTs[tokenId] = FarmNFT({
             id: tokenId,
@@ -66,14 +95,54 @@ contract NFTFarming is ERC721, Ownable {
             plantingDate: block.timestamp,
             harvestDate: 0,
             metadataURI: metadataURI,
-            isActive: true
+            isActive: true,
+            qualityScore: 0, // To be updated by AI
+            supplyChainData: initialSupplyChainData,
+            batchIds: emptyBatches
         });
 
         farmerNFTs[farmer].push(tokenId);
         _mint(farmer, tokenId);
 
+        // Record initial planting event
+        _recordSupplyChainEvent(tokenId, "planting", location, "Crop planting initiated", "");
+
         emit FarmNFTMinted(tokenId, farmer, farmName);
         return tokenId;
+    }
+
+    function recordSupplyChainEvent(
+        uint256 tokenId,
+        string memory eventType,
+        string memory location,
+        string memory description,
+        string memory proof
+    ) external {
+        require(ownerOf(tokenId) == msg.sender || msg.sender == owner(), "Not authorized");
+        require(farmNFTs[tokenId].isActive, "Farm NFT not active");
+
+        _recordSupplyChainEvent(tokenId, eventType, location, description, proof);
+    }
+
+    function _recordSupplyChainEvent(
+        uint256 tokenId,
+        string memory eventType,
+        string memory location,
+        string memory description,
+        string memory proof
+    ) internal {
+        SupplyChainEvent memory eventData = SupplyChainEvent({
+            timestamp: block.timestamp,
+            eventType: eventType,
+            location: location,
+            description: description,
+            proof: proof,
+            recordedBy: msg.sender
+        });
+
+        supplyChainHistory[tokenId].push(eventData);
+
+        emit SupplyChainEventRecorded(tokenId, eventType, location);
     }
 
     /**
@@ -81,7 +150,7 @@ contract NFTFarming is ERC721, Ownable {
      * @param tokenId Token ID
      * @param actualYield Actual harvested yield
      */
-    function recordHarvest(uint256 tokenId, uint256 actualYield) external {
+    function recordHarvest(uint256 tokenId, uint256 actualYield, string memory harvestProof) external {
         require(ownerOf(tokenId) == msg.sender || msg.sender == owner(), "Not authorized");
         require(farmNFTs[tokenId].isActive, "Farm NFT not active");
 
@@ -90,7 +159,29 @@ contract NFTFarming is ERC721, Ownable {
         farm.expectedYield = actualYield; // Update with actual yield
         farm.isActive = false; // Mark as harvested
 
+        // Record harvest event
+        _recordSupplyChainEvent(tokenId, "harvesting", farm.location, "Crop harvested", harvestProof);
+
         emit FarmNFTHarvested(tokenId, actualYield);
+    }
+
+    function updateQualityScore(uint256 tokenId, uint256 score) external onlyOwner {
+        require(_exists(tokenId), "Farm NFT does not exist");
+        require(score <= 100, "Score must be 0-100");
+
+        farmNFTs[tokenId].qualityScore = score;
+
+        emit QualityScoreUpdated(tokenId, score);
+    }
+
+    function associateBatch(uint256 tokenId, uint256 batchId) external {
+        require(ownerOf(tokenId) == msg.sender || msg.sender == owner(), "Not authorized");
+
+        FarmNFT storage farm = farmNFTs[tokenId];
+        farm.batchIds.push(batchId);
+        nftBatchCount[tokenId]++;
+
+        emit BatchAssociated(tokenId, batchId);
     }
 
     /**
@@ -124,6 +215,18 @@ contract NFTFarming is ERC721, Ownable {
      */
     function getFarmerNFTs(address farmer) external view returns (uint256[] memory) {
         return farmerNFTs[farmer];
+    }
+
+    function getSupplyChainHistory(uint256 tokenId) external view returns (SupplyChainEvent[] memory) {
+        return supplyChainHistory[tokenId];
+    }
+
+    function getNFTBatches(uint256 tokenId) external view returns (uint256[] memory) {
+        return farmNFTs[tokenId].batchIds;
+    }
+
+    function getNFTBatchCount(uint256 tokenId) external view returns (uint256) {
+        return nftBatchCount[tokenId];
     }
 
     /**

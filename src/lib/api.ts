@@ -454,6 +454,36 @@ export interface Notification {
   created_at: string;
 }
 
+// Governance Interfaces
+export interface GovernanceProposal {
+  id: number;
+  proposer: string;
+  description: string;
+  for_votes: string;
+  against_votes: string;
+  start_time: number;
+  end_time: number;
+  executed: boolean;
+  status: 'active' | 'passed' | 'failed' | 'executed';
+  created_at: string;
+}
+
+export interface GovernanceVote {
+  id: number;
+  proposal_id: number;
+  voter: string;
+  support: boolean;
+  votes: string;
+  created_at: string;
+}
+
+export interface GovernanceStats {
+  total_proposals: number;
+  active_proposals: number;
+  total_votes: string;
+  user_voting_power: string;
+}
+
 // Carbon Credit Interfaces
 export interface CarbonCredit {
   id: number;
@@ -713,6 +743,165 @@ export async function getUserLoans(): Promise<Loan[]> {
   }
 }
 
+export interface LoanApplicationRequest {
+  amount: number;
+  interest_rate: number;
+  duration_months: number;
+  purpose?: string;
+  borrower_address: string;
+  collateral_token: string;
+  collateral_amount: number;
+  credit_score: number;
+  risk_level: string;
+  trust_score: number;
+}
+
+export async function applyForLoan(loanData: LoanApplicationRequest): Promise<{ success: boolean; loan_id?: number; error?: string }> {
+  try {
+    const response = await apiRequest('/loans/apply', {
+      method: 'POST',
+      body: JSON.stringify(loanData),
+    });
+    return { success: true, loan_id: response.loan_id };
+  } catch (error: any) {
+    console.error('Failed to apply for loan:', error);
+    return { success: false, error: error.message || 'Failed to apply for loan' };
+  }
+}
+
+// Carbon Credit API
+export interface ClimateData {
+  satellite_data: Record<string, any>;
+  iot_sensors?: Record<string, any>;
+  location: string;
+  area_hectares: number;
+}
+
+export interface CarbonCredit {
+  id: number;
+  user_id: number;
+  amount: number;
+  transaction_type: string;
+  transaction_hash?: string;
+  verification_proof?: Record<string, any>;
+  created_at: string;
+}
+
+export async function getCarbonDashboard(): Promise<{
+  total_credits: number;
+  staked_amount: number;
+  available_balance: number;
+  staking_rewards: number;
+  retired_credits: number;
+  portfolio_value: number;
+  recent_transactions: any[];
+}> {
+  try {
+    const response = await apiRequest('/carbon/dashboard');
+    return response.data || response;
+  } catch (error) {
+    console.error('Failed to get carbon dashboard:', error);
+    return {
+      total_credits: 0,
+      staked_amount: 0,
+      available_balance: 0,
+      staking_rewards: 0,
+      retired_credits: 0,
+      portfolio_value: 0,
+      recent_transactions: []
+    };
+  }
+}
+
+export async function submitClimateData(climateData: ClimateData): Promise<{ success: boolean; analysis_id?: number; error?: string }> {
+  try {
+    const response = await apiRequest('/carbon/climate-data', {
+      method: 'POST',
+      body: JSON.stringify(climateData),
+    });
+    return { success: true, analysis_id: response.analysis_id };
+  } catch (error: any) {
+    console.error('Failed to submit climate data:', error);
+    return { success: false, error: error.message || 'Failed to submit climate data' };
+  }
+}
+
+export async function generateCarbonCredit(analysisId: number): Promise<{ success: boolean; credit_id?: number; amount?: number; error?: string }> {
+  try {
+    const response = await apiRequest(`/carbon/generate-credit/${analysisId}`, {
+      method: 'POST',
+    });
+    return { success: true, credit_id: response.credit_id, amount: response.amount };
+  } catch (error: any) {
+    console.error('Failed to generate carbon credit:', error);
+    return { success: false, error: error.message || 'Failed to generate carbon credit' };
+  }
+}
+
+export async function stakeCarbonTokens(amount: number): Promise<{ success: boolean; stake_id?: number; error?: string }> {
+  try {
+    const response = await apiRequest('/carbon/stake', {
+      method: 'POST',
+      body: JSON.stringify({ amount }),
+    });
+    return { success: true, stake_id: response.stake_id };
+  } catch (error: any) {
+    console.error('Failed to stake carbon tokens:', error);
+    return { success: false, error: error.message || 'Failed to stake carbon tokens' };
+  }
+}
+
+export async function claimStakingRewards(): Promise<{ success: boolean; amount?: number; error?: string }> {
+  try {
+    const response = await apiRequest('/carbon/claim-rewards', {
+      method: 'POST',
+    });
+    return { success: true, amount: response.amount };
+  } catch (error: any) {
+    console.error('Failed to claim staking rewards:', error);
+    return { success: false, error: error.message || 'Failed to claim staking rewards' };
+  }
+}
+
+export async function retireCarbonCredits(creditId: number, amount: number): Promise<{ success: boolean; transaction_hash?: string; error?: string }> {
+  try {
+    const response = await apiRequest('/carbon/retire', {
+      method: 'POST',
+      body: JSON.stringify({ credit_id: creditId, amount }),
+    });
+    return { success: true, transaction_hash: response.transaction_hash };
+  } catch (error: any) {
+    console.error('Failed to retire carbon credits:', error);
+    return { success: false, error: error.message || 'Failed to retire carbon credits' };
+  }
+}
+
+export async function getMarketAnalytics(): Promise<{
+  total_supply: number;
+  total_staked: number;
+  total_sequestered: number;
+  circulating_supply: number;
+  staking_ratio: number;
+  avg_confidence_score: number;
+  top_methodologies: string[];
+}> {
+  try {
+    const response = await apiRequest('/carbon/market-analytics');
+    return response.data || response;
+  } catch (error) {
+    console.error('Failed to get market analytics:', error);
+    return {
+      total_supply: 0,
+      total_staked: 0,
+      total_sequestered: 0,
+      circulating_supply: 0,
+      staking_ratio: 0,
+      avg_confidence_score: 85.5,
+      top_methodologies: ['reforestation', 'soil_carbon', 'agri_practices']
+    };
+  }
+}
+
 // Marketplace API
 export async function createMarketplaceListing(listingData: MarketplaceListingCreate): Promise<MarketplaceListing> {
   return apiRequest('/marketplace/listings', {
@@ -730,6 +919,106 @@ export async function getMarketplaceListings(cropType?: string, location?: strin
   const endpoint = `/marketplace/listings${queryString ? `?${queryString}` : ''}`;
 
   return apiRequest(endpoint);
+}
+
+export async function getMarketInsights(): Promise<{
+  price_trends: { crop: string; change_percent: number; trend: string }[];
+  regional_demand: { region: string; demand_level: string; premium: number }[];
+  optimal_timing: { action: string; timeframe: string; reason: string }[];
+}> {
+  try {
+    // Try to get from backend analytics endpoint
+    const response = await apiRequest('/analytics/market-insights');
+    return response.data || response;
+  } catch (error) {
+    // Fallback to mock data
+    console.warn('Market insights API not available, using mock data');
+    return {
+      price_trends: [
+        { crop: 'maize', change_percent: 12, trend: 'bullish' },
+        { crop: 'coffee', change_percent: -3, trend: 'bearish' },
+        { crop: 'cassava', change_percent: 8, trend: 'bullish' }
+      ],
+      regional_demand: [
+        { region: 'Nairobi', demand_level: 'high', premium: 25 },
+        { region: 'Kampala', demand_level: 'medium', premium: 15 },
+        { region: 'Dar es Salaam', demand_level: 'high', premium: 20 }
+      ],
+      optimal_timing: [
+        { action: 'sell', timeframe: 'next 2 weeks', reason: 'favorable weather' },
+        { action: 'buy', timeframe: 'next month', reason: 'expected price dip' }
+      ]
+    };
+  }
+}
+
+// Marketplace Escrow API
+export interface EscrowData {
+  seller: string;
+  amount: number;
+  token: string;
+  listing_id: number;
+  geo_location: string;
+}
+
+export interface Escrow {
+  id: number;
+  buyer: string;
+  seller: string;
+  amount: number;
+  token: string;
+  status: string;
+  listing_id: number;
+  geo_location: string;
+  created_at: string;
+  completed_at?: string;
+}
+
+export async function createEscrow(escrowData: EscrowData): Promise<{ success: boolean; escrow_id?: number; error?: string }> {
+  try {
+    const response = await apiRequest('/marketplace/escrow', {
+      method: 'POST',
+      body: JSON.stringify(escrowData),
+    });
+    return { success: true, escrow_id: response.escrow_id };
+  } catch (error: any) {
+    console.error('Failed to create escrow:', error);
+    return { success: false, error: error.message || 'Failed to create escrow' };
+  }
+}
+
+export async function getUserEscrows(address: string): Promise<Escrow[]> {
+  try {
+    const response = await apiRequest(`/marketplace/escrow/user/${address}`);
+    return response.escrows || [];
+  } catch (error) {
+    console.error('Failed to get user escrows:', error);
+    return [];
+  }
+}
+
+export async function confirmDelivery(escrowId: number): Promise<{ success: boolean; error?: string }> {
+  try {
+    const response = await apiRequest(`/marketplace/escrow/${escrowId}/confirm-delivery`, {
+      method: 'POST',
+    });
+    return { success: true };
+  } catch (error: any) {
+    console.error('Failed to confirm delivery:', error);
+    return { success: false, error: error.message || 'Failed to confirm delivery' };
+  }
+}
+
+export async function completeEscrow(escrowId: number): Promise<{ success: boolean; error?: string }> {
+  try {
+    const response = await apiRequest(`/marketplace/escrow/${escrowId}/complete`, {
+      method: 'POST',
+    });
+    return { success: true };
+  } catch (error: any) {
+    console.error('Failed to complete escrow:', error);
+    return { success: false, error: error.message || 'Failed to complete escrow' };
+  }
 }
 
 // Notification API
@@ -759,6 +1048,70 @@ export async function markNotificationRead(notificationId: number): Promise<{ st
   return apiRequest(`/notifications/${notificationId}/read`, {
     method: 'PUT',
   });
+}
+
+// Governance API
+export async function createGovernanceProposal(description: string): Promise<{ success: boolean; proposal_id?: number; error?: string }> {
+  try {
+    const response = await apiRequest('/blockchain/governance/propose', {
+      method: 'POST',
+      body: JSON.stringify({ description }),
+    });
+    return { success: true, proposal_id: response.proposal_id };
+  } catch (error: any) {
+    console.error('Failed to create governance proposal:', error);
+    return { success: false, error: error.message || 'Failed to create governance proposal' };
+  }
+}
+
+export async function voteOnProposal(proposalId: number, support: boolean): Promise<{ success: boolean; error?: string }> {
+  try {
+    const response = await apiRequest('/blockchain/governance/vote', {
+      method: 'POST',
+      body: JSON.stringify({ proposal_id: proposalId, support }),
+    });
+    return { success: true };
+  } catch (error: any) {
+    console.error('Failed to vote on proposal:', error);
+    return { success: false, error: error.message || 'Failed to vote on proposal' };
+  }
+}
+
+export async function getGovernanceProposal(proposalId: number): Promise<GovernanceProposal> {
+  return apiRequest(`/blockchain/governance/proposals/${proposalId}`);
+}
+
+export async function getGovernanceStats(): Promise<GovernanceStats> {
+  return apiRequest('/blockchain/governance/stats');
+}
+
+export async function getVotingPower(userAddress: string): Promise<{ voting_power: string }> {
+  return apiRequest(`/blockchain/governance/voting-power?user_address=${userAddress}`);
+}
+
+export async function delegateVotes(delegateeAddress: string, amount: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    const response = await apiRequest('/blockchain/governance/delegate', {
+      method: 'POST',
+      body: JSON.stringify({ delegatee_address: delegateeAddress, amount }),
+    });
+    return { success: true };
+  } catch (error: any) {
+    console.error('Failed to delegate votes:', error);
+    return { success: false, error: error.message || 'Failed to delegate votes' };
+  }
+}
+
+export async function executeProposal(proposalId: number): Promise<{ success: boolean; error?: string }> {
+  try {
+    const response = await apiRequest(`/blockchain/governance/execute/${proposalId}`, {
+      method: 'POST',
+    });
+    return { success: true };
+  } catch (error: any) {
+    console.error('Failed to execute proposal:', error);
+    return { success: false, error: error.message || 'Failed to execute proposal' };
+  }
 }
 
 // Legacy API functions for backward compatibility

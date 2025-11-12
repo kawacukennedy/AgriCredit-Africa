@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'next-i18next';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
 import { Thermometer, Droplets, Sun, Leaf } from 'lucide-react';
-import { getSensorData, getLatestSensorData, sendSensorData } from '@/lib/api';
+import { getSensorData, getLatestSensorData, sendSensorData, connectWebSocket, onWebSocketMessage, disconnectWebSocket } from '@/lib/api';
 
 interface SensorData {
   soilMoisture: number;
@@ -106,13 +106,26 @@ export default function IoTDashboard() {
     fetchSensorData();
     fetchHistoricalData();
 
-    // Update every 30 seconds
+    // Connect to WebSocket for real-time sensor updates
+    connectWebSocket(1, 'sensor_alerts'); // Using dummy user ID
+
+    // Listen for sensor alerts
+    onWebSocketMessage('sensor_alert', (alert: any) => {
+      console.log('Received sensor alert:', alert);
+      // Refresh data when alerts are received
+      fetchSensorData();
+    });
+
+    // Update every 30 seconds as backup
     const interval = setInterval(() => {
       fetchSensorData();
       fetchHistoricalData();
     }, 30000);
 
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      disconnectWebSocket();
+    };
   }, []);
 
   const SensorCard = ({ title, value, unit, min, max, color, icon: Icon }: {

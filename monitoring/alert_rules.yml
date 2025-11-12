@@ -1,0 +1,190 @@
+groups:
+  - name: agricredit_alerts
+    rules:
+      # System Health Alerts
+      - alert: HighCPUUsage
+        expr: system_cpu_usage_percent > 85
+        for: 5m
+        labels:
+          severity: warning
+          service: system
+        annotations:
+          summary: "High CPU usage detected"
+          description: "CPU usage is {{ $value }}% on {{ $labels.instance }}"
+
+      - alert: HighMemoryUsage
+        expr: system_memory_usage_percent > 90
+        for: 3m
+        labels:
+          severity: critical
+          service: system
+        annotations:
+          summary: "High memory usage detected"
+          description: "Memory usage is {{ $value }}% on {{ $labels.instance }}"
+
+      - alert: DiskSpaceLow
+        expr: (1 - node_filesystem_avail_bytes / node_filesystem_size_bytes) * 100 > 85
+        for: 10m
+        labels:
+          severity: warning
+          service: system
+        annotations:
+          summary: "Low disk space"
+          description: "Disk usage is {{ $value }}% on {{ $labels.instance }}"
+
+      # Application Health Alerts
+      - alert: BackendDown
+        expr: up{job="agricredit-backend"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: backend
+        annotations:
+          summary: "Backend service is down"
+          description: "Backend service on {{ $labels.instance }} has been down for more than 1 minute"
+
+      - alert: FrontendDown
+        expr: up{job="agricredit-frontend"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: frontend
+        annotations:
+          summary: "Frontend service is down"
+          description: "Frontend service on {{ $labels.instance }} has been down for more than 2 minutes"
+
+      - alert: DatabaseDown
+        expr: up{job="postgres"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: database
+        annotations:
+          summary: "Database is down"
+          description: "PostgreSQL database is unreachable"
+
+      - alert: RedisDown
+        expr: up{job="redis"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: cache
+        annotations:
+          summary: "Redis cache is down"
+          description: "Redis cache service is unreachable"
+
+      # Performance Alerts
+      - alert: HighRequestLatency
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 2
+        for: 5m
+        labels:
+          severity: warning
+          service: backend
+        annotations:
+          summary: "High request latency"
+          description: "95th percentile request latency is {{ $value }}s for {{ $labels.endpoint }}"
+
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status_code=~"5.."}[5m]) / rate(http_requests_total[5m]) * 100 > 5
+        for: 5m
+        labels:
+          severity: critical
+          service: backend
+        annotations:
+          summary: "High error rate"
+          description: "Error rate is {{ $value }}% for {{ $labels.endpoint }}"
+
+      # Business Logic Alerts
+      - alert: LowActiveUsers
+        expr: active_connections < 5
+        for: 15m
+        labels:
+          severity: info
+          service: business
+        annotations:
+          summary: "Low active user count"
+          description: "Only {{ $value }} active connections detected"
+
+      - alert: HighAIModelLatency
+        expr: histogram_quantile(0.95, rate(ai_model_inference_duration_seconds_bucket[5m])) > 5
+        for: 5m
+        labels:
+          severity: warning
+          service: ai
+        annotations:
+          summary: "High AI model inference latency"
+          description: "AI model {{ $labels.model_type }} latency is {{ $value }}s (95th percentile)"
+
+      - alert: BlockchainTransactionFailures
+        expr: rate(blockchain_transactions_total{status="failed"}[5m]) > 0
+        for: 1m
+        labels:
+          severity: warning
+          service: blockchain
+        annotations:
+          summary: "Blockchain transaction failures"
+          description: "{{ $value }} blockchain transactions failed in the last 5 minutes"
+
+      - alert: SensorDataProcessingDelay
+        expr: rate(sensor_data_points_total[5m]) < 10
+        for: 10m
+        labels:
+          severity: warning
+          service: iot
+        annotations:
+          summary: "Low sensor data processing rate"
+          description: "Only {{ $value }} sensor data points processed per second"
+
+      # Security Alerts
+      - alert: SuspiciousLoginAttempts
+        expr: rate(security_failed_logins_total[5m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+          service: security
+        annotations:
+          summary: "High rate of failed login attempts"
+          description: "{{ $value }} failed login attempts per second detected"
+
+      - alert: UnusualTrafficPattern
+        expr: rate(http_requests_total[1m]) > rate(http_requests_total[10m]) * 2
+        for: 2m
+        labels:
+          severity: info
+          service: security
+        annotations:
+          summary: "Unusual traffic pattern detected"
+          description: "Traffic rate increased significantly"
+
+  - name: agricredit_business_metrics
+    rules:
+      # Business KPI monitoring
+      - alert: LowMarketplaceActivity
+        expr: rate(marketplace_listings_created_total[1h]) < 1
+        for: 1h
+        labels:
+          severity: info
+          service: business
+        annotations:
+          summary: "Low marketplace activity"
+          description: "Less than 1 new listing per hour"
+
+      - alert: CarbonCreditLowMinting
+        expr: rate(carbon_credits_minted_total[1h]) < 5
+        for: 2h
+        labels:
+          severity: info
+          service: business
+        annotations:
+          summary: "Low carbon credit minting activity"
+          description: "Less than 5 carbon credits minted per hour"
+
+      - alert: LoanApplicationBacklog
+        expr: pending_loan_applications_total > 50
+        for: 30m
+        labels:
+          severity: warning
+          service: business
+        annotations:
+          summary: "High loan application backlog"
+          description: "{{ $value }} pending loan applications"

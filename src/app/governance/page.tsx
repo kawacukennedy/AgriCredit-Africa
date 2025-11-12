@@ -5,19 +5,22 @@ import { motion } from 'framer-motion';
 import { useWallet } from '@/hooks/useWallet';
 import { contractInteractions } from '@/lib/contractInteractions';
 import { CONTRACT_ADDRESSES } from '@/lib/contracts';
+import {
+  createGovernanceProposal,
+  voteOnProposal,
+  getGovernanceProposal,
+  getGovernanceStats,
+  getVotingPower,
+  executeProposal,
+  GovernanceProposal,
+  GovernanceStats,
+  connectWebSocket,
+  onWebSocketMessage,
+  disconnectWebSocket
+} from '@/lib/api';
 import { Vote, Users, FileText, Clock, CheckCircle, XCircle, Plus, TrendingUp, Shield } from 'lucide-react';
 
-interface Proposal {
-  id: number;
-  proposer: string;
-  description: string;
-  forVotes: string;
-  againstVotes: string;
-  startTime: number;
-  endTime: number;
-  executed: boolean;
-  status: 'active' | 'passed' | 'failed' | 'executed';
-}
+interface Proposal extends GovernanceProposal {}
 
 export default function GovernancePage() {
   const { address, isConnected } = useWallet();
@@ -26,58 +29,78 @@ export default function GovernancePage() {
   const [showCreateProposal, setShowCreateProposal] = useState(false);
   const [newProposalDesc, setNewProposalDesc] = useState('');
   const [votingOn, setVotingOn] = useState<number | null>(null);
-  const [governanceStats, setGovernanceStats] = useState({
-    totalProposals: 0,
-    activeProposals: 0,
-    totalVotes: 0,
-    userVotingPower: 0
+  const [governanceStats, setGovernanceStats] = useState<GovernanceStats>({
+    total_proposals: 0,
+    active_proposals: 0,
+    total_votes: '0',
+    user_voting_power: '0'
   });
 
   useEffect(() => {
     if (isConnected) {
       loadProposals();
       loadGovernanceStats();
+
+      // Connect to WebSocket for real-time updates
+      if (address) {
+        connectWebSocket(1, 'governance'); // Using dummy user ID for now
+
+        // Listen for governance updates
+        onWebSocketMessage('governance_update', (data: any) => {
+          console.log('Received governance update:', data);
+          // Refresh data when updates are received
+          loadProposals();
+          loadGovernanceStats();
+        });
+      }
     }
+
+    return () => {
+      disconnectWebSocket();
+    };
   }, [isConnected, address]);
 
   const loadProposals = async () => {
     setIsLoading(true);
     try {
-      // In a real implementation, we'd get the total number of proposals from the contract
-      // For now, we'll simulate with some mock data
+      // Try to get proposals from API - for now using mock data as backend doesn't have list endpoint
+      // TODO: Add /blockchain/governance/proposals endpoint to backend
       const mockProposals: Proposal[] = [
         {
           id: 1,
           proposer: '0x1234...5678',
           description: 'Increase microloan limits to $10,000 for verified farmers',
-          forVotes: '125000',
-          againstVotes: '25000',
-          startTime: Date.now() - 86400000, // 1 day ago
-          endTime: Date.now() + 86400000 * 6, // 6 days from now
+          for_votes: '125000',
+          against_votes: '25000',
+          start_time: Date.now() - 86400000, // 1 day ago
+          end_time: Date.now() + 86400000 * 6, // 6 days from now
           executed: false,
-          status: 'active'
+          status: 'active',
+          created_at: new Date().toISOString()
         },
         {
           id: 2,
           proposer: '0x9876...1234',
           description: 'Fund IoT sensor deployment in rural areas',
-          forVotes: '98000',
-          againstVotes: '52000',
-          startTime: Date.now() - 86400000 * 3,
-          endTime: Date.now() - 86400000, // Ended 1 day ago
+          for_votes: '98000',
+          against_votes: '52000',
+          start_time: Date.now() - 86400000 * 3,
+          end_time: Date.now() - 86400000, // Ended 1 day ago
           executed: true,
-          status: 'executed'
+          status: 'executed',
+          created_at: new Date().toISOString()
         },
         {
           id: 3,
           proposer: '0xabcd...efgh',
           description: 'Add support for additional local currencies',
-          forVotes: '45000',
-          againstVotes: '78000',
-          startTime: Date.now() - 86400000 * 5,
-          endTime: Date.now() - 86400000 * 2,
+          for_votes: '45000',
+          against_votes: '78000',
+          start_time: Date.now() - 86400000 * 5,
+          end_time: Date.now() - 86400000 * 2,
           executed: false,
-          status: 'failed'
+          status: 'failed',
+          created_at: new Date().toISOString()
         }
       ];
 
@@ -91,15 +114,26 @@ export default function GovernancePage() {
 
   const loadGovernanceStats = async () => {
     try {
-      // Mock governance stats
-      setGovernanceStats({
-        totalProposals: 15,
-        activeProposals: 3,
-        totalVotes: 1250000,
-        userVotingPower: 25000 // Would come from contract
-      });
+      const stats = await getGovernanceStats();
+      setGovernanceStats(stats);
+
+      // Also get user voting power if connected
+      if (address) {
+        const votingPower = await getVotingPower(address);
+        setGovernanceStats(prev => ({
+          ...prev,
+          user_voting_power: votingPower.voting_power
+        }));
+      }
     } catch (error) {
       console.error('Failed to load governance stats:', error);
+      // Fallback to mock data
+      setGovernanceStats({
+        total_proposals: 15,
+        active_proposals: 3,
+        total_votes: '1250000',
+        user_voting_power: '25000'
+      });
     }
   };
 
@@ -108,11 +142,16 @@ export default function GovernancePage() {
 
     setIsLoading(true);
     try {
-      await contractInteractions.propose(newProposalDesc);
-      alert('Proposal created successfully!');
-      setShowCreateProposal(false);
-      setNewProposalDesc('');
-      loadProposals();
+      const result = await createGovernanceProposal(newProposalDesc);
+      if (result.success) {
+        alert('Proposal created successfully!');
+        setShowCreateProposal(false);
+        setNewProposalDesc('');
+        loadProposals();
+        loadGovernanceStats();
+      } else {
+        alert(result.error || 'Failed to create proposal. Please try again.');
+      }
     } catch (error) {
       console.error('Failed to create proposal:', error);
       alert('Failed to create proposal. Please try again.');
@@ -124,9 +163,14 @@ export default function GovernancePage() {
   const handleVote = async (proposalId: number, support: boolean) => {
     setVotingOn(proposalId);
     try {
-      await contractInteractions.vote(proposalId, support);
-      alert(`Vote ${support ? 'for' : 'against'} proposal #${proposalId} recorded!`);
-      loadProposals();
+      const result = await voteOnProposal(proposalId, support);
+      if (result.success) {
+        alert(`Vote ${support ? 'for' : 'against'} proposal #${proposalId} recorded!`);
+        loadProposals();
+        loadGovernanceStats();
+      } else {
+        alert(result.error || 'Failed to record vote. Please try again.');
+      }
     } catch (error) {
       console.error('Failed to vote:', error);
       alert('Failed to record vote. Please try again.');
@@ -138,9 +182,14 @@ export default function GovernancePage() {
   const handleExecuteProposal = async (proposalId: number) => {
     setIsLoading(true);
     try {
-      await contractInteractions.executeProposal(proposalId);
-      alert('Proposal executed successfully!');
-      loadProposals();
+      const result = await executeProposal(proposalId);
+      if (result.success) {
+        alert('Proposal executed successfully!');
+        loadProposals();
+        loadGovernanceStats();
+      } else {
+        alert(result.error || 'Failed to execute proposal. Please try again.');
+      }
     } catch (error) {
       console.error('Failed to execute proposal:', error);
       alert('Failed to execute proposal. Please try again.');
@@ -217,7 +266,7 @@ export default function GovernancePage() {
               <FileText className="w-5 h-5 text-blue-600" />
               <h3 className="text-lg font-semibold text-gray-800 dark:text-white">Total Proposals</h3>
             </div>
-            <div className="text-3xl font-bold text-blue-600">{governanceStats.totalProposals}</div>
+             <div className="text-3xl font-bold text-blue-600">{governanceStats.total_proposals}</div>
           </motion.div>
 
           <motion.div
@@ -230,7 +279,7 @@ export default function GovernancePage() {
               <Clock className="w-5 h-5 text-orange-600" />
               <h3 className="text-lg font-semibold text-gray-800 dark:text-white">Active Proposals</h3>
             </div>
-            <div className="text-3xl font-bold text-orange-600">{governanceStats.activeProposals}</div>
+             <div className="text-3xl font-bold text-orange-600">{governanceStats.active_proposals}</div>
           </motion.div>
 
           <motion.div
@@ -243,7 +292,7 @@ export default function GovernancePage() {
               <Vote className="w-5 h-5 text-purple-600" />
               <h3 className="text-lg font-semibold text-gray-800 dark:text-white">Total Votes</h3>
             </div>
-            <div className="text-3xl font-bold text-purple-600">{(governanceStats.totalVotes / 1000).toFixed(0)}K</div>
+             <div className="text-3xl font-bold text-purple-600">{(parseInt(governanceStats.total_votes) / 1000).toFixed(0)}K</div>
           </motion.div>
 
           <motion.div
@@ -256,7 +305,7 @@ export default function GovernancePage() {
               <Users className="w-5 h-5 text-green-600" />
               <h3 className="text-lg font-semibold text-gray-800 dark:text-white">Your Voting Power</h3>
             </div>
-            <div className="text-3xl font-bold text-green-600">{(governanceStats.userVotingPower / 1000).toFixed(0)}K</div>
+             <div className="text-3xl font-bold text-green-600">{(parseInt(governanceStats.user_voting_power) / 1000).toFixed(0)}K</div>
           </motion.div>
         </div>
 
@@ -293,7 +342,7 @@ export default function GovernancePage() {
                     <p className="text-gray-600 dark:text-gray-300 mb-3">{proposal.description}</p>
                     <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
                       <span>By: {proposal.proposer}</span>
-                      <span>Time remaining: {getTimeRemaining(proposal.endTime)}</span>
+                       <span>Time remaining: {getTimeRemaining(proposal.end_time)}</span>
                     </div>
                   </div>
                 </div>
@@ -301,15 +350,15 @@ export default function GovernancePage() {
                 {/* Voting Progress */}
                 <div className="mb-4">
                   <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
-                    <span>For: {parseInt(proposal.forVotes).toLocaleString()}</span>
-                    <span>Against: {parseInt(proposal.againstVotes).toLocaleString()}</span>
+                     <span>For: {parseInt(proposal.for_votes).toLocaleString()}</span>
+                     <span>Against: {parseInt(proposal.against_votes).toLocaleString()}</span>
                   </div>
                   <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                     <div
                       className="bg-green-600 h-2 rounded-full"
-                      style={{
-                        width: `${(parseInt(proposal.forVotes) / (parseInt(proposal.forVotes) + parseInt(proposal.againstVotes))) * 100}%`
-                      }}
+                       style={{
+                         width: `${(parseInt(proposal.for_votes) / (parseInt(proposal.for_votes) + parseInt(proposal.against_votes))) * 100}%`
+                       }}
                     ></div>
                   </div>
                 </div>

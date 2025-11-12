@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { getAuthToken, getUserNotifications, markNotificationRead, Notification as NotificationType } from '@/lib/api';
+import { getAuthToken, getUserNotifications, markNotificationRead, Notification as NotificationType, connectWebSocket, onWebSocketMessage, disconnectWebSocket } from '@/lib/api';
 import { Bell, Check, CheckCheck, AlertCircle, Info, TrendingUp, DollarSign, MessageSquare, X } from 'lucide-react';
 
 export default function NotificationsPage() {
@@ -15,6 +15,22 @@ export default function NotificationsPage() {
 
   useEffect(() => {
     checkAuthAndLoadNotifications();
+
+    // Connect to WebSocket for real-time notifications
+    const token = getAuthToken();
+    if (token) {
+      connectWebSocket(1, 'notifications'); // Using dummy user ID
+
+      // Listen for new notifications
+      onWebSocketMessage('notification', (notification: NotificationType) => {
+        console.log('Received new notification:', notification);
+        setNotifications(prev => [notification, ...prev]);
+      });
+    }
+
+    return () => {
+      disconnectWebSocket();
+    };
   }, []);
 
   const checkAuthAndLoadNotifications = async () => {

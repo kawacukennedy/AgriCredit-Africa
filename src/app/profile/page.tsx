@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useWallet } from '@/hooks/useWallet';
+import { getCurrentUser, updateCurrentUser, UserUpdate } from '@/lib/api';
 import { User, Settings, Bell, Shield, CreditCard, CheckCircle, AlertTriangle } from 'lucide-react';
 
 export default function ProfilePage() {
@@ -15,7 +16,11 @@ export default function ProfilePage() {
   const [profileData, setProfileData] = useState({
     farmSize: '',
     location: '',
+    full_name: '',
+    phone: '',
   });
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   // Form validation errors
   const [errors, setErrors] = useState<{[key: string]: string}>({});
@@ -34,22 +39,45 @@ export default function ProfilePage() {
     carbonCreditUpdates: false,
   });
 
-  // Load saved data on component mount
+  // Load user data on component mount
   useEffect(() => {
-    const savedProfile = localStorage.getItem('agricredit_profile');
+    const loadUserData = async () => {
+      if (!isConnected) return;
+
+      try {
+        const userData = await getCurrentUser();
+        setUser(userData);
+        setProfileData({
+          farmSize: userData.farm_size?.toString() || '',
+          location: userData.location || '',
+          full_name: userData.full_name || '',
+          phone: userData.phone || '',
+        });
+      } catch (error) {
+        console.error('Failed to load user data:', error);
+        // Fallback to localStorage if API fails
+        const savedProfile = localStorage.getItem('agricredit_profile');
+        if (savedProfile) {
+          setProfileData(JSON.parse(savedProfile));
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    // Load settings and notifications from localStorage (these could be API endpoints too)
     const savedSettings = localStorage.getItem('agricredit_settings');
     const savedNotifications = localStorage.getItem('agricredit_notifications');
 
-    if (savedProfile) {
-      setProfileData(JSON.parse(savedProfile));
-    }
     if (savedSettings) {
       setSettings(JSON.parse(savedSettings));
     }
     if (savedNotifications) {
       setNotifications(JSON.parse(savedNotifications));
     }
-  }, []);
+
+    loadUserData();
+  }, [isConnected]);
 
   // Validate profile data
   const validateProfile = () => {
@@ -76,10 +104,18 @@ export default function ProfilePage() {
     setIsSaving(true);
     setSaveError(null);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const updateData: UserUpdate = {
+        farm_size: parseFloat(profileData.farmSize) || undefined,
+        location: profileData.location || undefined,
+        full_name: profileData.full_name || undefined,
+        phone: profileData.phone || undefined,
+      };
 
-      localStorage.setItem('agricredit_profile', JSON.stringify(profileData));
+      await updateCurrentUser(updateData);
+
+      // Update local state
+      setUser(prev => ({ ...prev, ...updateData }));
+
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
     } catch (error) {
@@ -186,83 +222,122 @@ export default function ProfilePage() {
           <div className="p-6">
             {activeTab === 'profile' && (
               <div className="space-y-6">
-                <div>
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-                    Personal Information
-                  </h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Wallet Address
-                      </label>
-                      <div className="bg-gray-50 dark:bg-gray-700 px-3 py-2 rounded-md">
-                        <code className="text-sm text-gray-900 dark:text-white">
-                          {address ? `${address.slice(0, 6)}...${address.slice(-4)}` : 'Not connected'}
-                        </code>
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Account Type
-                      </label>
-                      <div className="bg-gray-50 dark:bg-gray-700 px-3 py-2 rounded-md">
-                        <span className="text-sm text-gray-900 dark:text-white">Farmer</span>
-                      </div>
-                    </div>
+                {loading ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto"></div>
+                    <p className="mt-2 text-gray-600 dark:text-gray-400">Loading profile...</p>
                   </div>
-                </div>
+                ) : (
+                  <>
+                    <div>
+                      <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                        Personal Information
+                      </h2>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Wallet Address
+                          </label>
+                          <div className="bg-gray-50 dark:bg-gray-700 px-3 py-2 rounded-md">
+                            <code className="text-sm text-gray-900 dark:text-white">
+                              {address ? `${address.slice(0, 6)}...${address.slice(-4)}` : 'Not connected'}
+                            </code>
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Account Type
+                          </label>
+                          <div className="bg-gray-50 dark:bg-gray-700 px-3 py-2 rounded-md">
+                            <span className="text-sm text-gray-900 dark:text-white">{user?.role || 'Farmer'}</span>
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Full Name
+                          </label>
+                          <input
+                            type="text"
+                            value={profileData.full_name}
+                            onChange={(e) => {
+                              setProfileData(prev => ({ ...prev, full_name: e.target.value }));
+                            }}
+                            placeholder="Enter your full name"
+                            className="w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent border-gray-300 dark:border-gray-600"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Phone Number
+                          </label>
+                          <input
+                            type="tel"
+                            value={profileData.phone}
+                            onChange={(e) => {
+                              setProfileData(prev => ({ ...prev, phone: e.target.value }));
+                            }}
+                            placeholder="Enter your phone number"
+                            className="w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent border-gray-300 dark:border-gray-600"
+                          />
+                        </div>
+                      </div>
+                    </div>
 
-                <div>
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-                    Farm Information
-                  </h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                     <div>
-                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                         Farm Size
-                       </label>
-                       <input
-                         type="text"
-                         value={profileData.farmSize}
-                         onChange={(e) => {
-                           setProfileData(prev => ({ ...prev, farmSize: e.target.value }));
-                           if (errors.farmSize) {
-                             setErrors(prev => ({ ...prev, farmSize: '' }));
-                           }
-                         }}
-                         placeholder="e.g., 5 acres"
-                         className={`w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent ${
-                           errors.farmSize ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                         }`}
-                       />
-                       {errors.farmSize && (
-                         <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.farmSize}</p>
-                       )}
+                    <div>
+                      <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                        Farm Information
+                      </h2>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                         <div>
+                           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                             Farm Size
+                           </label>
+                           <input
+                             type="text"
+                             value={profileData.farmSize}
+                             onChange={(e) => {
+                               setProfileData(prev => ({ ...prev, farmSize: e.target.value }));
+                               if (errors.farmSize) {
+                                 setErrors(prev => ({ ...prev, farmSize: '' }));
+                               }
+                             }}
+                             placeholder="e.g., 5 acres"
+                             className={`w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent ${
+                               errors.farmSize ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                             }`}
+                           />
+                           {errors.farmSize && (
+                             <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.farmSize}</p>
+                           )}
+                         </div>
+                         <div>
+                           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                             Location
+                           </label>
+                           <input
+                             type="text"
+                             value={profileData.location}
+                             onChange={(e) => {
+                               setProfileData(prev => ({ ...prev, location: e.target.value }));
+                               if (errors.location) {
+                                 setErrors(prev => ({ ...prev, location: '' }));
+                               }
+                             }}
+                             placeholder="e.g., Nairobi, Kenya"
+                             className={`w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent ${
+                               errors.location ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                             }`}
+                           />
+                           {errors.location && (
+                             <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.location}</p>
+                           )}
+                         </div>
+                       </div>
                      </div>
-                     <div>
-                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                         Location
-                       </label>
-                       <input
-                         type="text"
-                         value={profileData.location}
-                         onChange={(e) => {
-                           setProfileData(prev => ({ ...prev, location: e.target.value }));
-                           if (errors.location) {
-                             setErrors(prev => ({ ...prev, location: '' }));
-                           }
-                         }}
-                         placeholder="e.g., Nairobi, Kenya"
-                         className={`w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-transparent ${
-                           errors.location ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                         }`}
-                       />
-                       {errors.location && (
-                         <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.location}</p>
-                       )}
-                     </div>
-                  </div>
-                </div>
+                  </>
+                )}
+              </div>
+            )}
 
                  <div className="flex justify-end items-center space-x-4">
                    {saveSuccess && (

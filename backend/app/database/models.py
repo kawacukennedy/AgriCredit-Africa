@@ -123,16 +123,26 @@ class Loan(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    borrower_address = Column(String, nullable=False)
     amount = Column(Float, nullable=False)
     interest_rate = Column(Float, nullable=False)
-    duration_months = Column(Integer, nullable=False)
-    status = Column(String, default="pending", index=True)  # pending, approved, rejected, active, completed
+    duration = Column(Integer, nullable=False)  # in seconds
+    collateral_token = Column(String, nullable=False)
+    collateral_amount = Column(Float, nullable=False)
+    credit_score = Column(Integer, nullable=False)
+    risk_level = Column(String, nullable=False)
+    trust_score = Column(Integer, nullable=False)
+    status = Column(String, default="pending", index=True)  # pending, approved, active, repaid, defaulted
+    repaid_amount = Column(Float, default=0.0)
+    total_owed = Column(Float, nullable=False)
+    collateral_returned = Column(Boolean, default=False)
     purpose = Column(String)
-    collateral = Column(JSON)
-    repayment_schedule = Column(JSON)
+    explainability = Column(JSON)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
     approved_at = Column(DateTime(timezone=True))
     disbursed_at = Column(DateTime(timezone=True))
+    repaid_at = Column(DateTime(timezone=True))
+    defaulted_at = Column(DateTime(timezone=True))
 
     # Relationships
     user = relationship("User", back_populates="loans")
@@ -170,6 +180,27 @@ class MarketplaceListing(Base):
     status = Column(String, default="active", index=True)  # active, sold, expired
     images = Column(JSON)  # Array of image URLs
     created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
+
+class MarketplaceEscrow(Base):
+    __tablename__ = "marketplace_escrows"
+
+    id = Column(Integer, primary_key=True, index=True)
+    buyer_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    seller_address = Column(String, nullable=False, index=True)
+    amount = Column(Float, nullable=False)
+    token_address = Column(String, nullable=False)
+    listing_id = Column(Integer, ForeignKey("marketplace_listings.id"), nullable=False, index=True)
+    geo_location = Column(String)
+    status = Column(String, default="active", index=True)  # active, delivered, completed, disputed
+    escrow_contract_address = Column(String)  # Blockchain escrow contract address
+    transaction_hash = Column(String, index=True)
+    delivered_at = Column(DateTime(timezone=True))
+    completed_at = Column(DateTime(timezone=True))
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
+
+    # Relationships
+    buyer = relationship("User", foreign_keys=[buyer_id])
+    listing = relationship("MarketplaceListing", foreign_keys=[listing_id])
 
 class Notification(Base):
     __tablename__ = "notifications"

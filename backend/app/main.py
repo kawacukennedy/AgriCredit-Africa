@@ -18,7 +18,7 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 
 from .database.config import get_db, engine, Base
-from .database.models import User, SensorDevice, SensorReading, CreditScore, YieldPrediction, ClimateAnalysis, Loan, MarketplaceListing, Notification, CarbonCredit
+from .database.models import User, SensorDevice, SensorReading, CreditScore, YieldPrediction, ClimateAnalysis, Loan, MarketplaceListing, MarketplaceEscrow, Notification, CarbonCredit
 from .core.config import settings
 from .core.security import verify_password, get_password_hash, create_access_token, verify_token
 from .core.cache import get_cache
@@ -947,6 +947,48 @@ async def get_user_loans(
     loans = db.query(Loan).filter(Loan.user_id == current_user.id).all()
     return loans
 
+@app.post("/loans/apply")
+async def apply_for_loan(
+    loan_data: Dict[str, Any],
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """Apply for a loan with AI assessment"""
+    try:
+        # Create loan record
+        db_loan = Loan(
+            user_id=current_user.id,
+            borrower_address=loan_data['borrower_address'],
+            amount=loan_data['amount'],
+            interest_rate=loan_data['interest_rate'],
+            duration=loan_data['duration_months'],
+            collateral_token=loan_data['collateral_token'],
+            collateral_amount=loan_data['collateral_amount'],
+            credit_score=loan_data['credit_score'],
+            risk_level=loan_data['risk_level'],
+            trust_score=loan_data['trust_score'],
+            purpose=loan_data.get('purpose'),
+            status='pending'
+        )
+        db.add(db_loan)
+        db.commit()
+        db.refresh(db_loan)
+
+        # TODO: Deploy loan contract on blockchain
+        # TODO: Transfer collateral to escrow
+
+        logger.info("Loan application submitted", user_id=current_user.id, loan_id=db_loan.id, amount=loan_data['amount'])
+        return {
+            "status": "success",
+            "loan_id": db_loan.id,
+            "message": "Loan application submitted successfully"
+        }
+
+    except Exception as e:
+        logger.error("Loan application failed", error=str(e), user_id=current_user.id)
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
 # Marketplace
 @app.post("/marketplace/listings", response_model=MarketplaceListingSchema)
 async def create_listing(
@@ -1123,6 +1165,290 @@ async def process_sensor_batch(
 
     except Exception as e:
         logger.error("Batch sensor processing failed", error=str(e))
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Enhanced IoT Service Endpoints
+@app.post(
+    "/iot/devices/register",
+    summary="Register IoT device",
+    description="Register a new IoT device with the AgriCredit platform"
+)
+async def register_iot_device(
+    device_data: Dict[str, Any],
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """Register a new IoT device"""
+    try:
+        from ..core.iot_service import iot_service
+
+        device = await iot_service.register_device(device_data, current_user.id)
+
+        # Also create in database
+        db_device = SensorDevice(
+            device_id=device.device_id,
+            name=device.name,
+            location=device.location,
+            latitude=device.latitude,
+            longitude=device.longitude,
+            crop_type=device.crop_type,
+            farm_size=device.farm_size,
+            owner_id=device.owner_id,
+            is_active=device.is_active,
+            firmware_version=device.firmware_version,
+            battery_level=device.battery_level
+        )
+        db.add(db_device)
+        db.commit()
+
+        logger.info("IoT device registered", device_id=device.device_id, user_id=current_user.id)
+        return {"status": "success", "device": device.__dict__}
+
+    except Exception as e:
+        logger.error("Device registration failed", error=str(e), user_id=current_user.id)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post(
+    "/iot/devices/{device_id}/command",
+    summary="Send command to IoT device",
+    description="Send a command to a registered IoT device"
+)
+async def send_device_command(
+    device_id: str,
+    command: str,
+    params: Dict[str, Any] = None,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """Send command to IoT device"""
+    try:
+        from ..core.iot_service import iot_service
+
+        # Verify device ownership
+        device = db.query(SensorDevice).filter(
+            SensorDevice.device_id == device_id,
+            SensorDevice.owner_id == current_user.id
+        ).first()
+        if not device:
+            raise HTTPException(status_code=404, detail="Device not found")
+
+        success = await iot_service.send_command_to_device(device_id, command, params or {})
+
+        if success:
+            logger.info("Command sent to device", device_id=device_id, command=command)
+            return {"status": "success", "message": "Command sent successfully"}
+        else:
+            raise HTTPException(status_code=500, detail="Failed to send command")
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Command sending failed", error=str(e), device_id=device_id)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get(
+    "/iot/devices/{device_id}/status",
+    summary="Get device status",
+    description="Get current status and latest readings for an IoT device"
+)
+async def get_device_status(
+    device_id: str,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """Get device status"""
+    try:
+        from ..core.iot_service import iot_service
+
+        # Verify device ownership
+        device = db.query(SensorDevice).filter(
+            SensorDevice.device_id == device_id,
+            SensorDevice.owner_id == current_user.id
+        ).first()
+        if not device:
+            raise HTTPException(status_code=404, detail="Device not found")
+
+        status = await iot_service.get_device_status(device_id)
+        return {"status": "success", "data": status}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Device status retrieval failed", error=str(e), device_id=device_id)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get(
+    "/iot/farm-insights",
+    summary="Get farm insights",
+    description="Get AI-powered insights from multiple IoT devices on the farm"
+)
+async def get_farm_insights(
+    device_ids: str,  # comma-separated
+    days: int = 7,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """Get farm-wide insights"""
+    try:
+        from ..core.iot_service import iot_service
+
+        device_list = device_ids.split(',')
+
+        # Verify device ownership
+        for device_id in device_list:
+            device = db.query(SensorDevice).filter(
+                SensorDevice.device_id == device_id,
+                SensorDevice.owner_id == current_user.id
+            ).first()
+            if not device:
+                raise HTTPException(status_code=404, detail=f"Device {device_id} not found")
+
+        insights = await iot_service.get_farm_insights(device_list, days)
+        return {"status": "success", "data": insights}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Farm insights retrieval failed", error=str(e), user_id=current_user.id)
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Enhanced Oracle Service Endpoints
+@app.get(
+    "/oracle/prices/{asset}",
+    summary="Get asset price from oracle",
+    description="Get current price data for assets from oracle feeds"
+)
+async def get_oracle_price(
+    asset: str,
+    source: str = "chainlink"
+):
+    """Get asset price from oracle"""
+    try:
+        from ..core.oracle_service import oracle_service
+
+        price_feed = await oracle_service.get_price_feed(asset, source)
+        if price_feed:
+            return {"status": "success", "data": price_feed.__dict__}
+        else:
+            raise HTTPException(status_code=404, detail="Price data not available")
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Oracle price retrieval failed", error=str(e), asset=asset)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get(
+    "/oracle/prices/bulk",
+    summary="Get bulk price feeds",
+    description="Get price data for multiple assets from oracle feeds"
+)
+async def get_bulk_oracle_prices(
+    assets: str,  # comma-separated
+    source: str = "chainlink"
+):
+    """Get bulk price feeds"""
+    try:
+        from ..core.oracle_service import oracle_service
+
+        asset_list = assets.split(',')
+        feeds = await oracle_service.get_bulk_price_feeds(asset_list, source)
+
+        return {"status": "success", "data": {k: v.__dict__ for k, v in feeds.items()}}
+
+    except Exception as e:
+        logger.error("Bulk oracle price retrieval failed", error=str(e))
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get(
+    "/oracle/weather/{location}",
+    summary="Get weather data from oracle",
+    description="Get current weather data for locations from oracle feeds"
+)
+async def get_oracle_weather(
+    location: str,
+    source: str = "openweather"
+):
+    """Get weather data from oracle"""
+    try:
+        from ..core.oracle_service import oracle_service
+
+        weather_data = await oracle_service.get_weather_data(location, source)
+        if weather_data:
+            return {"status": "success", "data": weather_data.__dict__}
+        else:
+            raise HTTPException(status_code=404, detail="Weather data not available")
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Oracle weather retrieval failed", error=str(e), location=location)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get(
+    "/oracle/market/{commodity}/{region}",
+    summary="Get market data from oracle",
+    description="Get agricultural market data from oracle feeds"
+)
+async def get_oracle_market_data(
+    commodity: str,
+    region: str,
+    source: str = "alphavantage"
+):
+    """Get market data from oracle"""
+    try:
+        from ..core.oracle_service import oracle_service
+
+        market_data = await oracle_service.get_market_data(commodity, region, source)
+        if market_data:
+            return {"status": "success", "data": market_data.__dict__}
+        else:
+            raise HTTPException(status_code=404, detail="Market data not available")
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Oracle market data retrieval failed", error=str(e), commodity=commodity, region=region)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get(
+    "/oracle/prices/{asset}/history",
+    summary="Get historical price data",
+    description="Get historical price data for assets from oracle feeds"
+)
+async def get_historical_prices(
+    asset: str,
+    days: int = 30,
+    source: str = "chainlink"
+):
+    """Get historical price data"""
+    try:
+        from ..core.oracle_service import oracle_service
+
+        historical_data = await oracle_service.get_historical_prices(asset, days, source)
+        return {"status": "success", "data": [p.__dict__ for p in historical_data]}
+
+    except Exception as e:
+        logger.error("Historical price retrieval failed", error=str(e), asset=asset)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post(
+    "/oracle/feeds/update",
+    summary="Update all oracle feeds",
+    description="Update all configured oracle feeds with fresh data"
+)
+async def update_all_oracle_feeds(
+    current_user: User = Depends(get_current_active_user)
+):
+    """Update all oracle feeds"""
+    try:
+        from ..core.oracle_service import oracle_service
+
+        result = await oracle_service.update_oracle_feeds()
+        return {"status": "success", "data": result}
+
+    except Exception as e:
+        logger.error("Oracle feeds update failed", error=str(e), user_id=current_user.id)
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post(
@@ -1578,7 +1904,234 @@ async def get_carbon_balance(address: str):
         balance = await blockchain_service.get_carbon_balance(address)
         return {"status": "success", "balance": balance}
     except Exception as e:
-        logger.error("Balance retrieval failed", error=str(e), address=address)
+        logger.error("Carbon balance retrieval failed", error=str(e), address=address)
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Carbon Dashboard and Management
+@app.get("/carbon/dashboard")
+async def get_carbon_dashboard(
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """Get carbon dashboard data"""
+    try:
+        # Get user's carbon credits
+        credits = db.query(CarbonCredit).filter(CarbonCredit.user_id == current_user.id).all()
+
+        total_credits = sum(credit.amount for credit in credits)
+        staked_amount = 0  # TODO: Get from staking contract
+        available_balance = total_credits - staked_amount
+        staking_rewards = 0  # TODO: Calculate staking rewards
+        retired_credits = sum(credit.amount for credit in credits if credit.transaction_type == 'retired')
+
+        # Recent transactions
+        recent_transactions = [{
+            "id": credit.id,
+            "type": credit.transaction_type,
+            "amount": credit.amount,
+            "timestamp": credit.created_at.isoformat(),
+            "hash": credit.transaction_hash
+        } for credit in credits[-10:]]
+
+        return {
+            "total_credits": total_credits,
+            "staked_amount": staked_amount,
+            "available_balance": available_balance,
+            "staking_rewards": staking_rewards,
+            "retired_credits": retired_credits,
+            "portfolio_value": total_credits * 0.1,  # Mock price
+            "recent_transactions": recent_transactions
+        }
+
+    except Exception as e:
+        logger.error("Carbon dashboard retrieval failed", error=str(e), user_id=current_user.id)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/carbon/climate-data")
+async def submit_climate_data_endpoint(
+    climate_data: Dict[str, Any],
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """Submit climate data for analysis"""
+    try:
+        # Create climate analysis record
+        analysis = ClimateAnalysis(
+            user_id=current_user.id,
+            satellite_data=climate_data.get('satellite_data', {}),
+            iot_data=climate_data.get('iot_sensors', {}),
+            recommendations=[],
+            confidence=0.0
+        )
+        db.add(analysis)
+        db.commit()
+        db.refresh(analysis)
+
+        # TODO: Trigger AI analysis
+        # For now, return mock analysis
+
+        return {
+            "status": "success",
+            "analysis_id": analysis.id,
+            "message": "Climate data submitted for analysis"
+        }
+
+    except Exception as e:
+        logger.error("Climate data submission failed", error=str(e), user_id=current_user.id)
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/carbon/generate-credit/{analysis_id}")
+async def generate_carbon_credit_endpoint(
+    analysis_id: int,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """Generate carbon credit from analysis"""
+    try:
+        # Get analysis
+        analysis = db.query(ClimateAnalysis).filter(
+            ClimateAnalysis.id == analysis_id,
+            ClimateAnalysis.user_id == current_user.id
+        ).first()
+
+        if not analysis:
+            raise HTTPException(status_code=404, detail="Analysis not found")
+
+        # Mock carbon credit generation
+        credit_amount = analysis.carbon_tokens_mintable or 100
+
+        # Create carbon credit record
+        credit = CarbonCredit(
+            user_id=current_user.id,
+            amount=credit_amount,
+            transaction_type='minted',
+            verification_proof={'analysis_id': analysis_id}
+        )
+        db.add(credit)
+        db.commit()
+
+        return {
+            "status": "success",
+            "credit_id": credit.id,
+            "amount": credit_amount,
+            "message": f"Generated {credit_amount} carbon credits"
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Carbon credit generation failed", error=str(e), user_id=current_user.id)
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/carbon/stake")
+async def stake_carbon_tokens_endpoint(
+    stake_data: Dict[str, Any],
+    current_user: User = Depends(get_current_active_user)
+):
+    """Stake carbon tokens"""
+    try:
+        amount = stake_data['amount']
+
+        # TODO: Interact with staking contract
+        # For now, return mock response
+
+        return {
+            "status": "success",
+            "stake_id": 123,  # Mock ID
+            "amount": amount,
+            "message": f"Staked {amount} carbon tokens"
+        }
+
+    except Exception as e:
+        logger.error("Carbon token staking failed", error=str(e), user_id=current_user.id)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/carbon/claim-rewards")
+async def claim_staking_rewards_endpoint(
+    current_user: User = Depends(get_current_active_user)
+):
+    """Claim staking rewards"""
+    try:
+        # TODO: Calculate and claim rewards from staking contract
+        # Mock reward amount
+        reward_amount = 25.5
+
+        return {
+            "status": "success",
+            "amount": reward_amount,
+            "message": f"Claimed {reward_amount} staking rewards"
+        }
+
+    except Exception as e:
+        logger.error("Staking rewards claim failed", error=str(e), user_id=current_user.id)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/carbon/retire")
+async def retire_carbon_credits_endpoint(
+    retire_data: Dict[str, Any],
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """Retire carbon credits"""
+    try:
+        credit_id = retire_data['credit_id']
+        amount = retire_data['amount']
+
+        # Get credit
+        credit = db.query(CarbonCredit).filter(
+            CarbonCredit.id == credit_id,
+            CarbonCredit.user_id == current_user.id
+        ).first()
+
+        if not credit:
+            raise HTTPException(status_code=404, detail="Carbon credit not found")
+
+        if credit.amount < amount:
+            raise HTTPException(status_code=400, detail="Insufficient credit amount")
+
+        # Create retirement record
+        retirement = CarbonCredit(
+            user_id=current_user.id,
+            amount=amount,
+            transaction_type='retired',
+            verification_proof={'original_credit_id': credit_id}
+        )
+        db.add(retirement)
+        db.commit()
+
+        return {
+            "status": "success",
+            "transaction_hash": "0x" + "0" * 64,  # Mock hash
+            "message": f"Retired {amount} carbon credits"
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Carbon credit retirement failed", error=str(e), user_id=current_user.id)
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/carbon/market-analytics")
+async def get_carbon_market_analytics():
+    """Get carbon market analytics"""
+    try:
+        # TODO: Get real analytics from carbon service
+        # For now, return mock data
+        return {
+            "total_supply": 1000000,
+            "total_staked": 250000,
+            "total_sequestered": 750000,
+            "circulating_supply": 750000,
+            "staking_ratio": 0.25,
+            "avg_confidence_score": 85.5,
+            "top_methodologies": ['reforestation', 'soil_carbon', 'agri_practices']
+        }
+
+    except Exception as e:
+        logger.error("Carbon market analytics retrieval failed", error=str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post(
@@ -1690,26 +2243,170 @@ async def execute_governance_proposal(
         logger.error("Proposal execution failed", error=str(e), proposal_id=proposal_id)
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get(
-    "/blockchain/governance/proposals",
-    summary="Get governance proposals",
-    description="Retrieve list of governance proposals with optional filtering"
+
+
+# Marketplace Escrow Endpoints
+@app.post(
+    "/marketplace/escrow",
+    summary="Create escrow for marketplace transaction",
+    description="Create a secure escrow contract for marketplace purchase"
 )
-async def get_governance_proposals(
-    state: Optional[str] = None,
-    limit: int = 50,
-    offset: int = 0
+async def create_marketplace_escrow(
+    escrow_data: Dict[str, Any],
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
 ):
-    """Get governance proposals"""
+    """Create escrow for marketplace transaction"""
     try:
-        proposals = await governance_manager.get_proposals(
-            state=state,
-            limit=limit,
-            offset=offset
+        # Create escrow record in database
+        escrow = MarketplaceEscrow(
+            buyer_id=current_user.id,
+            seller_address=escrow_data['seller'],
+            amount=escrow_data['amount'],
+            token_address=escrow_data['token'],
+            listing_id=escrow_data['listing_id'],
+            geo_location=escrow_data['geo_location'],
+            status='active'
         )
-        return {"status": "success", "data": proposals}
+        db.add(escrow)
+        db.commit()
+        db.refresh(escrow)
+
+        # TODO: Deploy escrow contract on blockchain
+        # For now, return mock escrow ID
+
+        logger.info("Escrow created", escrow_id=escrow.id, user_id=current_user.id)
+        return {
+            "status": "success",
+            "escrow_id": escrow.id,
+            "message": "Escrow created successfully"
+        }
+
     except Exception as e:
-        logger.error("Proposals retrieval failed", error=str(e))
+        logger.error("Escrow creation failed", error=str(e), user_id=current_user.id)
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get(
+    "/marketplace/escrow/user/{address}",
+    summary="Get user escrows",
+    description="Get all escrows for a user address"
+)
+async def get_user_marketplace_escrows(
+    address: str,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """Get user escrows"""
+    try:
+        # Get escrows where user is buyer or seller
+        escrows = db.query(MarketplaceEscrow).filter(
+            (MarketplaceEscrow.buyer_id == current_user.id) |
+            (MarketplaceEscrow.seller_address == address)
+        ).all()
+
+        return {
+            "status": "success",
+            "escrows": [{
+                "id": escrow.id,
+                "buyer_id": escrow.buyer_id,
+                "seller": escrow.seller_address,
+                "amount": escrow.amount,
+                "token": escrow.token_address,
+                "status": escrow.status,
+                "listing_id": escrow.listing_id,
+                "geo_location": escrow.geo_location,
+                "created_at": escrow.created_at.isoformat(),
+                "completed_at": escrow.completed_at.isoformat() if escrow.completed_at else None
+            } for escrow in escrows]
+        }
+
+    except Exception as e:
+        logger.error("User escrows retrieval failed", error=str(e), user_id=current_user.id)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post(
+    "/marketplace/escrow/{escrow_id}/confirm-delivery",
+    summary="Confirm delivery for escrow",
+    description="Confirm that goods have been delivered in escrow transaction"
+)
+async def confirm_escrow_delivery(
+    escrow_id: int,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """Confirm delivery for escrow"""
+    try:
+        escrow = db.query(MarketplaceEscrow).filter(
+            MarketplaceEscrow.id == escrow_id,
+            MarketplaceEscrow.buyer_id == current_user.id
+        ).first()
+
+        if not escrow:
+            raise HTTPException(status_code=404, detail="Escrow not found")
+
+        if escrow.status != 'active':
+            raise HTTPException(status_code=400, detail="Escrow not in active state")
+
+        escrow.status = 'delivered'
+        escrow.delivered_at = datetime.utcnow()
+        db.commit()
+
+        # TODO: Trigger blockchain escrow confirmation
+
+        logger.info("Delivery confirmed", escrow_id=escrow_id, user_id=current_user.id)
+        return {
+            "status": "success",
+            "message": "Delivery confirmed successfully"
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Delivery confirmation failed", error=str(e), escrow_id=escrow_id)
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post(
+    "/marketplace/escrow/{escrow_id}/complete",
+    summary="Complete escrow transaction",
+    description="Complete the escrow transaction and release funds"
+)
+async def complete_marketplace_escrow(
+    escrow_id: int,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """Complete escrow transaction"""
+    try:
+        escrow = db.query(MarketplaceEscrow).filter(
+            MarketplaceEscrow.id == escrow_id,
+            MarketplaceEscrow.buyer_id == current_user.id
+        ).first()
+
+        if not escrow:
+            raise HTTPException(status_code=404, detail="Escrow not found")
+
+        if escrow.status != 'delivered':
+            raise HTTPException(status_code=400, detail="Delivery not confirmed yet")
+
+        escrow.status = 'completed'
+        escrow.completed_at = datetime.utcnow()
+        db.commit()
+
+        # TODO: Release funds from blockchain escrow
+
+        logger.info("Escrow completed", escrow_id=escrow_id, user_id=current_user.id)
+        return {
+            "status": "success",
+            "message": "Escrow completed successfully"
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Escrow completion failed", error=str(e), escrow_id=escrow_id)
+        db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get(

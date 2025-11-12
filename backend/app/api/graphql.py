@@ -52,12 +52,27 @@ class SensorReadingType:
 @strawberry.type
 class LoanType:
     id: int
+    user_id: int
+    borrower_address: str
     amount: float
     interest_rate: float
-    duration_months: int
+    duration: int
+    collateral_token: str
+    collateral_amount: float
+    credit_score: int
+    risk_level: str
+    trust_score: int
     status: str
+    repaid_amount: float
+    total_owed: float
+    collateral_returned: bool
     purpose: Optional[str]
+    explainability: dict
     created_at: datetime
+    approved_at: Optional[datetime]
+    disbursed_at: Optional[datetime]
+    repaid_at: Optional[datetime]
+    defaulted_at: Optional[datetime]
 
 @strawberry.type
 class MarketplaceListingType:
@@ -167,27 +182,39 @@ class Query:
     async def loans(
         self,
         info: Info,
+        user_id: Optional[int] = None,
+        status: Optional[str] = None,
         limit: int = 50,
-        offset: int = 0,
-        filter: Optional[LoanFilter] = None
+        offset: int = 0
     ) -> List[LoanType]:
         """Get loans with optional filtering"""
         db = next(get_db())
 
         query = db.query(Loan)
 
-        if filter:
-            if filter.status:
-                query = query.filter(Loan.status == filter.status)
-            if filter.min_amount:
-                query = query.filter(Loan.amount >= filter.min_amount)
-            if filter.max_amount:
-                query = query.filter(Loan.amount <= filter.max_amount)
+        if user_id:
+            query = query.filter(Loan.user_id == user_id)
+        if status:
+            query = query.filter(Loan.status == status)
 
         loans = query.order_by(Loan.created_at.desc()).offset(offset).limit(limit).all()
 
-        logger.info("GraphQL query: loans", count=len(loans), filter=filter)
+        logger.info("GraphQL query: loans", count=len(loans), user_id=user_id, status=status)
         return loans
+
+    @strawberry.field
+    async def loan_details(self, info: Info, loan_id: int) -> Optional[LoanType]:
+        """Get detailed loan information"""
+        db = next(get_db())
+
+        loan = db.query(Loan).filter(Loan.id == loan_id).first()
+
+        if loan:
+            logger.info("GraphQL query: loan_details", loan_id=loan_id)
+        else:
+            logger.warning("GraphQL query: loan_details - loan not found", loan_id=loan_id)
+
+        return loan
 
     @strawberry.field
     async def marketplace_listings(
@@ -304,6 +331,41 @@ class Mutation:
 
         logger.info("GraphQL mutation: create_marketplace_listing", listing_id=listing.id)
         return listing
+
+    @strawberry.mutation
+    async def apply_for_loan(
+        self,
+        info: Info,
+        amount: float,
+        collateral_token: str,
+        collateral_amount: float,
+        farmer_data: dict,
+        purpose: Optional[str] = None
+    ) -> dict:
+        """Apply for a loan with AI credit scoring"""
+        # This would integrate with LoanManagerService
+        # For now, return mock response
+        return {
+            "success": True,
+            "message": "Loan application submitted for review",
+            "loan_id": 123
+        }
+
+    @strawberry.mutation
+    async def repay_loan(
+        self,
+        info: Info,
+        loan_id: int,
+        amount: float
+    ) -> dict:
+        """Make a loan repayment"""
+        # This would integrate with LoanManagerService
+        # For now, return mock response
+        return {
+            "success": True,
+            "message": f"Repayment of {amount} processed",
+            "remaining_balance": 0.0
+        }
 
 # Create GraphQL schema
 schema = strawberry.Schema(query=Query, mutation=Mutation)
