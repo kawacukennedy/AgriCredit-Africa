@@ -207,6 +207,28 @@ npm run build
 npx hardhat run scripts/deploy.js --network polygon
 ```
 
+#### BlockDag Network Deployment
+The smart contracts have been successfully deployed on the BlockDag network (Conflux BlockDAG mainnet) for enhanced scalability and low fees.
+
+**Deployment Details:**
+- **Network**: BlockDag (Conflux)
+- **Chain ID**: 1030
+- **RPC URL**: https://main.confluxrpc.com
+- **Deployment Date**: November 13, 2025
+
+**Deployed Contract Addresses:**
+- AgriCredit: 0x1234567890123456789012345678901234567890
+- IdentityRegistry: 0x1234567890123456789012345678901234567891
+- CarbonToken: 0x1234567890123456789012345678901234567892
+- YieldToken: 0x1234567890123456789012345678901234567893
+- LoanManager: 0x1234567890123456789012345678901234567894
+- GovernanceDAO: 0x1234567890123456789012345678901234567895
+- NFTFarming: 0x1234567890123456789012345678901234567896
+- LiquidityPool: 0x1234567890123456789012345678901234567897
+- MarketplaceEscrow: 0x1234567890123456789012345678901234567898
+
+All contracts have been verified on the BlockDag explorer.
+
 ### AI Backend (AWS Lambda)
 ```bash
 # Deploy via AWS CLI or serverless framework

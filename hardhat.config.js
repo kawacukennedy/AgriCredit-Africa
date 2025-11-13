@@ -2,7 +2,7 @@ require("@nomicfoundation/hardhat-toolbox");
 
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
-  solidity: "0.8.19",
+  solidity: "0.8.28",
    networks: {
     hardhat: {},
     polygon: {
@@ -17,6 +17,11 @@ module.exports = {
       url: "https://testnet.hashio.io/api",
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
       chainId: 296,
+    },
+    blockdag: {
+      url: process.env.BLOCKDAG_RPC_URL || "https://main.confluxrpc.com",
+      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
+      chainId: 1030,
     },
   },
   etherscan: {

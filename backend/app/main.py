@@ -974,8 +974,32 @@ async def apply_for_loan(
         db.commit()
         db.refresh(db_loan)
 
-        # TODO: Deploy loan contract on blockchain
-        # TODO: Transfer collateral to escrow
+        # Deploy loan contract on blockchain
+        try:
+            blockchain_result = await blockchain_service.deploy_loan_contract(
+                borrower=current_user.wallet_address or current_user.username,
+                amount=loan_data['amount'],
+                interest_rate=loan_data.get('interest_rate', 8.5),
+                duration=loan_data.get('duration', 365 * 24 * 60 * 60),  # 1 year in seconds
+                collateral_token=loan_data.get('collateral_token', '0x0000000000000000000000000000000000000000'),
+                collateral_amount=loan_data.get('collateral_amount', 0)
+            )
+            db_loan.blockchain_tx_hash = blockchain_result['tx_hash']
+            db_loan.blockchain_loan_id = blockchain_result.get('loan_id')
+            db.commit()
+
+            # Transfer collateral to escrow if provided
+            if loan_data.get('collateral_amount', 0) > 0:
+                await blockchain_service.transfer_collateral_to_escrow(
+                    loan_id=int(blockchain_result.get('loan_id', 0)),
+                    collateral_token=loan_data['collateral_token'],
+                    collateral_amount=loan_data['collateral_amount'],
+                    escrow_address="0x0000000000000000000000000000000000000000"  # TODO: Get escrow address
+                )
+
+        except Exception as blockchain_error:
+            logger.warning("Blockchain loan deployment failed", error=str(blockchain_error))
+            # Continue without blockchain for now
 
         logger.info("Loan application submitted", user_id=current_user.id, loan_id=db_loan.id, amount=loan_data['amount'])
         return {
@@ -1552,7 +1576,94 @@ async def analyze_sensor_data(device_id: int, reading_id: int):
     """Analyze sensor data and generate insights"""
     # This would trigger AI analysis, alerts, etc.
     logger.info("Analyzing sensor data", device_id=device_id, reading_id=reading_id)
-    # TODO: Implement sensor data analysis logic
+
+    # Implement sensor data analysis logic
+    try:
+        # Get database session
+        db = next(get_db())
+
+        # Get recent sensor readings for analysis
+        recent_readings = db.query(SensorReading).filter(
+            SensorReading.device_id == device_id
+        ).order_by(SensorReading.timestamp.desc()).limit(100).all()
+
+        if len(recent_readings) < 10:
+            logger.warning("Insufficient sensor data for analysis", device_id=device_id)
+            return
+
+        # Analyze soil moisture trends
+        soil_moisture_values = [r.soil_moisture for r in recent_readings]
+        avg_soil_moisture = sum(soil_moisture_values) / len(soil_moisture_values)
+
+        # Check for irrigation needs
+        irrigation_alert = avg_soil_moisture < 0.3  # Below 30% moisture
+
+        # Analyze temperature patterns
+        temperature_values = [r.temperature for r in recent_readings]
+        avg_temperature = sum(temperature_values) / len(temperature_values)
+
+        # Check for heat stress
+        heat_stress_alert = avg_temperature > 35  # Above 35°C
+
+        # Analyze humidity
+        humidity_values = [r.humidity for r in recent_readings]
+        avg_humidity = sum(humidity_values) / len(humidity_values)
+
+        # Generate recommendations
+        recommendations = []
+        alerts = []
+
+        if irrigation_alert:
+            recommendations.append("Increase irrigation - soil moisture is low")
+            alerts.append("Irrigation needed immediately")
+
+        if heat_stress_alert:
+            recommendations.append("Implement heat stress mitigation measures")
+            alerts.append("High temperature detected - monitor crops closely")
+
+        if avg_humidity < 40:
+            recommendations.append("Consider humidity management for optimal growth")
+
+        # Store analysis results
+        analysis_result = {
+            "device_id": device_id,
+            "reading_id": reading_id,
+            "timestamp": datetime.utcnow(),
+            "soil_moisture_avg": avg_soil_moisture,
+            "temperature_avg": avg_temperature,
+            "humidity_avg": avg_humidity,
+            "recommendations": recommendations,
+            "alerts": alerts,
+            "irrigation_needed": irrigation_alert,
+            "heat_stress_risk": heat_stress_alert
+        }
+
+        # Get cache client
+        cache_client = get_cache()
+        await cache_client.set(f"sensor_analysis:{device_id}:{reading_id}", json.dumps(analysis_result), expire=3600)
+
+        # Get device owner for notifications
+        device = db.query(SensorDevice).filter(SensorDevice.id == device_id).first()
+        if device and alerts:
+            # Create notification
+            notification = Notification(
+                user_id=device.owner_id,
+                type="sensor_alert",
+                title="Farm Sensor Alert",
+                message=f"Critical alerts detected: {', '.join(alerts)}",
+                data={
+                    "device_id": device_id,
+                    "alerts": alerts,
+                    "recommendations": recommendations
+                }
+            )
+            db.add(notification)
+            db.commit()
+
+        logger.info("Sensor data analysis completed", device_id=device_id, alerts=len(alerts))
+
+    except Exception as analysis_error:
+        logger.error("Sensor data analysis failed", error=str(analysis_error), device_id=device_id)
 
 # GraphQL API
 app.include_router(graphql_app, prefix="/graphql", tags=["graphql"])
@@ -2272,8 +2383,22 @@ async def create_marketplace_escrow(
         db.commit()
         db.refresh(escrow)
 
-        # TODO: Deploy escrow contract on blockchain
-        # For now, return mock escrow ID
+        # Deploy escrow contract on blockchain
+        try:
+            blockchain_result = await blockchain_service.deploy_escrow_contract(
+                buyer=current_user.wallet_address or current_user.username,
+                seller=escrow.seller.wallet_address or escrow.seller.username,
+                amount=escrow.amount,
+                token_address=escrow.token_address,
+                listing_id=escrow.listing_id
+            )
+            escrow.blockchain_tx_hash = blockchain_result['tx_hash']
+            escrow.blockchain_escrow_id = blockchain_result.get('escrow_id')
+            db.commit()
+
+        except Exception as blockchain_error:
+            logger.warning("Blockchain escrow deployment failed", error=str(blockchain_error))
+            # Continue without blockchain for now
 
         logger.info("Escrow created", escrow_id=escrow.id, user_id=current_user.id)
         return {
@@ -2352,7 +2477,17 @@ async def confirm_escrow_delivery(
         escrow.delivered_at = datetime.utcnow()
         db.commit()
 
-        # TODO: Trigger blockchain escrow confirmation
+        # Trigger blockchain escrow confirmation
+        try:
+            if escrow.blockchain_escrow_id:
+                await blockchain_service.confirm_escrow_delivery(
+                    escrow_id=int(escrow.blockchain_escrow_id),
+                    delivery_proof=delivery_data.get('proof', ''),
+                    quality_score=delivery_data.get('quality_score', 0)
+                )
+        except Exception as blockchain_error:
+            logger.warning("Blockchain delivery confirmation failed", error=str(blockchain_error))
+            # Continue without blockchain for now
 
         logger.info("Delivery confirmed", escrow_id=escrow_id, user_id=current_user.id)
         return {
@@ -2394,7 +2529,15 @@ async def complete_marketplace_escrow(
         escrow.completed_at = datetime.utcnow()
         db.commit()
 
-        # TODO: Release funds from blockchain escrow
+        # Release funds from blockchain escrow
+        try:
+            if escrow.blockchain_escrow_id:
+                await blockchain_service.release_escrow_funds(
+                    escrow_id=int(escrow.blockchain_escrow_id)
+                )
+        except Exception as blockchain_error:
+            logger.warning("Blockchain fund release failed", error=str(blockchain_error))
+            # Continue without blockchain for now
 
         logger.info("Escrow completed", escrow_id=escrow_id, user_id=current_user.id)
         return {

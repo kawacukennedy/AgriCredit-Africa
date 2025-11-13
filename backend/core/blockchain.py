@@ -313,5 +313,192 @@ class BlockchainService:
             'status': receipt.status
         }
 
+    async def deploy_loan_contract(self, borrower: str, amount: float, interest_rate: float,
+                                  duration: int, collateral_token: str, collateral_amount: float) -> Dict[str, Any]:
+        """Deploy loan contract on blockchain"""
+        if not self.is_connected() or 'LoanManager' not in self.contracts:
+            raise Exception("Blockchain not connected or contract not loaded")
+
+        contract = self.contracts['LoanManager']
+
+        # Convert amounts to wei
+        amount_wei = self.w3.to_wei(amount, 'ether')
+        collateral_wei = self.w3.to_wei(collateral_amount, 'ether')
+
+        # Build transaction
+        tx = contract.functions.createLoan(
+            borrower,
+            amount_wei,
+            int(interest_rate * 100),  # basis points
+            duration,
+            collateral_token,
+            collateral_wei
+        ).build_transaction({
+            'from': self.account.address,
+            'gas': 400000,
+            'gasPrice': await self.get_gas_price(),
+            'nonce': self.w3.eth.get_transaction_count(self.account.address)
+        })
+
+        # Sign and send transaction
+        signed_tx = self.w3.eth.account.sign_transaction(tx, self.account.key)
+        tx_hash = self.w3.eth.send_raw_transaction(signed_tx.rawTransaction)
+
+        # Wait for transaction receipt
+        receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash)
+
+        return {
+            'tx_hash': tx_hash.hex(),
+            'loan_id': receipt.logs[0].topics[1].hex() if receipt.logs else None,
+            'block_number': receipt.blockNumber,
+            'status': receipt.status
+        }
+
+    async def transfer_collateral_to_escrow(self, loan_id: int, collateral_token: str,
+                                          collateral_amount: float, escrow_address: str) -> Dict[str, Any]:
+        """Transfer collateral to escrow contract"""
+        if not self.is_connected():
+            raise Exception("Blockchain not connected")
+
+        # Load ERC20 token contract
+        token_contract = self.w3.eth.contract(
+            address=self.w3.to_checksum_address(collateral_token),
+            abi=[  # ERC20 ABI
+                {
+                    "constant": False,
+                    "inputs": [
+                        {"name": "_to", "type": "address"},
+                        {"name": "_value", "type": "uint256"}
+                    ],
+                    "name": "transfer",
+                    "outputs": [{"name": "", "type": "bool"}],
+                    "type": "function"
+                }
+            ]
+        )
+
+        collateral_wei = self.w3.to_wei(collateral_amount, 'ether')
+
+        # Build transaction
+        tx = token_contract.functions.transfer(escrow_address, collateral_wei).build_transaction({
+            'from': self.account.address,
+            'gas': 100000,
+            'gasPrice': await self.get_gas_price(),
+            'nonce': self.w3.eth.get_transaction_count(self.account.address)
+        })
+
+        # Sign and send transaction
+        signed_tx = self.w3.eth.account.sign_transaction(tx, self.account.key)
+        tx_hash = self.w3.eth.send_raw_transaction(signed_tx.rawTransaction)
+
+        # Wait for transaction receipt
+        receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash)
+
+        return {
+            'tx_hash': tx_hash.hex(),
+            'block_number': receipt.blockNumber,
+            'status': receipt.status
+        }
+
+    async def deploy_escrow_contract(self, buyer: str, seller: str, amount: float,
+                                   token_address: str, listing_id: int) -> Dict[str, Any]:
+        """Deploy escrow contract on blockchain"""
+        if not self.is_connected() or 'MarketplaceEscrow' not in self.contracts:
+            raise Exception("Blockchain not connected or contract not loaded")
+
+        contract = self.contracts['MarketplaceEscrow']
+
+        # Convert amount to wei
+        amount_wei = self.w3.to_wei(amount, 'ether')
+
+        # Build transaction
+        tx = contract.functions.createEscrow(
+            seller,
+            amount_wei,
+            token_address,
+            listing_id,
+            ""  # geo_location can be empty for now
+        ).build_transaction({
+            'from': buyer,
+            'gas': 300000,
+            'gasPrice': await self.get_gas_price(),
+            'nonce': self.w3.eth.get_transaction_count(buyer)
+        })
+
+        # Sign and send transaction (would need buyer's private key in production)
+        signed_tx = self.w3.eth.account.sign_transaction(tx, self.account.key)
+        tx_hash = self.w3.eth.send_raw_transaction(signed_tx.rawTransaction)
+
+        # Wait for transaction receipt
+        receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash)
+
+        return {
+            'tx_hash': tx_hash.hex(),
+            'escrow_id': receipt.logs[0].topics[1].hex() if receipt.logs else None,
+            'block_number': receipt.blockNumber,
+            'status': receipt.status
+        }
+
+    async def confirm_escrow_delivery(self, escrow_id: int, delivery_proof: str,
+                                    quality_score: int) -> Dict[str, Any]:
+        """Confirm delivery on blockchain escrow"""
+        if not self.is_connected() or 'MarketplaceEscrow' not in self.contracts:
+            raise Exception("Blockchain not connected or contract not loaded")
+
+        contract = self.contracts['MarketplaceEscrow']
+
+        # Build transaction
+        tx = contract.functions.confirmDelivery(
+            escrow_id,
+            delivery_proof,
+            quality_score
+        ).build_transaction({
+            'from': self.account.address,
+            'gas': 200000,
+            'gasPrice': await self.get_gas_price(),
+            'nonce': self.w3.eth.get_transaction_count(self.account.address)
+        })
+
+        # Sign and send transaction
+        signed_tx = self.w3.eth.account.sign_transaction(tx, self.account.key)
+        tx_hash = self.w3.eth.send_raw_transaction(signed_tx.rawTransaction)
+
+        # Wait for transaction receipt
+        receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash)
+
+        return {
+            'tx_hash': tx_hash.hex(),
+            'block_number': receipt.blockNumber,
+            'status': receipt.status
+        }
+
+    async def release_escrow_funds(self, escrow_id: int) -> Dict[str, Any]:
+        """Release funds from blockchain escrow"""
+        if not self.is_connected() or 'MarketplaceEscrow' not in self.contracts:
+            raise Exception("Blockchain not connected or contract not loaded")
+
+        contract = self.contracts['MarketplaceEscrow']
+
+        # Build transaction
+        tx = contract.functions.completeEscrow(escrow_id).build_transaction({
+            'from': self.account.address,
+            'gas': 200000,
+            'gasPrice': await self.get_gas_price(),
+            'nonce': self.w3.eth.get_transaction_count(self.account.address)
+        })
+
+        # Sign and send transaction
+        signed_tx = self.w3.eth.account.sign_transaction(tx, self.account.key)
+        tx_hash = self.w3.eth.send_raw_transaction(signed_tx.rawTransaction)
+
+        # Wait for transaction receipt
+        receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash)
+
+        return {
+            'tx_hash': tx_hash.hex(),
+            'block_number': receipt.blockNumber,
+            'status': receipt.status
+        }
+
 # Global blockchain service instance
 blockchain_service = BlockchainService()

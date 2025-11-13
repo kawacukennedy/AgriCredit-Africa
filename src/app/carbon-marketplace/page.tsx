@@ -17,6 +17,7 @@ import {
   disconnectWebSocket
 } from '@/lib/api';
 import { TrendingUp, TrendingDown, DollarSign, Leaf, ShoppingCart, BarChart3, Plus, Minus } from 'lucide-react';
+import { CustomLineChart } from '@/components/charts';
 
 // Interfaces moved to API file
 
@@ -43,6 +44,17 @@ export default function CarbonMarketplacePage() {
     averagePrice: 0,
     priceChange24h: 0
   });
+
+  // Mock price data for chart
+  const priceData = [
+    { time: '00:00', price: 24.50 },
+    { time: '04:00', price: 24.75 },
+    { time: '08:00', price: 25.20 },
+    { time: '12:00', price: 24.90 },
+    { time: '16:00', price: 25.50 },
+    { time: '20:00', price: 25.30 },
+    { time: '24:00', price: marketStats.averagePrice || 25.30 }
+  ];
 
   useEffect(() => {
     if (isConnected) {
@@ -438,19 +450,22 @@ export default function CarbonMarketplacePage() {
           </motion.div>
         </div>
 
-        {/* Price Chart Placeholder */}
+        {/* Price Chart */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
           className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm mt-8"
         >
-          <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
-            CARBT Price Chart (24h)
-          </h3>
-          <div className="h-64 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center">
-            <p className="text-gray-500 dark:text-gray-400">Price chart visualization would display here</p>
-          </div>
+          <CustomLineChart
+            data={priceData}
+            dataKey="price"
+            xAxisKey="time"
+            title="CARBT Price Chart (24h)"
+            color="#10b981"
+            height={300}
+            tooltipFormatter={(value) => [`$${value}`, 'Price']}
+          />
         </motion.div>
 
         {/* Create Listing Modal */}

@@ -29,7 +29,12 @@ import {
   stakeCarbonTokens,
   claimStakingRewards,
   retireCarbonCredits,
-  getMarketAnalytics
+  getMarketAnalytics,
+  getCarbonCredits,
+  CarbonCredit,
+  connectWebSocket,
+  onWebSocketMessage,
+  disconnectWebSocket
 } from '@/lib/api';
 import { useWallet } from '@/hooks/useWallet';
 
@@ -38,14 +43,23 @@ export default function CarbonDashboard() {
   const router = useRouter();
   const [dashboardData, setDashboardData] = useState<any>(null);
   const [marketData, setMarketData] = useState<any>(null);
+  const [carbonCredits, setCarbonCredits] = useState<CarbonCredit[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
   const [showStakeModal, setShowStakeModal] = useState(false);
   const [showRetireModal, setShowRetireModal] = useState(false);
+  const [showClimateModal, setShowClimateModal] = useState(false);
   const [stakeAmount, setStakeAmount] = useState('');
   const [retireCreditId, setRetireCreditId] = useState('');
+  const [climateData, setClimateData] = useState({
+    satellite_data: {},
+    iot_sensors: {},
+    location: '',
+    area_hectares: ''
+  });
   const [isStaking, setIsStaking] = useState(false);
   const [isRetiring, setIsRetiring] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
 
   useEffect(() => {
@@ -54,6 +68,20 @@ export default function CarbonDashboard() {
       return;
     }
     loadDashboardData();
+
+    // Connect to WebSocket for real-time carbon updates
+    connectWebSocket(1, 'carbon_dashboard'); // Using dummy user ID
+
+    // Listen for carbon-related updates
+    onWebSocketMessage('carbon_update', (data: any) => {
+      console.log('Received carbon update:', data);
+      // Refresh data when carbon updates are received
+      loadDashboardData();
+    });
+
+    return () => {
+      disconnectWebSocket();
+    };
   }, [isConnected, address]);
 
   const loadDashboardData = async () => {
@@ -61,9 +89,10 @@ export default function CarbonDashboard() {
 
     try {
       setLoading(true);
-      const [dashboard, market] = await Promise.allSettled([
+      const [dashboard, market, credits] = await Promise.allSettled([
         getCarbonDashboard(address),
-        getMarketAnalytics()
+        getMarketAnalytics(),
+        getCarbonCredits()
       ]);
 
       if (dashboard.status === 'fulfilled') {
@@ -71,6 +100,9 @@ export default function CarbonDashboard() {
       }
       if (market.status === 'fulfilled') {
         setMarketData(market.value);
+      }
+      if (credits.status === 'fulfilled') {
+        setCarbonCredits(credits.value);
       }
 
       setLastUpdate(new Date());
@@ -143,6 +175,60 @@ export default function CarbonDashboard() {
       alert('Retirement failed. Please try again.');
     } finally {
       setIsRetiring(false);
+    }
+  };
+
+  const handleSubmitClimateData = async () => {
+    if (!climateData.location || !climateData.area_hectares) {
+      alert('Please fill in all required fields');
+      return;
+    }
+
+    setIsGenerating(true);
+    try {
+      const result = await submitClimateData({
+        satellite_data: climateData.satellite_data,
+        iot_sensors: climateData.iot_sensors,
+        location: climateData.location,
+        area_hectares: parseFloat(climateData.area_hectares)
+      });
+
+      if (result.success) {
+        alert('Climate data submitted successfully! Analysis in progress...');
+        setShowClimateModal(false);
+        setClimateData({
+          satellite_data: {},
+          iot_sensors: {},
+          location: '',
+          area_hectares: ''
+        });
+        loadDashboardData();
+      } else {
+        alert(`Climate data submission failed: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Climate data submission failed:', error);
+      alert('Climate data submission failed. Please try again.');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleGenerateCredit = async (analysisId: number) => {
+    setIsGenerating(true);
+    try {
+      const result = await generateCarbonCredit(analysisId);
+      if (result.success) {
+        alert(`Carbon credit generated successfully! Amount: ${result.amount}`);
+        loadDashboardData();
+      } else {
+        alert(`Credit generation failed: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Credit generation failed:', error);
+      alert('Credit generation failed. Please try again.');
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -381,23 +467,94 @@ export default function CarbonDashboard() {
             </motion.div>
           )}
 
-          {activeTab === 'portfolio' && (
-            <motion.div
-              key="portfolio"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="space-y-6"
-            >
-              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
-                <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">Carbon Credits Portfolio</h3>
-                <div className="text-center py-8">
-                  <Award className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600 dark:text-gray-400">Carbon credits data will be displayed here</p>
-                </div>
-              </div>
-            </motion.div>
-          )}
+           {activeTab === 'portfolio' && (
+             <motion.div
+               key="portfolio"
+               initial={{ opacity: 0, y: 20 }}
+               animate={{ opacity: 1, y: 0 }}
+               exit={{ opacity: 0, y: -20 }}
+               className="space-y-6"
+             >
+               <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+                 <div className="flex justify-between items-center mb-6">
+                   <h3 className="text-xl font-semibold text-gray-800 dark:text-white">Carbon Credits Portfolio</h3>
+                   <button
+                     onClick={() => setShowClimateModal(true)}
+                     className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+                   >
+                     <Plus className="w-4 h-4" />
+                     Submit Climate Data
+                   </button>
+                 </div>
+
+                 {carbonCredits.length > 0 ? (
+                   <div className="space-y-4">
+                     {carbonCredits.map((credit) => (
+                       <div key={credit.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                         <div className="flex justify-between items-start mb-3">
+                           <div>
+                             <div className="flex items-center gap-2 mb-1">
+                               <Award className="w-5 h-5 text-green-600" />
+                               <span className="font-medium text-gray-800 dark:text-white">
+                                 Credit #{credit.id}
+                               </span>
+                               <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                 credit.transaction_type === 'minted' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
+                                 credit.transaction_type === 'transferred' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
+                                 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
+                               }`}>
+                                 {credit.transaction_type}
+                               </span>
+                             </div>
+                             <p className="text-sm text-gray-600 dark:text-gray-400">
+                               Amount: {credit.amount} CARBT
+                             </p>
+                           </div>
+                           <div className="text-right">
+                             <div className="text-sm text-gray-500 dark:text-gray-400">
+                               {new Date(credit.created_at).toLocaleDateString()}
+                             </div>
+                             {credit.transaction_hash && (
+                               <div className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                                 TX: {credit.transaction_hash.slice(0, 10)}...
+                               </div>
+                             )}
+                           </div>
+                         </div>
+
+                         {credit.verification_proof && (
+                           <div className="mt-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                             <details>
+                               <summary className="cursor-pointer text-sm font-medium text-gray-700 dark:text-gray-300">
+                                 Verification Details
+                               </summary>
+                               <pre className="mt-2 text-xs text-gray-600 dark:text-gray-400 whitespace-pre-wrap">
+                                 {JSON.stringify(credit.verification_proof, null, 2)}
+                               </pre>
+                             </details>
+                           </div>
+                         )}
+                       </div>
+                     ))}
+                   </div>
+                 ) : (
+                   <div className="text-center py-8">
+                     <Award className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                     <h4 className="text-lg font-medium text-gray-800 dark:text-white mb-2">No Carbon Credits Yet</h4>
+                     <p className="text-gray-600 dark:text-gray-400 mb-4">
+                       Start by submitting climate data to generate your first carbon credits.
+                     </p>
+                     <button
+                       onClick={() => setShowClimateModal(true)}
+                       className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition-colors"
+                     >
+                       Generate Carbon Credits
+                     </button>
+                   </div>
+                 )}
+               </div>
+             </motion.div>
+           )}
 
           {activeTab === 'staking' && (
             <motion.div
@@ -606,6 +763,82 @@ export default function CarbonDashboard() {
                       className="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white py-2 px-4 rounded-lg transition-colors"
                     >
                       {isRetiring ? 'Retiring...' : 'Retire Credit'}
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Climate Data Modal */}
+        <AnimatePresence>
+          {showClimateModal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+              onClick={() => setShowClimateModal(false)}
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl max-w-lg w-full mx-4"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">Submit Climate Data</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Location
+                    </label>
+                    <input
+                      type="text"
+                      value={climateData.location}
+                      onChange={(e) => setClimateData(prev => ({ ...prev, location: e.target.value }))}
+                      className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white"
+                      placeholder="e.g., Nairobi, Kenya"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Area (Hectares)
+                    </label>
+                    <input
+                      type="number"
+                      value={climateData.area_hectares}
+                      onChange={(e) => setClimateData(prev => ({ ...prev, area_hectares: e.target.value }))}
+                      className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white"
+                      placeholder="Enter area in hectares"
+                      min="0"
+                      step="0.1"
+                    />
+                  </div>
+
+                  <div className="bg-blue-50 dark:bg-blue-900 p-4 rounded-lg">
+                    <h4 className="font-medium text-blue-800 dark:text-blue-200 mb-2">Data Sources</h4>
+                    <p className="text-sm text-blue-700 dark:text-blue-300">
+                      Climate data will be automatically collected from satellite imagery and IoT sensors in your area.
+                      This analysis will determine your carbon sequestration potential.
+                    </p>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setShowClimateModal(false)}
+                      className="flex-1 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 py-2 px-4 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleSubmitClimateData}
+                      disabled={isGenerating || !climateData.location || !climateData.area_hectares}
+                      className="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white py-2 px-4 rounded-lg transition-colors"
+                    >
+                      {isGenerating ? 'Submitting...' : 'Submit Data'}
                     </button>
                   </div>
                 </div>

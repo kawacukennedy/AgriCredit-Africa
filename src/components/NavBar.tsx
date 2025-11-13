@@ -27,6 +27,7 @@ import {
   ChevronDown
 } from 'lucide-react';
 import { useTheme } from './ThemeProvider';
+import { useTranslation } from 'react-i18next';
 
 const navItems = [
   { href: '/', label: 'Home', icon: Home },
@@ -48,6 +49,8 @@ export function NavBar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isLanguageMenuOpen, setIsLanguageMenuOpen] = useState(false);
+  const { i18n } = useTranslation();
 
   const { theme, actualTheme, setTheme } = useTheme();
   const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
@@ -149,6 +152,52 @@ export function NavBar() {
                           <Icon className="w-4 h-4 mr-2" />
                           {label}
                           {theme === value && <span className="ml-auto">✓</span>}
+                        </button>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* Language Selector */}
+              <div className="relative">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setIsLanguageMenuOpen(!isLanguageMenuOpen)}
+                  className="flex items-center justify-center w-10 h-10 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  aria-label="Language selector"
+                >
+                  <span className="text-sm font-medium uppercase">{i18n.language}</span>
+                  <ChevronDown className="w-3 h-3 ml-1" />
+                </motion.button>
+
+                <AnimatePresence>
+                  {isLanguageMenuOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                      className="absolute right-0 top-full mt-2 w-32 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50"
+                    >
+                      {[
+                        { code: 'en', name: 'English' },
+                        { code: 'fr', name: 'Français' },
+                        { code: 'sw', name: 'Kiswahili' },
+                        { code: 'ha', name: 'Hausa' }
+                      ].map(({ code, name }) => (
+                        <button
+                          key={code}
+                          onClick={() => {
+                            i18n.changeLanguage(code);
+                            setIsLanguageMenuOpen(false);
+                          }}
+                          className={`w-full flex items-center px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
+                            i18n.language === code ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'
+                          }`}
+                        >
+                          {name}
+                          {i18n.language === code && <span className="ml-auto">✓</span>}
                         </button>
                       ))}
                     </motion.div>

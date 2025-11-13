@@ -46,6 +46,7 @@ contract CarbonToken is ERC20, ERC20Burnable, Ownable, ReentrancyGuard {
     // Staking and rewards
     mapping(address => uint256) public stakedBalances;
     mapping(address => uint256) public stakingRewards;
+    mapping(address => uint256) public carbonOffsets; // Track carbon offsets per user
     uint256 public totalStaked;
     uint256 public rewardRate = 500; // 5% APY in basis points
     uint256 public lastRewardUpdate;
@@ -63,6 +64,7 @@ contract CarbonToken is ERC20, ERC20Burnable, Ownable, ReentrancyGuard {
     event TokensStaked(address indexed user, uint256 amount);
     event TokensUnstaked(address indexed user, uint256 amount);
     event RewardsClaimed(address indexed user, uint256 amount);
+    event CarbonOffsetBurned(address indexed user, uint256 amount);
 
     constructor() ERC20("AgriCredit Carbon Token", "CARBT") Ownable(msg.sender) {
         lastRewardUpdate = block.timestamp;
@@ -220,7 +222,7 @@ contract CarbonToken is ERC20, ERC20Burnable, Ownable, ReentrancyGuard {
         require(balanceOf(msg.sender) >= amount, "Insufficient CARBT balance");
 
         _burn(msg.sender, amount);
-        carbonOffsets[msg.sender] -= amount;
+        carbonOffsets[msg.sender] += amount;
 
         emit CarbonOffsetBurned(msg.sender, amount);
     }

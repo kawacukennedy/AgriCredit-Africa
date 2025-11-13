@@ -6,6 +6,7 @@ import { useWallet } from '@/hooks/useWallet';
 import { contractInteractions } from '@/lib/contractInteractions';
 import { CONTRACT_ADDRESSES } from '@/lib/contracts';
 import { TrendingUp, DollarSign, Clock, Award, Plus, Minus } from 'lucide-react';
+import { CustomLineChart } from '@/components/charts';
 
 interface Position {
   amount: string;
@@ -327,19 +328,23 @@ export default function YieldFarmingPage() {
           </div>
         </motion.div>
 
-        {/* Performance Chart Placeholder */}
+        {/* Performance Chart */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
           className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm"
         >
-          <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
-            Yield Performance (Last 14 Days)
-          </h3>
-          <div className="h-64 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center">
-            <p className="text-gray-500 dark:text-gray-400">Yield Performance Chart</p>
-          </div>
+          <CustomLineChart
+            data={yieldData}
+            dataKey="yield"
+            xAxisKey="day"
+            title="Yield Performance (Last 14 Days)"
+            color="#10b981"
+            height={300}
+            xAxisFormatter={(value) => `Day ${value}`}
+            tooltipFormatter={(value) => [`${value} AGC`, 'Yield']}
+          />
         </motion.div>
 
         {/* Deposit Modal */}
