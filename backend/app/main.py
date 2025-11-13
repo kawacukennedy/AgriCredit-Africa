@@ -39,6 +39,7 @@ from .core.tasks import (
     process_loan_application_async
 )
 from .core.advanced_ai import advanced_ai_service
+from .core.external_apis import external_apis_service
 from .core.api_utils import (
     PaginationParams, PaginatedResponse, FilterParams,
     api_response, pagination_helper, filter_helper, audit_helper
@@ -3427,6 +3428,57 @@ async def train_models():
         return {"status": "success", "message": "Models trained successfully"}
     except Exception as e:
         logger.error("Model training failed", error=str(e))
+        raise HTTPException(status_code=500, detail=str(e))
+
+# External API integrations
+@app.get("/api/external/satellite-data")
+async def get_satellite_data(location: str, start_date: str, end_date: str):
+    """Get satellite data for location"""
+    try:
+        data = await external_apis_service.get_satellite_data(location, start_date, end_date)
+        return {"status": "success", "data": data}
+    except Exception as e:
+        logger.error("Satellite data request failed", error=str(e))
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/external/weather")
+async def get_weather_data(location: str):
+    """Get weather data for location"""
+    try:
+        data = await external_apis_service.get_weather_data(location)
+        return {"status": "success", "data": data}
+    except Exception as e:
+        logger.error("Weather data request failed", error=str(e))
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/external/mobile-money/send")
+async def send_mobile_money(phone_number: str, amount: float, currency: str = "KES"):
+    """Send mobile money"""
+    try:
+        result = await external_apis_service.send_mobile_money(phone_number, amount, currency)
+        return {"status": "success", "data": result}
+    except Exception as e:
+        logger.error("Mobile money send failed", error=str(e))
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/external/oracle/price")
+async def get_oracle_price(asset: str, source: str = "chainlink"):
+    """Get price from oracle"""
+    try:
+        data = await external_apis_service.get_oracle_price_feed(asset, source)
+        return {"status": "success", "data": data}
+    except Exception as e:
+        logger.error("Oracle price request failed", error=str(e))
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/external/copernicus")
+async def get_copernicus_data(location: str, dataset: str = "NDVI"):
+    """Get Copernicus satellite data"""
+    try:
+        data = await external_apis_service.get_copernicus_data(location, dataset)
+        return {"status": "success", "data": data}
+    except Exception as e:
+        logger.error("Copernicus data request failed", error=str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
 # Startup and shutdown events

@@ -1114,6 +1114,10 @@ export async function executeProposal(proposalId: number): Promise<{ success: bo
   }
 }
 
+export async function getGovernanceProposals(): Promise<GovernanceProposal[]> {
+  return apiRequest('/blockchain/governance/proposals');
+}
+
 // Carbon Marketplace API
 export interface CarbonCredit {
   id: number;

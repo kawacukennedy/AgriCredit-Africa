@@ -63,8 +63,11 @@ export default function GovernancePage() {
   const loadProposals = async () => {
     setIsLoading(true);
     try {
-      // Try to get proposals from API - for now using mock data as backend doesn't have list endpoint
-      // TODO: Add /blockchain/governance/proposals endpoint to backend
+      const proposals = await getGovernanceProposals();
+      setProposals(proposals);
+    } catch (error) {
+      console.error('Failed to load proposals:', error);
+      // Fallback to mock data if API fails
       const mockProposals: Proposal[] = [
         {
           id: 1,
@@ -103,10 +106,7 @@ export default function GovernancePage() {
           created_at: new Date().toISOString()
         }
       ];
-
       setProposals(mockProposals);
-    } catch (error) {
-      console.error('Failed to load proposals:', error);
     } finally {
       setIsLoading(false);
     }

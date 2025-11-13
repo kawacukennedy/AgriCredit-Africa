@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import "@openzeppelin/contracts/utils/math/Math.sol";
 
 contract GovernanceDAO is Ownable, ReentrancyGuard {
     using ECDSA for bytes32;
@@ -306,10 +307,9 @@ contract GovernanceDAO is Ownable, ReentrancyGuard {
 
     function getVotes(address account) public view returns (uint256) {
         address delegate = delegates[account];
-        if (delegate == address(0)) {
-            return governanceToken.balanceOf(account);
-        }
-        return governanceToken.balanceOf(delegate);
+        uint256 balance = delegate == address(0) ? governanceToken.balanceOf(account) : governanceToken.balanceOf(delegate);
+        // Quadratic voting: voting power = sqrt(token balance)
+        return Math.sqrt(balance);
     }
 
     // View functions

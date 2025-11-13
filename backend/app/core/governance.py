@@ -243,16 +243,21 @@ class GovernanceManager:
 
             result = []
             for proposal in proposals:
-                # Get basic info without full blockchain data for performance
+                # Get voting data
+                votes_data = await self.get_proposal_votes(proposal.proposal_id)
+
+                # Map to frontend format
                 proposal_data = {
-                    'id': proposal.id,
-                    'proposal_id': proposal.proposal_id,
+                    'id': proposal.proposal_id,
                     'proposer': proposal.proposer_address,
-                    'title': proposal.title,
                     'description': proposal.description,
-                    'state': proposal.state,
-                    'created_at': proposal.created_at.isoformat(),
-                    'transaction_hash': proposal.transaction_hash
+                    'for_votes': str(votes_data.get('for_votes', 0)),
+                    'against_votes': str(votes_data.get('against_votes', 0)),
+                    'start_time': int(proposal.created_at.timestamp() * 1000),  # milliseconds
+                    'end_time': int((proposal.created_at + timedelta(days=7)).timestamp() * 1000),  # 7 days voting period
+                    'executed': proposal.state == 'executed',
+                    'status': self._map_proposal_status(proposal.state),
+                    'created_at': proposal.created_at.isoformat()
                 }
                 result.append(proposal_data)
 
@@ -261,6 +266,20 @@ class GovernanceManager:
         except Exception as e:
             logger.error("Proposals retrieval failed", error=str(e))
             return []
+
+    def _map_proposal_status(self, state: str) -> str:
+        """Map database state to frontend status"""
+        status_map = {
+            'pending': 'active',
+            'active': 'active',
+            'canceled': 'failed',
+            'defeated': 'failed',
+            'succeeded': 'passed',
+            'queued': 'passed',
+            'expired': 'failed',
+            'executed': 'executed'
+        }
+        return status_map.get(state, 'active')
 
     async def get_voting_power(self, voter_address: str) -> int:
         """Get voting power for an address"""
