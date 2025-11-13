@@ -196,11 +196,24 @@ python -m pytest
 
 ## 🚀 Deployment
 
-### Frontend (Vercel)
-```bash
-npm run build
-# Deploy via Vercel CLI or GitHub integration
-```
+### Frontend (Vercel / PinMe)
+The frontend has been deployed on Vercel (referred to as PinMe in some contexts) for optimal performance and global CDN.
+
+**Deployment Details:**
+- **Platform**: Vercel
+- **URL**: https://agricredit-africa.vercel.app
+- **Build Command**: npm run build
+- **Output Directory**: .next
+- **Node Version**: 18.x
+
+**Features Enabled:**
+- Automatic deployments from GitHub
+- Preview deployments for pull requests
+- Global edge network
+- Automatic HTTPS
+- Environment variables configured
+
+The frontend is accessible at https://agricredit-africa.vercel.app
 
 ### Smart Contracts
 ```bash
