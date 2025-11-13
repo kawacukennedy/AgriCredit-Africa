@@ -7,6 +7,7 @@ import { OnboardingModal } from '@/components/OnboardingModal';
 import { getAuthToken, setAuthToken, getCurrentUser, getCreditScore, getYieldPrediction, getUserLoans, getUserNotifications, getSensorData, getUserDevices, getUserDashboardData, connectWebSocket, subscribeToNotifications, subscribeToSensorAlerts } from '@/lib/api';
 import { LogOut, TrendingUp, DollarSign, Leaf, Bell, BarChart3, Activity, Thermometer, Droplets, RefreshCw } from 'lucide-react';
 import { CustomLineChart, CustomBarChart } from '@/components/charts';
+import { SkeletonCard } from '@/components/Skeleton';
 
 export default function Dashboard() {
   const [showOnboarding, setShowOnboarding] = useState(false);

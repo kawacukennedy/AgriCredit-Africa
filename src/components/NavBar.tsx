@@ -4,7 +4,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Home,
@@ -24,7 +24,8 @@ import {
   Sun,
   Monitor,
   Search,
-  ChevronDown
+  ChevronDown,
+  Bell
 } from 'lucide-react';
 import { useTheme } from './ThemeProvider';
 import { useTranslation } from 'react-i18next';
@@ -46,8 +47,10 @@ const navItems = [
 
 export function NavBar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [notificationCount, setNotificationCount] = useState(3); // Mock notification count
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isLanguageMenuOpen, setIsLanguageMenuOpen] = useState(false);
   const { i18n } = useTranslation();
@@ -259,9 +262,27 @@ export function NavBar() {
                     </motion.div>
                   )}
                 </AnimatePresence>
-              </div>
+               </div>
 
-              {navItems.slice(0, 8).map((item) => {
+               {/* Notifications */}
+               <div className="relative">
+                 <motion.button
+                   whileHover={{ scale: 1.05 }}
+                   whileTap={{ scale: 0.95 }}
+                   onClick={() => router.push('/notifications')}
+                   className="flex items-center justify-center w-10 h-10 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors relative"
+                   aria-label="Notifications"
+                 >
+                   <Bell className="w-5 h-5" />
+                   {notificationCount > 0 && (
+                     <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                       {notificationCount}
+                     </span>
+                   )}
+                 </motion.button>
+               </div>
+
+               {navItems.slice(0, 8).map((item) => {
                 const Icon = item.icon;
                 const active = isActive(item.href);
                 return (
