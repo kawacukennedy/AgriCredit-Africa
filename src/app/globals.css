@@ -3,7 +3,8 @@
 @tailwind utilities;
 
 :root {
-  --font-mono: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  --background: #ffffff;
+  --foreground: #171717;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -125,5 +126,3 @@ textarea:focus {
   color: #ffffff !important;
   text-decoration: underline !important;
 }
-
-/* SVG filters for color blindness simulation - moved to component */

@@ -1,6 +1,6 @@
 'use client';
 
-import { motion } from 'framer-motion';
+// import { motion } from 'framer-motion';
 import { useState, useEffect, lazy, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { useWallet } from '@/hooks/useWallet';
@@ -225,21 +225,12 @@ export default function Home() {
       {/* Hero Section with Carousel */}
       <main className="container mx-auto px-6 py-12">
         <div className="text-center mb-12">
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-4xl md:text-6xl font-bold text-gray-800 dark:text-white mb-4"
-          >
-            AgriCredit Africa
-          </motion.h2>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto"
-          >
-            Decentralized microcredit for sustainable agriculture
-          </motion.p>
+           <h2 className="text-4xl md:text-6xl font-bold text-gray-800 dark:text-white mb-4">
+             AgriCredit Africa
+           </h2>
+           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+             Decentralized microcredit for sustainable agriculture
+           </p>
         </div>
 
         {/* Carousel */}
@@ -248,13 +239,7 @@ export default function Home() {
           onMouseEnter={() => setIsAutoPlaying(false)}
           onMouseLeave={() => setIsAutoPlaying(true)}
         >
-          <motion.div
-            key={currentSlide}
-            initial={{ opacity: 0, x: 100 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -100 }}
-            className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 md:p-12"
-          >
+           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 md:p-12">
             <div className="flex flex-col md:flex-row items-center gap-8">
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-4">
@@ -286,7 +271,7 @@ export default function Home() {
                 />
               </div>
             </div>
-          </motion.div>
+          </div>
 
           {/* Navigation */}
           <button
@@ -317,12 +302,7 @@ export default function Home() {
         </div>
 
         {/* Testimonials Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8 }}
-          className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 md:p-12 mb-16"
-        >
+         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 md:p-12 mb-16">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-800 dark:text-white mb-4">
               What Farmers Say
@@ -353,13 +333,7 @@ export default function Home() {
                 rating: 5
               }
             ].map((testimonial, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.9 + index * 0.1 }}
-                className="bg-gray-50 dark:bg-gray-700 rounded-xl p-6"
-              >
+               <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-6">
                 <div className="flex mb-4">
                   {[...Array(testimonial.rating)].map((_, i) => (
                     <svg key={i} className="w-5 h-5 text-yellow-400 fill-current" viewBox="0 0 24 24">
@@ -374,18 +348,13 @@ export default function Home() {
                   <div className="font-semibold text-gray-800 dark:text-white">{testimonial.name}</div>
                   <div className="text-sm text-gray-600 dark:text-gray-400">{testimonial.location}</div>
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
-        </motion.div>
+        </div>
 
         {/* Statistics Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.2 }}
-          className="bg-gradient-to-r from-green-600 to-blue-600 rounded-2xl p-8 md:p-12 mb-16 text-white"
-        >
+         <div className="bg-gradient-to-r from-green-600 to-blue-600 rounded-2xl p-8 md:p-12 mb-16 text-white">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold mb-4">
               Our Impact in Numbers
@@ -402,27 +371,16 @@ export default function Home() {
               { number: "85%", label: "Repayment Rate" },
               { number: "50,000", label: "Tons CO₂ Sequestered" }
             ].map((stat, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 1.3 + index * 0.1 }}
-                className="text-center"
-              >
+               <div className="text-center">
                 <div className="text-4xl md:text-5xl font-bold mb-2">{stat.number}</div>
                 <div className="text-lg opacity-90">{stat.label}</div>
-              </motion.div>
+              </div>
             ))}
           </div>
-        </motion.div>
+        </div>
 
         {/* Enhanced CTA Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.5 }}
-          className="text-center mt-16 bg-gradient-to-br from-green-50 to-blue-50 dark:from-gray-800 dark:to-gray-900 rounded-3xl p-12"
-        >
+         <div className="text-center mt-16 bg-gradient-to-br from-green-50 to-blue-50 dark:from-gray-800 dark:to-gray-900 rounded-3xl p-12">
           <h3 className="text-4xl font-bold text-gray-800 dark:text-white mb-6">
             Ready to Transform Your Farm?
           </h3>
@@ -432,22 +390,18 @@ export default function Home() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-6 justify-center mb-8">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={handleGetStarted}
-              className="bg-gradient-to-r from-green-600 to-green-700 text-white px-10 py-4 rounded-xl hover:from-green-700 hover:to-green-800 transition-all duration-300 text-lg font-semibold shadow-lg hover:shadow-xl"
-            >
-              🚀 Start Your Journey
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={handleExploreFeatures}
-              className="border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 px-10 py-4 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-300 text-lg font-semibold"
-            >
-              📊 Explore Features
-            </motion.button>
+             <button
+               onClick={handleGetStarted}
+               className="bg-gradient-to-r from-green-600 to-green-700 text-white px-10 py-4 rounded-xl hover:from-green-700 hover:to-green-800 transition-all duration-300 text-lg font-semibold shadow-lg hover:shadow-xl"
+             >
+               🚀 Start Your Journey
+             </button>
+             <button
+               onClick={handleExploreFeatures}
+               className="border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 px-10 py-4 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-300 text-lg font-semibold"
+             >
+               📊 Explore Features
+             </button>
           </div>
 
           <div className="flex flex-wrap justify-center gap-8 text-sm text-gray-600 dark:text-gray-400">
@@ -468,7 +422,7 @@ export default function Home() {
               <span>24/7 Support</span>
             </div>
           </div>
-        </motion.div>
+        </div>
       </main>
 
       {/* Auth Modal */}

@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { OnboardingModal } from '@/components/OnboardingModal';
 import { getAuthToken, setAuthToken, getCurrentUser, getCreditScore, getYieldPrediction, getUserLoans, getUserNotifications, getSensorData, getUserDevices, getUserDashboardData, connectWebSocket, subscribeToNotifications, subscribeToSensorAlerts } from '@/lib/api';
 import { LogOut, TrendingUp, DollarSign, Leaf, Bell, BarChart3, Activity, Thermometer, Droplets, RefreshCw } from 'lucide-react';
-import { CustomLineChart, CustomBarChart } from '@/components/charts';
+// import { CustomLineChart, CustomBarChart } from '@/components/charts';
 import { SkeletonCard } from '@/components/Skeleton';
 
 export default function Dashboard() {
@@ -402,38 +402,22 @@ export default function Dashboard() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Soil Moisture Chart */}
               <div>
-                <CustomLineChart
-                  data={dashboardData.sensorData.slice(-12)}
-                  dataKey="soilMoisture"
-                  color="#3b82f6"
-                  title={
-                    <div className="flex items-center gap-2">
-                      <Droplets className="w-4 h-4 text-blue-600" />
-                      Soil Moisture (%)
-                    </div>
-                  }
-                  height={200}
-                  xAxisFormatter={(value) => new Date(value).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                  tooltipFormatter={(value: number) => [`${value}%`, 'Soil Moisture']}
-                />
+             <div className="h-48 bg-gray-100 dark:bg-gray-700 rounded flex items-center justify-center">
+               <div className="text-center">
+                 <Droplets className="w-8 h-8 text-blue-600 mx-auto mb-2" />
+                 <p className="text-sm text-gray-600 dark:text-gray-400">Soil Moisture Chart</p>
+               </div>
+             </div>
               </div>
 
               {/* Temperature Chart */}
               <div>
-                <CustomLineChart
-                  data={dashboardData.sensorData.slice(-12)}
-                  dataKey="temperature"
-                  color="#ef4444"
-                  title={
-                    <div className="flex items-center gap-2">
-                      <Thermometer className="w-4 h-4 text-red-600" />
-                      Temperature (°C)
-                    </div>
-                  }
-                  height={200}
-                  xAxisFormatter={(value) => new Date(value).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                  tooltipFormatter={(value: number) => [`${value}°C`, 'Temperature']}
-                />
+             <div className="h-48 bg-gray-100 dark:bg-gray-700 rounded flex items-center justify-center">
+               <div className="text-center">
+                 <Thermometer className="w-8 h-8 text-red-600 mx-auto mb-2" />
+                 <p className="text-sm text-gray-600 dark:text-gray-400">Temperature Chart</p>
+               </div>
+             </div>
               </div>
             </div>
           </motion.div>
@@ -452,15 +436,12 @@ export default function Dashboard() {
               <h3 className="text-xl font-semibold text-gray-800 dark:text-white">Loan History</h3>
             </div>
 
-            <CustomBarChart
-              data={dashboardData.loans.slice(-6)}
-              dataKey="amount"
-              xAxisKey="created_at"
-              color="#8b5cf6"
-              height={300}
-              xAxisFormatter={(value) => new Date(value).toLocaleDateString()}
-              tooltipFormatter={(value: number) => [`$${value}`, 'Loan Amount']}
-            />
+             <div className="h-64 bg-gray-100 dark:bg-gray-700 rounded flex items-center justify-center">
+               <div className="text-center">
+                 <BarChart3 className="w-8 h-8 text-purple-600 mx-auto mb-2" />
+                 <p className="text-sm text-gray-600 dark:text-gray-400">Loan History Chart</p>
+               </div>
+             </div>
           </motion.div>
         )}
 
