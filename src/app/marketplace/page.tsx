@@ -18,7 +18,8 @@ import {
   Share2,
   AlertCircle,
   CheckCircle,
-  Clock
+  Clock,
+  Map
 } from 'lucide-react';
 import { useWallet } from '@/hooks/useWallet';
 import {
@@ -433,6 +434,115 @@ export default function Marketplace() {
               </motion.div>
             )}
           </AnimatePresence>
+         </motion.div>
+
+        {/* 3D Farm Visualization Map */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm mb-8"
+        >
+          <div className="flex items-center gap-2 mb-6">
+            <Map className="w-5 h-5 text-green-600" />
+            <h3 className="text-xl font-semibold text-gray-800 dark:text-white">Farm Locations Map</h3>
+          </div>
+
+          <div className="relative h-96 bg-gradient-to-br from-green-100 to-blue-100 dark:from-gray-700 dark:to-gray-800 rounded-lg overflow-hidden">
+            {/* Mock 3D Map Background */}
+            <div className="absolute inset-0">
+              <svg viewBox="0 0 800 400" className="w-full h-full">
+                {/* Terrain layers for 3D effect */}
+                <defs>
+                  <linearGradient id="terrain1" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor="#22c55e" />
+                    <stop offset="100%" stopColor="#16a34a" />
+                  </linearGradient>
+                  <linearGradient id="terrain2" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor="#84cc16" />
+                    <stop offset="100%" stopColor="#65a30d" />
+                  </linearGradient>
+                  <linearGradient id="terrain3" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor="#eab308" />
+                    <stop offset="100%" stopColor="#ca8a04" />
+                  </linearGradient>
+                </defs>
+
+                {/* Background terrain */}
+                <rect width="800" height="400" fill="url(#terrain1)" />
+
+                {/* Hills for 3D effect */}
+                <ellipse cx="200" cy="350" rx="150" ry="80" fill="url(#terrain2)" opacity="0.7" />
+                <ellipse cx="500" cy="320" rx="120" ry="60" fill="url(#terrain2)" opacity="0.6" />
+                <ellipse cx="650" cy="360" rx="100" ry="50" fill="url(#terrain3)" opacity="0.5" />
+
+                {/* Rivers */}
+                <path d="M 0 300 Q 200 280 400 320 T 800 300" stroke="#3b82f6" strokeWidth="3" fill="none" opacity="0.6" />
+
+                {/* Farm markers */}
+                {filteredListings.slice(0, 10).map((listing: any, index: number) => {
+                  const x = 100 + (index * 60) % 600;
+                  const y = 150 + (index * 40) % 200;
+                  return (
+                    <g key={listing.id}>
+                      {/* Shadow for 3D effect */}
+                      <circle cx={x + 2} cy={y + 2} r="8" fill="#000" opacity="0.3" />
+                      {/* Farm marker */}
+                      <circle
+                        cx={x}
+                        cy={y}
+                        r="6"
+                        fill="#dc2626"
+                        stroke="#fff"
+                        strokeWidth="2"
+                        className="cursor-pointer hover:r-8 transition-all"
+                        onClick={() => handleViewListingDetails(listing.id)}
+                      />
+                      {/* Farm label */}
+                      <text
+                        x={x}
+                        y={y - 15}
+                        textAnchor="middle"
+                        className="text-xs font-medium fill-gray-800 dark:fill-gray-200 pointer-events-none"
+                      >
+                        {listing.crop_type}
+                      </text>
+                    </g>
+                  );
+                })}
+              </svg>
+            </div>
+
+            {/* Map Controls */}
+            <div className="absolute top-4 right-4 flex gap-2">
+              <button className="bg-white dark:bg-gray-700 p-2 rounded shadow hover:shadow-md transition-shadow">
+                <MapPin className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+              </button>
+              <button className="bg-white dark:bg-gray-700 p-2 rounded shadow hover:shadow-md transition-shadow">
+                <RefreshCw className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+              </button>
+            </div>
+
+            {/* Map Legend */}
+            <div className="absolute bottom-4 left-4 bg-white dark:bg-gray-700 p-3 rounded shadow">
+              <div className="text-sm font-medium text-gray-800 dark:text-white mb-2">Legend</div>
+              <div className="space-y-1 text-xs">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-red-600 rounded-full"></div>
+                  <span className="text-gray-600 dark:text-gray-400">Active Farms</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
+                  <span className="text-gray-600 dark:text-gray-400">Water Sources</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-4 text-sm text-gray-600 dark:text-gray-400">
+            Interactive 3D farm visualization showing agricultural lands, water sources, and crop distributions across regions.
+            Click on farm markers to view details.
+          </div>
         </motion.div>
 
         {/* Listings */}
