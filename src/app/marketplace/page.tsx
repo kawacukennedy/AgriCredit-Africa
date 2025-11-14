@@ -1,6 +1,6 @@
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
+// import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
@@ -437,12 +437,7 @@ export default function Marketplace() {
          </motion.div>
 
         {/* 3D Farm Visualization Map */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm mb-8"
-        >
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm mb-8">
           <div className="flex items-center gap-2 mb-6">
             <Map className="w-5 h-5 text-green-600" />
             <h3 className="text-xl font-semibold text-gray-800 dark:text-white">Farm Locations Map</h3>
@@ -488,7 +483,7 @@ export default function Marketplace() {
             Interactive 3D farm visualization showing agricultural lands, water sources, and crop distributions across regions.
             Click on farm markers to view details.
           </div>
-        </motion.div>
+        </div>
 
         {/* Listings */}
         {loading ? (

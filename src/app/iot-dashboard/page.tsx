@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useTranslation } from 'next-i18next';
+import { useTranslation } from 'react-i18next';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
 import { Thermometer, Droplets, Sun, Leaf } from 'lucide-react';
 import { getSensorData, getLatestSensorData, sendSensorData, connectWebSocket, onWebSocketMessage, disconnectWebSocket } from '@/lib/api';
