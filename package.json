@@ -15,8 +15,6 @@
     "lucide-react": "^0.294.0",
     "recharts": "^2.8.0",
     "react-i18next": "^13.5.0",
-    "next-i18next": "^13.3.0",
-    "ethers": "^6.8.1",
     "i18next": "^23.7.6",
     "tailwindcss": "^3.4.0",
     "@tailwindcss/postcss": "^4.0.0-alpha.30"
