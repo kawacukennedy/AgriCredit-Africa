@@ -1,0 +1,53 @@
+
+> agricredit@0.1.0 dev
+> next dev
+
+   ▲ Next.js 14.0.4
+   - Local:        http://localhost:3000
+
+ ⚠ Disabling SWC Minifer will not be an option in the next major version. Please report any issues you may be experiencing to https://github.com/vercel/next.js/issues
+ ✓ Ready in 6.3s
+ ○ Compiling / ...
+ ✓ Compiled / in 16.2s (1607 modules)
+Warning: Each child in a list should have a unique "key" prop.
+
+Check the top-level render call using <div>. See https://reactjs.org/link/warning-keys for more information.
+    at div
+    at Home (webpack-internal:///(ssr)/./src/app/page.tsx:66:92)
+    at StaticGenerationSearchParamsBailoutProvider (webpack-internal:///(ssr)/./node_modules/next/dist/client/components/static-generation-searchparams-bailout-provider.js:15:11)
+    at Lazy
+    at InnerLayoutRouter (webpack-internal:///(ssr)/./node_modules/next/dist/client/components/layout-router.js:239:11)
+    at RedirectErrorBoundary (webpack-internal:///(ssr)/./node_modules/next/dist/client/components/redirect-boundary.js:71:9)
+    at RedirectBoundary (webpack-internal:///(ssr)/./node_modules/next/dist/client/components/redirect-boundary.js:79:11)
+    at NotFoundErrorBoundary (webpack-internal:///(ssr)/./node_modules/next/dist/client/components/not-found-boundary.js:54:9)
+    at NotFoundBoundary (webpack-internal:///(ssr)/./node_modules/next/dist/client/components/not-found-boundary.js:62:11)
+    at LoadingBoundary (webpack-internal:///(ssr)/./node_modules/next/dist/client/components/layout-router.js:313:11)
+    at ErrorBoundary (webpack-internal:///(ssr)/./node_modules/next/dist/client/components/error-boundary.js:128:11)
+    at InnerScrollAndFocusHandler (webpack-internal:///(ssr)/./node_modules/next/dist/client/components/layout-router.js:151:9)
+    at ScrollAndFocusHandler (webpack-internal:///(ssr)/./node_modules/next/dist/client/components/layout-router.js:226:11)
+    at RenderFromTemplateContext (webpack-internal:///(ssr)/./node_modules/next/dist/client/components/render-from-template-context.js:15:44)
+    at Lazy
+    at OuterLayoutRouter (webpack-internal:///(ssr)/./node_modules/next/dist/client/components/layout-router.js:322:11)
+    at Lazy
+    at main
+    at ErrorBoundary (webpack-internal:///(ssr)/./src/components/ErrorBoundary.tsx:243:9)
+    at AccessibilityProvider (webpack-internal:///(ssr)/./src/components/AccessibilityProvider.tsx:13:34)
+    at ThemeProvider (webpack-internal:///(ssr)/./src/components/ThemeProvider.tsx:20:26)
+    at body
+    at html
+    at RootLayout (webpack-internal:///(ssr)/./src/app/layout.tsx:32:23)
+    at Lazy
+    at RedirectErrorBoundary (webpack-internal:///(ssr)/./node_modules/next/dist/client/components/redirect-boundary.js:71:9)
+    at RedirectBoundary (webpack-internal:///(ssr)/./node_modules/next/dist/client/components/redirect-boundary.js:79:11)
+    at ReactDevOverlay (webpack-internal:///(ssr)/./node_modules/next/dist/client/components/react-dev-overlay/internal/ReactDevOverlay.js:66:9)
+    at HotReload (webpack-internal:///(ssr)/./node_modules/next/dist/client/components/react-dev-overlay/hot-reloader-client.js:296:11)
+    at Router (webpack-internal:///(ssr)/./node_modules/next/dist/client/components/app-router.js:155:11)
+    at ErrorBoundaryHandler (webpack-internal:///(ssr)/./node_modules/next/dist/client/components/error-boundary.js:99:9)
+    at ErrorBoundary (webpack-internal:///(ssr)/./node_modules/next/dist/client/components/error-boundary.js:128:11)
+    at AppRouter (webpack-internal:///(ssr)/./node_modules/next/dist/client/components/app-router.js:421:13)
+    at Lazy
+    at Lazy
+    at /Volumes/RCA/agricredit/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:35:381577
+    at /Volumes/RCA/agricredit/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:35:381577
+    at ServerInsertedHTMLProvider (/Volumes/RCA/agricredit/node_modules/next/dist/compiled/next-server/app-page.runtime.dev.js:39:17605)
+[?25h
