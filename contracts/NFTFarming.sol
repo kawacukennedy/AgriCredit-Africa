@@ -5,7 +5,58 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./IdentityRegistry.sol";
+
+// Fractional ownership token for farm NFTs
+contract FarmShareToken is IERC20 {
+    using SafeERC20 for IERC20;
+
+    string public name;
+    string public symbol;
+    uint8 public decimals = 18;
+    uint256 public totalSupply;
+    mapping(address => uint256) public balanceOf;
+    mapping(address => mapping(address => uint256)) public allowance;
+
+    address public farmNFT;
+    uint256 public nftId;
+
+    constructor(string memory _name, string memory _symbol, address _farmNFT, uint256 _nftId) {
+        name = _name;
+        symbol = _symbol;
+        farmNFT = _farmNFT;
+        nftId = _nftId;
+    }
+
+    function transfer(address to, uint256 amount) external returns (bool) {
+        require(balanceOf[msg.sender] >= amount, "Insufficient balance");
+        balanceOf[msg.sender] -= amount;
+        balanceOf[to] += amount;
+        emit Transfer(msg.sender, to, amount);
+        return true;
+    }
+
+    function approve(address spender, uint256 amount) external returns (bool) {
+        allowance[msg.sender][spender] = amount;
+        emit Approval(msg.sender, spender, amount);
+        return true;
+    }
+
+    function transferFrom(address from, address to, uint256 amount) external returns (bool) {
+        require(balanceOf[from] >= amount, "Insufficient balance");
+        require(allowance[from][msg.sender] >= amount, "Insufficient allowance");
+        balanceOf[from] -= amount;
+        balanceOf[to] += amount;
+        allowance[from][msg.sender] -= amount;
+        emit Transfer(from, to, amount);
+        return true;
+    }
+
+    event Transfer(address indexed from, address indexed to, uint256 value);
+    event Approval(address indexed owner, address indexed spender, uint256 value);
+}
 
 contract NFTFarming is ERC721, Ownable, ReentrancyGuard {
     using Counters for Counters.Counter;
@@ -42,7 +93,22 @@ contract NFTFarming is ERC721, Ownable, ReentrancyGuard {
     mapping(uint256 => SupplyChainEvent[]) public supplyChainHistory;
     mapping(uint256 => uint256) public nftBatchCount;
 
+    // Fractional ownership
+    mapping(uint256 => FarmShareToken) public fractionalTokens;
+    mapping(uint256 => bool) public isFractionalized;
+    mapping(uint256 => uint256) public fractionalSupply; // Total fractional shares
+
+    // Staking and rewards
+    mapping(uint256 => mapping(address => uint256)) public nftStakes; // NFT ID => staker => amount
+    mapping(uint256 => uint256) public totalNftStakes;
+    mapping(address => uint256[]) public stakerNFTs;
+    mapping(address => uint256) public stakingRewards;
+
+    uint256 public stakingRewardRate = 500; // 5% APY in basis points
+    uint256 public lastRewardUpdate;
+
     IdentityRegistry public identityRegistry;
+    IERC20 public rewardToken;
 
     // Events
     event FarmNFTMinted(uint256 indexed tokenId, address indexed farmer, string farmName);
@@ -52,8 +118,10 @@ contract NFTFarming is ERC721, Ownable, ReentrancyGuard {
     event QualityScoreUpdated(uint256 indexed tokenId, uint256 score);
     event BatchAssociated(uint256 indexed tokenId, uint256 batchId);
 
-    constructor(address _identityRegistry) ERC721("AgriCredit Farm NFT", "FARM") Ownable(msg.sender) {
+    constructor(address _identityRegistry, address _rewardToken) ERC721("AgriCredit Farm NFT", "FARM") Ownable(msg.sender) {
         identityRegistry = IdentityRegistry(_identityRegistry);
+        rewardToken = IERC20(_rewardToken);
+        lastRewardUpdate = block.timestamp;
     }
 
     /**
@@ -258,4 +326,116 @@ contract NFTFarming is ERC721, Ownable, ReentrancyGuard {
     function totalSupply() external view returns (uint256) {
         return _tokenIdCounter.current();
     }
+
+    // ============ FRACTIONAL OWNERSHIP FUNCTIONS ============
+
+    function fractionalizeNFT(uint256 tokenId, uint256 totalShares, string memory shareName, string memory shareSymbol) external {
+        require(ownerOf(tokenId) == msg.sender, "Not the owner");
+        require(!isFractionalized[tokenId], "Already fractionalized");
+        require(totalShares > 0, "Total shares must be > 0");
+
+        // Create fractional token contract
+        FarmShareToken shareToken = new FarmShareToken(shareName, shareSymbol, address(this), tokenId);
+        fractionalTokens[tokenId] = shareToken;
+        fractionalSupply[tokenId] = totalShares;
+        isFractionalized[tokenId] = true;
+
+        // Mint all shares to the owner
+        shareToken.balanceOf[msg.sender] = totalShares;
+        shareToken.totalSupply = totalShares;
+
+        emit NFTFractionalized(tokenId, address(shareToken), totalShares);
+    }
+
+    function getFractionalToken(uint256 tokenId) external view returns (address) {
+        require(isFractionalized[tokenId], "NFT not fractionalized");
+        return address(fractionalTokens[tokenId]);
+    }
+
+    // ============ STAKING AND REWARDS FUNCTIONS ============
+
+    function stakeNFT(uint256 tokenId) external nonReentrant {
+        require(ownerOf(tokenId) == msg.sender, "Not the owner");
+        require(farmNFTs[tokenId].isActive, "Farm NFT not active");
+        require(nftStakes[tokenId][msg.sender] == 0, "Already staked");
+
+        nftStakes[tokenId][msg.sender] = 1; // Staked
+        totalNftStakes[tokenId]++;
+        stakerNFTs[msg.sender].push(tokenId);
+
+        _updateStakingRewards(msg.sender);
+
+        emit NFTStaked(tokenId, msg.sender);
+    }
+
+    function unstakeNFT(uint256 tokenId) external nonReentrant {
+        require(nftStakes[tokenId][msg.sender] > 0, "Not staked");
+
+        nftStakes[tokenId][msg.sender] = 0;
+        totalNftStakes[tokenId]--;
+
+        // Remove from staker's list
+        uint256[] storage stakerTokens = stakerNFTs[msg.sender];
+        for (uint256 i = 0; i < stakerTokens.length; i++) {
+            if (stakerTokens[i] == tokenId) {
+                stakerTokens[i] = stakerTokens[stakerTokens.length - 1];
+                stakerTokens.pop();
+                break;
+            }
+        }
+
+        _updateStakingRewards(msg.sender);
+
+        emit NFTUnstaked(tokenId, msg.sender);
+    }
+
+    function claimStakingRewards() external nonReentrant {
+        _updateStakingRewards(msg.sender);
+        uint256 rewards = stakingRewards[msg.sender];
+        require(rewards > 0, "No rewards to claim");
+
+        stakingRewards[msg.sender] = 0;
+        require(rewardToken.transfer(msg.sender, rewards), "Reward transfer failed");
+
+        emit RewardsClaimed(msg.sender, rewards);
+    }
+
+    function _updateStakingRewards(address staker) internal {
+        uint256 timeElapsed = block.timestamp - lastRewardUpdate;
+        if (timeElapsed > 0) {
+            uint256[] memory stakedTokens = stakerNFTs[staker];
+            uint256 totalStakedByUser = stakedTokens.length;
+
+            if (totalStakedByUser > 0) {
+                // Calculate rewards based on number of staked NFTs
+                uint256 rewards = (totalStakedByUser * stakingRewardRate * timeElapsed) / (365 days * 10000);
+                stakingRewards[staker] += rewards;
+            }
+        }
+        lastRewardUpdate = block.timestamp;
+    }
+
+    function getStakingInfo(address staker) external view returns (uint256 stakedCount, uint256 pendingRewards) {
+        uint256[] memory stakedTokens = stakerNFTs[staker];
+        stakedCount = stakedTokens.length;
+
+        // Calculate pending rewards
+        uint256 timeElapsed = block.timestamp - lastRewardUpdate;
+        if (timeElapsed > 0 && stakedCount > 0) {
+            pendingRewards = stakingRewards[staker] + (stakedCount * stakingRewardRate * timeElapsed) / (365 days * 10000);
+        } else {
+            pendingRewards = stakingRewards[staker];
+        }
+
+        return (stakedCount, pendingRewards);
+    }
+
+    // ============ ADDITIONAL EVENTS ============
+
+    event NFTFractionalized(uint256 indexed tokenId, address indexed shareToken, uint256 totalShares);
+    event NFTStaked(uint256 indexed tokenId, address indexed staker);
+    event NFTUnstaked(uint256 indexed tokenId, address indexed staker);
+    event RewardsClaimed(address indexed staker, uint256 amount);
+    event QualityScoreUpdated(uint256 indexed tokenId, uint256 score);
+    event BatchAssociated(uint256 indexed tokenId, uint256 batchId);
 }

@@ -6,8 +6,10 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
+import "@openzeppelin/contracts/metatx/ERC2771Context.sol";
+import "@openzeppelin/contracts/utils/Context.sol";
 
-contract GovernanceDAO is Ownable, ReentrancyGuard {
+contract GovernanceDAO is Ownable, ReentrancyGuard, ERC2771Context {
     using ECDSA for bytes32;
 
     enum ProposalType {
@@ -88,6 +90,29 @@ contract GovernanceDAO is Ownable, ReentrancyGuard {
     mapping(address => address) public delegates;
     mapping(address => uint256) public nonces;
 
+    // Delegation chains
+    struct DelegationNode {
+        address delegate;
+        uint256 weight; // Voting weight allocated to this delegate
+        uint256 depth; // Depth in delegation chain
+        bool active;
+    }
+
+    mapping(address => DelegationNode[]) public delegationChains;
+    mapping(address => mapping(address => uint256)) public delegationWeights; // delegator => delegate => weight
+
+    // Gasless voting
+    struct GaslessVote {
+        uint256 proposalId;
+        bool support;
+        uint256 weight;
+        uint256 nonce;
+        uint256 deadline;
+        bytes signature;
+    }
+
+    mapping(bytes32 => bool) public executedGaslessVotes;
+
     // Treasury
     address public treasury;
     uint256 public treasuryBalance;
@@ -112,7 +137,11 @@ contract GovernanceDAO is Ownable, ReentrancyGuard {
     event TreasuryTransfer(address indexed to, uint256 amount);
     event EmergencyDeclared(uint256 indexed proposalId);
 
-    constructor(address _governanceToken, address _treasury) Ownable(msg.sender) {
+    constructor(
+        address _governanceToken,
+        address _treasury,
+        address trustedForwarder
+    ) Ownable(msg.sender) ERC2771Context(trustedForwarder) {
         governanceToken = IERC20(_governanceToken);
         treasury = _treasury;
 
@@ -238,6 +267,59 @@ contract GovernanceDAO is Ownable, ReentrancyGuard {
         emit VoteCast(_proposalId, msg.sender, false, weight, block.timestamp);
     }
 
+    // Gasless voting functions
+    function castGaslessVote(GaslessVote memory voteData) external {
+        require(block.timestamp <= voteData.deadline, "Vote deadline passed");
+
+        // Create vote hash
+        bytes32 voteHash = keccak256(abi.encode(
+            voteData.proposalId,
+            voteData.support,
+            voteData.weight,
+            voteData.nonce,
+            voteData.deadline
+        ));
+
+        require(!executedGaslessVotes[voteHash], "Vote already executed");
+
+        // Verify signature
+        bytes32 messageHash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", voteHash));
+        address signer = ECDSA.recover(messageHash, voteData.signature);
+        require(signer != address(0), "Invalid signature");
+
+        // Verify voting power
+        require(voteData.weight <= getVotes(signer), "Insufficient voting power");
+
+        // Mark as executed
+        executedGaslessVotes[voteHash] = true;
+
+        // Cast the vote
+        _castVote(voteData.proposalId, signer, voteData.support, voteData.weight);
+
+        emit GaslessVoteCast(voteHash, signer, voteData.proposalId, voteData.support, voteData.weight);
+    }
+
+    function _castVote(uint256 _proposalId, address voter, bool support, uint256 weight) internal {
+        Proposal storage proposal = proposals[_proposalId];
+        require(proposal.status == ProposalStatus.ACTIVE, "Proposal not active");
+        require(!proposal.votes[voter].hasVoted, "Already voted");
+
+        proposal.votes[voter] = Vote({
+            hasVoted: true,
+            support: support,
+            weight: weight,
+            timestamp: block.timestamp
+        });
+
+        if (support) {
+            proposal.forVotes += weight;
+        } else {
+            proposal.againstVotes += weight;
+        }
+
+        emit VoteCast(_proposalId, voter, support, weight, block.timestamp);
+    }
+
     function executeProposal(uint256 _proposalId) external proposalExists(_proposalId) nonReentrant {
         Proposal storage proposal = proposals[_proposalId];
         require(proposal.status == ProposalStatus.ACTIVE, "Proposal not active");
@@ -305,11 +387,99 @@ contract GovernanceDAO is Ownable, ReentrancyGuard {
         emit DelegateChanged(msg.sender, currentDelegate, delegatee);
     }
 
+    // Enhanced delegation with chains and weights
+    function delegateWithWeight(address delegatee, uint256 weight) external {
+        require(delegatee != address(0), "Cannot delegate to zero address");
+        require(delegatee != msg.sender, "Cannot delegate to self");
+        require(weight > 0 && weight <= 100, "Weight must be 1-100");
+
+        // Check if delegatee is already in chain
+        DelegationNode[] storage chain = delegationChains[msg.sender];
+        bool found = false;
+
+        for (uint256 i = 0; i < chain.length; i++) {
+            if (chain[i].delegate == delegatee) {
+                chain[i].weight = weight;
+                chain[i].active = true;
+                found = true;
+                break;
+            }
+        }
+
+        if (!found) {
+            // Add new delegation
+            uint256 depth = _calculateDelegationDepth(delegatee);
+            require(depth < 5, "Delegation chain too deep"); // Max 5 levels
+
+            chain.push(DelegationNode({
+                delegate: delegatee,
+                weight: weight,
+                depth: depth,
+                active: true
+            }));
+        }
+
+        delegationWeights[msg.sender][delegatee] = weight;
+
+        emit WeightedDelegation(msg.sender, delegatee, weight);
+    }
+
+    function removeDelegation(address delegatee) external {
+        DelegationNode[] storage chain = delegationChains[msg.sender];
+
+        for (uint256 i = 0; i < chain.length; i++) {
+            if (chain[i].delegate == delegatee) {
+                chain[i].active = false;
+                delegationWeights[msg.sender][delegatee] = 0;
+                emit DelegationRemoved(msg.sender, delegatee);
+                break;
+            }
+        }
+    }
+
+    function _calculateDelegationDepth(address delegatee) internal view returns (uint256) {
+        address current = delegatee;
+        uint256 depth = 0;
+
+        while (current != address(0) && depth < 10) { // Prevent infinite loops
+            current = delegates[current];
+            if (current == msg.sender) {
+                revert("Circular delegation detected");
+            }
+            depth++;
+        }
+
+        return depth;
+    }
+
     function getVotes(address account) public view returns (uint256) {
         address delegate = delegates[account];
         uint256 balance = delegate == address(0) ? governanceToken.balanceOf(account) : governanceToken.balanceOf(delegate);
-        // Quadratic voting: voting power = sqrt(token balance)
-        return Math.sqrt(balance);
+
+        // Enhanced quadratic voting with delegation chains
+        uint256 baseVotes = Math.sqrt(balance);
+
+        // Add votes from delegation chains
+        uint256 chainVotes = _calculateDelegationChainVotes(account);
+
+        return baseVotes + chainVotes;
+    }
+
+    function _calculateDelegationChainVotes(address account) internal view returns (uint256) {
+        DelegationNode[] memory chain = delegationChains[account];
+        uint256 totalChainVotes = 0;
+
+        for (uint256 i = 0; i < chain.length; i++) {
+            if (chain[i].active) {
+                // Calculate votes based on depth and weight
+                uint256 depthMultiplier = 100 - (chain[i].depth * 10); // Reduce weight by 10% per level
+                if (depthMultiplier > 0) {
+                    totalChainVotes += (chain[i].weight * depthMultiplier) / 100;
+                }
+            }
+        }
+
+        return totalChainVotes;
     }
 
     // View functions
@@ -412,4 +582,20 @@ contract GovernanceDAO is Ownable, ReentrancyGuard {
     receive() external payable {
         treasuryBalance += msg.value;
     }
+
+    // ============ ERC2771 OVERRIDE FUNCTIONS ============
+
+    function _msgSender() internal view override(Context, ERC2771Context) returns (address) {
+        return ERC2771Context._msgSender();
+    }
+
+    function _msgData() internal view override(Context, ERC2771Context) returns (bytes calldata) {
+        return ERC2771Context._msgData();
+    }
+
+    // ============ ADDITIONAL EVENTS ============
+
+    event WeightedDelegation(address indexed delegator, address indexed delegatee, uint256 weight);
+    event DelegationRemoved(address indexed delegator, address indexed delegatee);
+    event GaslessVoteCast(bytes32 indexed voteHash, address indexed voter, uint256 indexed proposalId, bool support, uint256 weight);
 }

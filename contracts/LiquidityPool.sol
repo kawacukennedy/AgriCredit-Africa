@@ -136,6 +136,16 @@ contract LiquidityPool is Ownable, ReentrancyGuard {
     }
 
     /**
+     * @dev Get pool utilization rate in basis points
+     * @param token Token address
+     */
+    function getUtilizationRate(address token) external view returns (uint256) {
+        Pool memory pool = pools[token];
+        if (pool.totalLiquidity == 0) return 0;
+        return (pool.totalBorrowed * 10000) / pool.totalLiquidity;
+    }
+
+    /**
      * @dev Get pool information
      * @param token Token address
      */

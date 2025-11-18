@@ -5,11 +5,28 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/security/Pausable.sol";
+import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import "@openzeppelin/contracts/metatx/ERC2771Context.sol";
+import "@openzeppelin/contracts/utils/Context.sol";
+import "@openzeppelin/contracts/utils/math/Math.sol";
 import "./IdentityRegistry.sol";
 import "./LiquidityPool.sol";
 import "./YieldToken.sol";
 
-contract LoanManager is Ownable, ReentrancyGuard {
+// Interfaces for external contracts
+interface IPriceOracle {
+    function getPrice(address token) external view returns (uint256);
+    function getCollateralRatio(address collateral, address debt) external view returns (uint256);
+}
+
+interface IInsurancePool {
+    function provideInsurance(uint256 loanId, uint256 coverageAmount) external;
+    function claimInsurance(uint256 loanId) external returns (uint256);
+    function getInsuranceCost(uint256 coverageAmount, uint256 duration) external view returns (uint256);
+}
+
+contract LoanManager is Ownable, ReentrancyGuard, Pausable, ERC2771Context {
     using SafeERC20 for IERC20;
 
     struct Loan {
@@ -37,17 +54,45 @@ contract LoanManager is Ownable, ReentrancyGuard {
         uint256 collateralRatio; // in basis points
     }
 
+    struct Insurance {
+        uint256 loanId;
+        uint256 coverageAmount;
+        uint256 premium;
+        uint256 coveragePeriod;
+        bool isActive;
+        uint256 startTime;
+    }
+
+    struct DynamicRateParams {
+        uint256 baseRate;
+        uint256 utilizationMultiplier;
+        uint256 creditScoreAdjustment;
+        uint256 timeBasedDecay; // Rate decreases over time
+        uint256 lastUpdateTime;
+    }
+
     IdentityRegistry public identityRegistry;
     LiquidityPool public liquidityPool;
     YieldToken public yieldToken;
     IERC20 public stableToken;
+    IPriceOracle public priceOracle;
+    IInsurancePool public insurancePool;
 
     mapping(uint256 => Loan) public loans;
     mapping(address => uint256[]) public userLoans;
     mapping(uint256 => LoanTerms) public loanTerms; // Different terms for different credit scores
+    mapping(uint256 => Insurance) public loanInsurance;
+    mapping(uint256 => DynamicRateParams) public loanRateParams;
+
     uint256 public nextLoanId = 1;
     uint256 public totalLoansFunded;
     uint256 public totalRepaid;
+    uint256 public totalInsuredAmount;
+    uint256 public insuranceUtilizationRate; // in basis points
+
+    // Gas optimization
+    uint256 public constant META_TX_GAS_LIMIT = 100000;
+    mapping(bytes32 => bool) public executedMetaTx;
 
     // Constants
     uint256 constant MAX_INTEREST_RATE = 2000; // 20%
@@ -64,12 +109,17 @@ contract LoanManager is Ownable, ReentrancyGuard {
         address _identityRegistry,
         address _liquidityPool,
         address _yieldToken,
-        address _stableToken
-    ) Ownable(msg.sender) {
+        address _stableToken,
+        address _priceOracle,
+        address _insurancePool,
+        address trustedForwarder
+    ) Ownable(msg.sender) ERC2771Context(trustedForwarder) {
         identityRegistry = IdentityRegistry(_identityRegistry);
         liquidityPool = LiquidityPool(_liquidityPool);
         yieldToken = YieldToken(_yieldToken);
         stableToken = IERC20(_stableToken);
+        priceOracle = IPriceOracle(_priceOracle);
+        insurancePool = IInsurancePool(_insurancePool);
 
         // Initialize default loan terms
         _setDefaultLoanTerms();
@@ -290,5 +340,223 @@ contract LoanManager is Ownable, ReentrancyGuard {
         }
 
         return activeLoans;
+    }
+
+    // ============ INSURANCE FUNCTIONS ============
+
+    function purchaseInsurance(
+        uint256 _loanId,
+        uint256 _coverageAmount,
+        uint256 _coveragePeriod
+    ) external payable nonReentrant whenNotPaused {
+        Loan storage loan = loans[_loanId];
+        require(loan.isActive && !loan.isDefaulted, "Loan not eligible for insurance");
+        require(msg.sender == loan.borrower, "Only borrower can purchase insurance");
+        require(loanInsurance[_loanId].isActive == false, "Insurance already purchased");
+
+        uint256 insuranceCost = insurancePool.getInsuranceCost(_coverageAmount, _coveragePeriod);
+        require(msg.value >= insuranceCost, "Insufficient payment for insurance");
+
+        // Refund excess payment
+        if (msg.value > insuranceCost) {
+            payable(msg.sender).transfer(msg.value - insuranceCost);
+        }
+
+        loanInsurance[_loanId] = Insurance({
+            loanId: _loanId,
+            coverageAmount: _coverageAmount,
+            premium: insuranceCost,
+            coveragePeriod: _coveragePeriod,
+            isActive: true,
+            startTime: block.timestamp
+        });
+
+        totalInsuredAmount += _coverageAmount;
+
+        // Provide insurance through insurance pool
+        insurancePool.provideInsurance(_loanId, _coverageAmount);
+
+        emit InsurancePurchased(_loanId, _coverageAmount, insuranceCost);
+    }
+
+    function claimInsurance(uint256 _loanId) external nonReentrant {
+        Loan storage loan = loans[_loanId];
+        Insurance storage insurance = loanInsurance[_loanId];
+
+        require(insurance.isActive, "No active insurance");
+        require(loan.isDefaulted, "Loan not defaulted");
+        require(block.timestamp <= insurance.startTime + insurance.coveragePeriod, "Insurance expired");
+
+        uint256 claimAmount = insurancePool.claimInsurance(_loanId);
+        require(claimAmount > 0, "No claimable amount");
+
+        insurance.isActive = false;
+        totalInsuredAmount -= insurance.coverageAmount;
+
+        // Transfer claim to borrower
+        payable(loan.borrower).transfer(claimAmount);
+
+        emit InsuranceClaimed(_loanId, claimAmount);
+    }
+
+    // ============ DYNAMIC INTEREST RATE FUNCTIONS ============
+
+    function updateDynamicRates(uint256 _loanId) external {
+        Loan storage loan = loans[_loanId];
+        require(loan.isActive, "Loan not active");
+
+        DynamicRateParams storage params = loanRateParams[_loanId];
+        if (params.lastUpdateTime == 0) {
+            // Initialize dynamic params
+            params.baseRate = loan.interestRate;
+            params.utilizationMultiplier = 100; // 1x
+            params.creditScoreAdjustment = 0;
+            params.timeBasedDecay = 1; // 0.01% per day
+            params.lastUpdateTime = block.timestamp;
+            return;
+        }
+
+        uint256 timeElapsed = block.timestamp - params.lastUpdateTime;
+        if (timeElapsed < 1 days) return; // Update once per day
+
+        // Update utilization multiplier based on pool utilization
+        uint256 poolUtilization = liquidityPool.getUtilizationRate();
+        params.utilizationMultiplier = 100 + (poolUtilization * 50 / 10000); // 0.5% per 10% utilization
+
+        // Update credit score adjustment
+        uint256 currentScore = loan.creditScore;
+        if (currentScore > 750) {
+            params.creditScoreAdjustment = (currentScore - 750) * 2; // Reduce rate for high scores
+        }
+
+        // Apply time-based decay
+        params.timeBasedDecay = timeElapsed * 1 / 1 days; // 0.01% per day
+
+        params.lastUpdateTime = block.timestamp;
+
+        // Calculate new rate
+        uint256 newRate = params.baseRate +
+                          (params.baseRate * params.utilizationMultiplier / 100) -
+                          params.creditScoreAdjustment -
+                          params.timeBasedDecay;
+
+        newRate = Math.max(newRate, 100); // Minimum 1%
+        newRate = Math.min(newRate, MAX_INTEREST_RATE);
+
+        loan.interestRate = newRate;
+
+        emit RateUpdated(_loanId, newRate);
+    }
+
+    function getDynamicRate(uint256 _loanId) external view returns (uint256) {
+        Loan memory loan = loans[_loanId];
+        DynamicRateParams memory params = loanRateParams[_loanId];
+
+        if (params.lastUpdateTime == 0) return loan.interestRate;
+
+        uint256 timeElapsed = block.timestamp - params.lastUpdateTime;
+        uint256 utilizationMultiplier = 100 + (liquidityPool.getUtilizationRate() * 50 / 10000);
+
+        uint256 creditAdjustment = 0;
+        if (loan.creditScore > 750) {
+            creditAdjustment = (loan.creditScore - 750) * 2;
+        }
+
+        uint256 timeDecay = timeElapsed * 1 / 1 days;
+
+        uint256 newRate = params.baseRate +
+                          (params.baseRate * utilizationMultiplier / 100) -
+                          creditAdjustment -
+                          timeDecay;
+
+        return Math.max(Math.min(newRate, MAX_INTEREST_RATE), 100);
+    }
+
+    // ============ ORACLE INTEGRATION ============
+
+    function getCollateralValue(address _token, uint256 _amount) public view returns (uint256) {
+        if (address(priceOracle) == address(0)) {
+            return _amount; // Fallback to 1:1
+        }
+        uint256 price = priceOracle.getPrice(_token);
+        return (_amount * price) / 1e18; // Assuming 18 decimals
+    }
+
+    function getRequiredCollateral(uint256 _loanId) external view returns (uint256) {
+        Loan memory loan = loans[_loanId];
+        uint256 loanValue = loan.amount; // Assuming stable token
+
+        if (address(priceOracle) == address(0)) {
+            return (loanValue * loanTerms[_getCreditTier(loan.creditScore)].collateralRatio) / 10000;
+        }
+
+        uint256 collateralRatio = priceOracle.getCollateralRatio(loan.collateralToken, address(stableToken));
+        return (loanValue * collateralRatio) / 10000;
+    }
+
+    // ============ GAS OPTIMIZATION & META-TRANSACTIONS ============
+
+    function executeMetaTx(
+        address user,
+        bytes memory functionSignature,
+        bytes32 sigR,
+        bytes32 sigS,
+        uint8 sigV,
+        uint256 nonce,
+        uint256 gasPrice,
+        uint256 gasLimit
+    ) external whenNotPaused returns (bytes memory) {
+        require(gasLimit <= META_TX_GAS_LIMIT, "Gas limit too high");
+
+        bytes32 txHash = keccak256(abi.encode(user, functionSignature, nonce, gasPrice, gasLimit));
+        require(!executedMetaTx[txHash], "Meta tx already executed");
+
+        // Verify signature
+        bytes32 messageHash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", txHash));
+        address signer = ECDSA.recover(messageHash, sigV, sigR, sigS);
+        require(signer == user, "Invalid signature");
+
+        // Mark as executed
+        executedMetaTx[txHash] = true;
+
+        // Execute the function
+        (bool success, bytes memory returnData) = address(this).call{gas: gasLimit}(functionSignature);
+        require(success, "Meta tx execution failed");
+
+        emit MetaTxExecuted(txHash, user, gasLimit);
+
+        return returnData;
+    }
+
+    function getMetaTxNonce(address user) external view returns (uint256) {
+        // Simple nonce - in production, use a mapping
+        return uint256(keccak256(abi.encode(user, block.timestamp))) % 2**128;
+    }
+
+    // ============ PAUSABLE FUNCTIONS ============
+
+    function pause() external onlyOwner {
+        _pause();
+    }
+
+    function unpause() external onlyOwner {
+        _unpause();
+    }
+
+    // ============ ADDITIONAL EVENTS ============
+
+    event InsurancePurchased(uint256 indexed loanId, uint256 coverageAmount, uint256 premium);
+    event InsuranceClaimed(uint256 indexed loanId, uint256 claimAmount);
+    event RateUpdated(uint256 indexed loanId, uint256 newRate);
+    event MetaTxExecuted(bytes32 indexed txHash, address indexed user, uint256 gasUsed);
+
+    // ============ OVERRIDE FUNCTIONS ============
+
+    function _msgSender() internal view override(Context, ERC2771Context) returns (address) {
+        return ERC2771Context._msgSender();
+    }
+
+    function _msgData() internal view override(Context, ERC2771Context) returns (bytes calldata) {
+        return ERC2771Context._msgData();
     }
 }

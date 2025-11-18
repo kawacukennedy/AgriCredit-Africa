@@ -5,9 +5,21 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/security/Pausable.sol";
+import "@openzeppelin/contracts/utils/math/Math.sol";
 import "./IdentityRegistry.sol";
 
-contract MarketplaceEscrow is Ownable, ReentrancyGuard {
+// Interfaces for external services
+interface IDeliveryOracle {
+    function verifyDelivery(uint256 escrowId, bytes memory proof) external returns (bool);
+    function getDeliveryStatus(uint256 escrowId) external view returns (uint8);
+}
+
+interface IQualityOracle {
+    function assessQuality(uint256 listingId, bytes memory data) external returns (uint256);
+}
+
+contract MarketplaceEscrow is Ownable, ReentrancyGuard, Pausable {
     using SafeERC20 for IERC20;
 
     enum EscrowStatus { Created, Funded, Shipped, Delivered, Completed, Disputed, Cancelled }
@@ -45,11 +57,43 @@ contract MarketplaceEscrow is Ownable, ReentrancyGuard {
     }
 
     IdentityRegistry public identityRegistry;
+    IDeliveryOracle public deliveryOracle;
+    IQualityOracle public qualityOracle;
+
     mapping(uint256 => Escrow) public escrows;
     mapping(uint256 => Listing) public listings;
     uint256 public nextEscrowId = 1;
     uint256 public nextListingId = 1;
+
+    // Batch operations
+    struct BatchListing {
+        string cropType;
+        uint256 quantity;
+        uint256 pricePerUnit;
+        string location;
+        uint256 harvestDate;
+        uint256 expiryDate;
+        string geoData;
+    }
+
+    // Enhanced dispute resolution
+    struct Dispute {
+        uint256 escrowId;
+        address initiator;
+        string reason;
+        uint256 evidenceCount;
+        mapping(uint256 => string) evidence; // IPFS hashes
+        uint256 resolutionDeadline;
+        bool resolved;
+        address winner;
+    }
+
+    mapping(uint256 => Dispute) public disputes;
+    uint256 public nextDisputeId = 1;
+
+    // Platform fees
     uint256 public platformFee = 25; // 0.25% in basis points
+    address public feeCollector;
     uint256 public disputePeriod = 7 days;
 
     event ListingCreated(uint256 indexed listingId, address indexed seller, string cropType, uint256 quantity);
@@ -61,9 +105,20 @@ contract MarketplaceEscrow is Ownable, ReentrancyGuard {
     event EscrowCompleted(uint256 indexed escrowId);
     event EscrowDisputed(uint256 indexed escrowId);
     event EscrowCancelled(uint256 indexed escrowId);
+    event FormalDisputeInitiated(uint256 indexed disputeId, uint256 indexed escrowId, address indexed initiator, string reason);
+    event DisputeEvidenceSubmitted(uint256 indexed disputeId, address indexed submitter, uint256 evidenceIndex, string evidence);
+    event FormalDisputeResolved(uint256 indexed disputeId, address indexed winner, string resolutionNotes);
 
-    constructor(address _identityRegistry) Ownable(msg.sender) {
+    constructor(
+        address _identityRegistry,
+        address _deliveryOracle,
+        address _qualityOracle,
+        address _feeCollector
+    ) Ownable(msg.sender) {
         identityRegistry = IdentityRegistry(_identityRegistry);
+        deliveryOracle = IDeliveryOracle(_deliveryOracle);
+        qualityOracle = IQualityOracle(_qualityOracle);
+        feeCollector = _feeCollector;
     }
 
     // Listing Management
@@ -109,6 +164,39 @@ contract MarketplaceEscrow is Ownable, ReentrancyGuard {
     function deactivateListing(uint256 _listingId) external {
         require(listings[_listingId].seller == msg.sender || msg.sender == owner(), "Not authorized");
         listings[_listingId].active = false;
+    }
+
+    // Batch operations for efficiency
+    function createBatchListings(BatchListing[] memory _listings) external returns (uint256[] memory) {
+        require(identityRegistry.isIdentityVerified(msg.sender), "Seller not verified");
+        uint256[] memory listingIds = new uint256[](_listings.length);
+
+        for (uint256 i = 0; i < _listings.length; i++) {
+            BatchListing memory listing = _listings[i];
+            require(listing.quantity > 0, "Quantity must be > 0");
+            require(listing.pricePerUnit > 0, "Price must be > 0");
+            require(listing.harvestDate < listing.expiryDate, "Invalid dates");
+
+            uint256 listingId = nextListingId++;
+            listings[listingId] = Listing({
+                id: listingId,
+                seller: msg.sender,
+                cropType: listing.cropType,
+                quantity: listing.quantity,
+                pricePerUnit: listing.pricePerUnit,
+                location: listing.location,
+                harvestDate: listing.harvestDate,
+                expiryDate: listing.expiryDate,
+                active: true,
+                aiRecommendationScore: 0,
+                geoData: listing.geoData
+            });
+
+            listingIds[i] = listingId;
+            emit ListingCreated(listingId, msg.sender, listing.cropType, listing.quantity);
+        }
+
+        return listingIds;
     }
 
     function createEscrow(
@@ -241,6 +329,64 @@ contract MarketplaceEscrow is Ownable, ReentrancyGuard {
         emit EscrowCompleted(_escrowId);
     }
 
+    // Enhanced dispute resolution with evidence submission
+    function initiateFormalDispute(
+        uint256 _escrowId,
+        string memory _reason,
+        string memory _initialEvidence
+    ) external returns (uint256) {
+        Escrow storage escrow = escrows[_escrowId];
+        require(escrow.status == EscrowStatus.Delivered, "Can only dispute delivered escrows");
+        require(block.timestamp <= escrow.disputeDeadline, "Dispute period expired");
+        require(msg.sender == escrow.buyer || msg.sender == escrow.seller, "Not authorized");
+
+        escrow.status = EscrowStatus.Disputed;
+
+        uint256 disputeId = nextDisputeId++;
+        Dispute storage dispute = disputes[disputeId];
+        dispute.escrowId = _escrowId;
+        dispute.initiator = msg.sender;
+        dispute.reason = _reason;
+        dispute.evidenceCount = 1;
+        dispute.evidence[0] = _initialEvidence;
+        dispute.resolutionDeadline = block.timestamp + 14 days; // Extended dispute period
+        dispute.resolved = false;
+
+        emit FormalDisputeInitiated(disputeId, _escrowId, msg.sender, _reason);
+        emit EscrowDisputed(_escrowId);
+
+        return disputeId;
+    }
+
+    function submitDisputeEvidence(uint256 _disputeId, string memory _evidence) external {
+        Dispute storage dispute = disputes[_disputeId];
+        require(!dispute.resolved, "Dispute already resolved");
+        require(block.timestamp <= dispute.resolutionDeadline, "Evidence submission period expired");
+
+        Escrow storage escrow = escrows[dispute.escrowId];
+        require(msg.sender == escrow.buyer || msg.sender == escrow.seller, "Not authorized");
+
+        uint256 evidenceIndex = dispute.evidenceCount;
+        dispute.evidence[evidenceIndex] = _evidence;
+        dispute.evidenceCount++;
+
+        emit DisputeEvidenceSubmitted(_disputeId, msg.sender, evidenceIndex, _evidence);
+    }
+
+    function resolveFormalDispute(uint256 _disputeId, bool _refundBuyer, string memory _resolutionNotes) external onlyOwner {
+        Dispute storage dispute = disputes[_disputeId];
+        require(!dispute.resolved, "Dispute already resolved");
+        require(block.timestamp <= dispute.resolutionDeadline, "Resolution deadline passed");
+
+        dispute.resolved = true;
+        dispute.winner = _refundBuyer ? escrows[dispute.escrowId].buyer : escrows[dispute.escrowId].seller;
+
+        // Resolve the escrow
+        resolveDispute(dispute.escrowId, _refundBuyer);
+
+        emit FormalDisputeResolved(_disputeId, dispute.winner, _resolutionNotes);
+    }
+
     function cancelEscrow(uint256 _escrowId) external nonReentrant {
         Escrow storage escrow = escrows[_escrowId];
         require(
@@ -264,6 +410,56 @@ contract MarketplaceEscrow is Ownable, ReentrancyGuard {
 
     function getListing(uint256 _listingId) external view returns (Listing memory) {
         return listings[_listingId];
+    }
+
+    // Oracle integration functions
+    function verifyDeliveryWithOracle(uint256 _escrowId, bytes memory _proof) external {
+        Escrow storage escrow = escrows[_escrowId];
+        require(escrow.status == EscrowStatus.Shipped, "Escrow not shipped");
+        require(msg.sender == escrow.buyer, "Only buyer can verify delivery");
+
+        bool verified = deliveryOracle.verifyDelivery(_escrowId, _proof);
+        require(verified, "Delivery verification failed");
+
+        escrow.status = EscrowStatus.Delivered;
+        escrow.deliveredAt = block.timestamp;
+        escrow.deliveryProof = string(_proof);
+        escrow.buyerConfirmed = true;
+        escrow.disputeDeadline = block.timestamp + disputePeriod;
+
+        emit DeliveryConfirmed(_escrowId, string(_proof));
+    }
+
+    function assessQualityWithOracle(uint256 _listingId, bytes memory _qualityData) external onlyOwner {
+        require(listings[_listingId].id != 0, "Listing not found");
+
+        uint256 qualityScore = qualityOracle.assessQuality(_listingId, _qualityData);
+        listings[_listingId].aiRecommendationScore = qualityScore;
+
+        emit ListingUpdated(_listingId, qualityScore);
+    }
+
+    // Pausable functions
+    function pause() external onlyOwner {
+        _pause();
+    }
+
+    function unpause() external onlyOwner {
+        _unpause();
+    }
+
+    // Admin functions
+    function setPlatformFee(uint256 _fee) external onlyOwner {
+        require(_fee <= 1000, "Fee too high"); // Max 10%
+        platformFee = _fee;
+    }
+
+    function setFeeCollector(address _collector) external onlyOwner {
+        feeCollector = _collector;
+    }
+
+    function setDisputePeriod(uint256 _period) external onlyOwner {
+        disputePeriod = _period;
     }
 
     function getActiveListings(uint256 _offset, uint256 _limit) external view returns (Listing[] memory) {
