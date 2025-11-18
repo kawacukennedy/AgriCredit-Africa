@@ -34,21 +34,23 @@ export function middleware(request: NextRequest) {
     pathname.startsWith('/api/') ||
     pathname.startsWith('/_next/') ||
     pathname.includes('.') ||
-    pathname.startsWith('/favicon.ico')
+    pathname.startsWith('/favicon.ico') ||
+    pathname === '/manifest.json'
   ) {
     return NextResponse.next()
   }
 
-  const pathnameIsMissingLocale = locales.every(
-    (locale) => !pathname.startsWith(`/${locale}/`) && pathname !== `/${locale}`
-  )
+  // Temporarily disable locale redirect to fix middleware error
+  // const pathnameIsMissingLocale = locales.every(
+  //   (locale) => !pathname.startsWith(`/${locale}/`) && pathname !== `/${locale}`
+  // )
 
-  if (pathnameIsMissingLocale) {
-    const locale = getLocale(request)
-    return NextResponse.redirect(
-      new URL(`/${locale}${pathname}`, request.url)
-    )
-  }
+  // if (pathnameIsMissingLocale) {
+  //   const locale = getLocale(request)
+  //   return NextResponse.redirect(
+  //     new URL(`/${locale}${pathname}`, request.url)
+  //   )
+  // }
 
   return NextResponse.next()
 }
