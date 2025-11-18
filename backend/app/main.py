@@ -12,6 +12,7 @@ import time
 import json
 import os
 import shutil
+import numpy as np
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
@@ -56,9 +57,11 @@ from .api.schemas import (
     MarketplaceListing as MarketplaceListingSchema, MarketplaceListingCreate,
     Notification as NotificationSchema, CarbonCredit as CarbonCreditSchema
 )
-from models.credit_scoring_model import CreditScoringModel
-from models.yield_prediction_model import YieldPredictionModel
-from models.climate_model import ClimateAnalysisModel
+from ..models.credit_scoring_model import CreditScoringModel
+from ..models.yield_prediction_model import YieldPredictionModel
+from ..models.climate_model import ClimateAnalysisModel
+from ..models.market_price_model import MarketPricePredictionModel
+from ..models.sentiment_model import SentimentAnalysisModel
 
 # Configure structured logging
 structlog.configure(
@@ -183,6 +186,8 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 credit_model = CreditScoringModel()
 yield_model = YieldPredictionModel()
 climate_model = ClimateAnalysisModel()
+market_price_model = MarketPricePredictionModel()
+sentiment_model = SentimentAnalysisModel()
 
 # Initialize IPFS service
 ipfs_service = IPFSService(api_url=settings.IPFS_API_URL if hasattr(settings, 'IPFS_API_URL') else "http://localhost:5001")
@@ -551,7 +556,7 @@ async def credit_scoring(
             return {"status": "success", "data": cached_result}
 
         # Get prediction
-        result = credit_model.predict(features)
+        result = credit_model.predict(np.array(features))
 
         # Save to database
         db_credit_score = CreditScore(
@@ -693,6 +698,67 @@ async def climate_analysis_endpoint(
 
     except Exception as e:
         logger.error("Climate analysis failed", error=str(e), user_id=current_user.id)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post(
+    "/ai/market-price-prediction",
+    summary="AI Market Price Prediction",
+    description="""Predict agricultural commodity prices using LSTM time series models.
+    Analyzes historical price data and market trends to forecast future prices.""",
+    responses={
+        200: {"description": "Price prediction completed successfully"},
+        500: {"description": "Internal server error during prediction"}
+    }
+)
+async def market_price_prediction(
+    request: dict,  # Simple dict for now
+    current_user: User = Depends(get_current_active_user)
+):
+    """Predict market prices"""
+    try:
+        price_history = request.get('price_history', [])
+        days_ahead = request.get('days_ahead', 7)
+
+        if not price_history:
+            raise HTTPException(status_code=400, detail="Price history required")
+
+        result = market_price_model.predict(price_history, days_ahead)
+
+        logger.info("Market price prediction completed", user_id=current_user.id)
+        return {"status": "success", "data": result}
+
+    except Exception as e:
+        logger.error("Market price prediction failed", error=str(e), user_id=current_user.id)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post(
+    "/ai/sentiment-analysis",
+    summary="AI Sentiment Analysis",
+    description="""Analyze sentiment from news articles and social media for market insights.
+    Uses transformer models to gauge market sentiment and outlook.""",
+    responses={
+        200: {"description": "Sentiment analysis completed successfully"},
+        500: {"description": "Internal server error during analysis"}
+    }
+)
+async def sentiment_analysis(
+    request: dict,  # Simple dict for now
+    current_user: User = Depends(get_current_active_user)
+):
+    """Analyze market sentiment"""
+    try:
+        news_articles = request.get('news_articles', [])
+
+        if not news_articles:
+            raise HTTPException(status_code=400, detail="News articles required")
+
+        result = sentiment_model.analyze_market_news(news_articles)
+
+        logger.info("Sentiment analysis completed", user_id=current_user.id)
+        return {"status": "success", "data": result}
+
+    except Exception as e:
+        logger.error("Sentiment analysis failed", error=str(e), user_id=current_user.id)
         raise HTTPException(status_code=500, detail=str(e))
 
 # Input validation functions
@@ -1241,7 +1307,7 @@ async def register_iot_device(
 async def send_device_command(
     device_id: str,
     command: str,
-    params: Dict[str, Any] = None,
+    params: Optional[Dict[str, Any]] = None,
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
@@ -2452,9 +2518,9 @@ async def get_user_marketplace_escrows(
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post(
-    "/marketplace/escrow/{escrow_id}/confirm-delivery",
+    "/marketplace/escrows/{escrow_id}/confirm-delivery",
     summary="Confirm delivery for escrow",
-    description="Confirm that goods have been delivered in escrow transaction"
+    description="Confirm delivery of goods and release funds from escrow"
 )
 async def confirm_escrow_delivery(
     escrow_id: int,
@@ -2482,9 +2548,7 @@ async def confirm_escrow_delivery(
         try:
             if escrow.blockchain_escrow_id:
                 await blockchain_service.confirm_escrow_delivery(
-                    escrow_id=int(escrow.blockchain_escrow_id),
-                    delivery_proof=delivery_data.get('proof', ''),
-                    quality_score=delivery_data.get('quality_score', 0)
+                    int(escrow.blockchain_escrow_id)
                 )
         except Exception as blockchain_error:
             logger.warning("Blockchain delivery confirmation failed", error=str(blockchain_error))

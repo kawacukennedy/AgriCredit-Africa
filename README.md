@@ -112,18 +112,26 @@ agricredit/
    ```
    Open [http://localhost:3000](http://localhost:3000)
 
-4. **Set up smart contracts** (optional)
+4. **Build for production**
+   ```bash
+   npm run build
+   ```
+
+5. **Set up smart contracts** (optional)
    ```bash
    npx hardhat compile
    npx hardhat test
    ```
 
-5. **Run AI backend** (optional)
+6. **Run AI backend** (optional)
    ```bash
    cd backend
+   python3 -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
    pip install -r requirements.txt
    python main.py
    ```
+   Backend will be available at [http://localhost:8000](http://localhost:8000)
 
 ## 🌟 Key Features
 

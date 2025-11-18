@@ -1,9 +1,53 @@
 import numpy as np
 import os
+from tensorflow.keras.models import Sequential, load_model
+from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, LSTM, SimpleRNN, Input
+from tensorflow.keras.optimizers import Adam
+from sklearn.preprocessing import StandardScaler
+import joblib
 
 class ClimateAnalysisModel:
     def __init__(self):
         self.model_path = os.path.join(os.path.dirname(__file__), 'climate_model.npy')
+        self.cnn_model_path = os.path.join(os.path.dirname(__file__), 'cnn_satellite_model.h5')
+        self.rnn_model_path = os.path.join(os.path.dirname(__file__), 'rnn_crop_rotation_model.h5')
+        self.scaler_path = os.path.join(os.path.dirname(__file__), 'climate_scaler.pkl')
+        self.cnn_model = None
+        self.rnn_model = None
+        self.scaler = StandardScaler()
+
+    def build_cnn_model(self):
+        """Build CNN model for satellite image classification"""
+        self.cnn_model = Sequential([
+            Input(shape=(64, 64, 3)),  # Assuming 64x64 RGB satellite images
+            Conv2D(32, (3, 3), activation='relu'),
+            MaxPooling2D((2, 2)),
+            Conv2D(64, (3, 3), activation='relu'),
+            MaxPooling2D((2, 2)),
+            Conv2D(128, (3, 3), activation='relu'),
+            MaxPooling2D((2, 2)),
+            Flatten(),
+            Dense(128, activation='relu'),
+            Dense(5, activation='softmax')  # 5 classes: forest, agriculture, water, urban, barren
+        ])
+        self.cnn_model.compile(optimizer=Adam(learning_rate=0.001),
+                              loss='categorical_crossentropy',
+                              metrics=['accuracy'])
+        return self.cnn_model
+
+    def build_rnn_model(self):
+        """Build RNN model for crop rotation tracking"""
+        self.rnn_model = Sequential([
+            Input(shape=(10, 5)),  # 10 time steps, 5 features per crop
+            SimpleRNN(64, return_sequences=True),
+            SimpleRNN(32),
+            Dense(16, activation='relu'),
+            Dense(1, activation='linear')  # Predict yield impact
+        ])
+        self.rnn_model.compile(optimizer=Adam(learning_rate=0.001),
+                              loss='mse',
+                              metrics=['mae'])
+        return self.rnn_model
 
     def preprocess_satellite_data(self, satellite_data):
         """Preprocess satellite data for model input"""
@@ -136,6 +180,41 @@ class ClimateAnalysisModel:
         """Load model parameters (placeholder)"""
         # No model to load for rule-based system
         pass
+
+    def analyze_crop_rotation(self, crop_history):
+        """Analyze crop rotation patterns using RNN"""
+        # Placeholder for RNN analysis
+        # crop_history should be sequence of crops over time
+        if self.rnn_model is None:
+            self.build_rnn_model()
+            # In practice, load trained model
+            # self.rnn_model = load_model(self.rnn_model_path)
+
+        # For now, simple rule-based
+        rotation_score = len(set(crop_history)) / len(crop_history)  # Diversity score
+        yield_impact = rotation_score * 0.2  # Positive impact
+
+        return {
+            "rotation_diversity": rotation_score,
+            "yield_impact": yield_impact,
+            "recommendations": ["Rotate crops to improve soil health", "Include legumes in rotation"]
+        }
+
+    def classify_satellite_image(self, image_data):
+        """Classify satellite image using CNN"""
+        if self.cnn_model is None:
+            self.build_cnn_model()
+            # In practice, load trained model
+            # self.cnn_model = load_model(self.cnn_model_path)
+
+        # Placeholder prediction
+        classes = ['forest', 'agriculture', 'water', 'urban', 'barren']
+        prediction = np.random.choice(classes)  # Random for now
+
+        return {
+            "land_cover_class": prediction,
+            "confidence": 0.8
+        }
 
 if __name__ == "__main__":
     # Example usage

@@ -1,15 +1,31 @@
 'use client';
 
-// import { motion } from 'framer-motion';
-import { useState, useEffect, lazy, Suspense } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useWallet } from '@/hooks/useWallet';
-import { ToastContainer, ToastMessage } from '@/components/Toast';
-
-const AuthModal = lazy(() => import('@/components/AuthModal').then(mod => ({ default: mod.AuthModal })));
-import { getAuthToken, setAuthToken, getCurrentUser } from '@/lib/api';
 import Image from 'next/image';
-import { ArrowRight, Shield, Zap, TrendingUp, Wallet, LogOut } from 'lucide-react';
+import Link from 'next/link';
+import { Suspense } from 'react';
+import { motion, useAnimation, useInView } from 'framer-motion';
+import {
+  Shield,
+  TrendingUp,
+  Zap,
+  LogOut,
+  Wallet,
+  ArrowRight
+} from 'lucide-react';
+import { useWallet } from '@/hooks/useWallet';
+import { AuthModal } from '@/components/AuthModal';
+import { ToastContainer } from '@/components/Toast';
+import { getAuthToken, getCurrentUser, setAuthToken } from '@/lib/api';
+
+interface ToastMessage {
+  id: string;
+  type: 'success' | 'error' | 'info' | 'warning';
+  title: string;
+  message?: string;
+  duration?: number;
+}
 
 const slides = [
   {
@@ -198,7 +214,7 @@ export default function Home() {
           ) : (
             <button
               onClick={() => setShowAuthModal(true)}
-              className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition-colors"
+              className="bg-secondary-600 hover:bg-secondary-700 text-white px-4 py-2 sm:px-6 sm:py-3 rounded-lg transition-colors text-sm sm:text-base"
             >
               Sign In
             </button>
@@ -225,12 +241,22 @@ export default function Home() {
       {/* Hero Section with Carousel */}
       <main className="container mx-auto px-6 py-12">
         <div className="text-center mb-12">
-           <h2 className="text-4xl md:text-6xl font-bold text-gray-800 dark:text-white mb-4">
+           <motion.h2
+             className="text-4xl md:text-6xl font-bold text-gray-800 dark:text-white mb-4"
+             initial={{ opacity: 0, y: 30 }}
+             animate={{ opacity: 1, y: 0 }}
+             transition={{ duration: 0.8, ease: "easeOut" }}
+           >
              AgriCredit Africa
-           </h2>
-           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+           </motion.h2>
+           <motion.p
+             className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto"
+             initial={{ opacity: 0, y: 20 }}
+             animate={{ opacity: 1, y: 0 }}
+             transition={{ duration: 0.6, delay: 0.2 }}
+           >
              Decentralized microcredit for sustainable agriculture
-           </p>
+           </motion.p>
         </div>
 
         {/* Carousel */}
@@ -255,7 +281,7 @@ export default function Home() {
                 </p>
                  <button
                    onClick={handleLearnMore}
-                   className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                   className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
                  >
                    <span>Learn More</span>
                    <ArrowRight className="w-4 h-4" />
@@ -294,7 +320,7 @@ export default function Home() {
                 key={index}
                 onClick={() => setCurrentSlide(index)}
                 className={`w-3 h-3 rounded-full transition-colors ${
-                  index === currentSlide ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'
+                  index === currentSlide ? 'bg-green-600' : 'bg-gray-300 dark:bg-gray-600'
                 }`}
               />
             ))}
@@ -333,7 +359,14 @@ export default function Home() {
                 rating: 5
               }
             ].map((testimonial, index) => (
-               <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-6">
+              <motion.div
+                key={index}
+                className="bg-gray-50 dark:bg-gray-700 rounded-xl p-6"
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: index * 0.2 }}
+                whileHover={{ y: -5 }}
+              >
                 <div className="flex mb-4">
                   {[...Array(testimonial.rating)].map((_, i) => (
                     <svg key={i} className="w-5 h-5 text-yellow-400 fill-current" viewBox="0 0 24 24">
@@ -348,7 +381,7 @@ export default function Home() {
                   <div className="font-semibold text-gray-800 dark:text-white">{testimonial.name}</div>
                   <div className="text-sm text-gray-600 dark:text-gray-400">{testimonial.location}</div>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
@@ -371,10 +404,23 @@ export default function Home() {
               { number: "85%", label: "Repayment Rate" },
               { number: "50,000", label: "Tons CO₂ Sequestered" }
             ].map((stat, index) => (
-               <div className="text-center">
-                <div className="text-4xl md:text-5xl font-bold mb-2">{stat.number}</div>
+              <motion.div
+                key={index}
+                className="text-center"
+                initial={{ opacity: 0, scale: 0.5 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+              >
+                <motion.div
+                  className="text-4xl md:text-5xl font-bold mb-2"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ duration: 0.8, delay: index * 0.1 + 0.3, type: "spring" }}
+                >
+                  {stat.number}
+                </motion.div>
                 <div className="text-lg opacity-90">{stat.label}</div>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>

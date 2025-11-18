@@ -2,10 +2,12 @@
 
 import { useState } from 'react';
 import { useAccessibility, AccessibilitySettings } from '@/hooks/useAccessibility';
+import { useTranslation } from 'react-i18next';
 
 export function AccessibilityPanel() {
   const [isOpen, setIsOpen] = useState(false);
   const { settings, updateSettings, speak, stopSpeaking } = useAccessibility();
+  const { i18n } = useTranslation();
 
   const handleSpeak = (text: string) => {
     if (settings.textToSpeech) {
@@ -170,11 +172,8 @@ export function AccessibilityPanel() {
               Language
             </label>
             <select
-              value="en"
-              onChange={(e) => {
-                // In a real app, this would change the i18n language
-                console.log('Language change not implemented yet:', e.target.value);
-              }}
+              value={i18n.language}
+              onChange={(e) => i18n.changeLanguage(e.target.value)}
               className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-800 dark:text-white"
             >
               <option value="en">English</option>

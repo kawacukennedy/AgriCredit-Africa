@@ -354,6 +354,70 @@ class BlockchainService:
         amount_wei = self.w3.to_wei(amount, 'ether')
         return await self.send_transaction('AgriCredit', 'transfer', to, amount_wei)
 
+    # Additional Loan and Escrow Functions
+    async def deploy_loan_contract(self, borrower: str, amount: float, interest_rate: float, duration: int, collateral_token: str, collateral_amount: float) -> Dict[str, Any]:
+        """Deploy a new loan contract"""
+        try:
+            # This would deploy a new loan contract instance
+            # For now, return mock data
+            return {
+                "tx_hash": "0x" + "0" * 64,
+                "loan_id": 1,
+                "contract_address": "0x" + "1" * 40
+            }
+        except Exception as e:
+            logger.error(f"Deploy loan contract failed: {e}")
+            return {"error": str(e)}
+
+    async def transfer_collateral_to_escrow(self, loan_id: int, collateral_token: str, collateral_amount: float, escrow_address: str) -> Dict[str, Any]:
+        """Transfer collateral to escrow"""
+        try:
+            # Transfer collateral tokens to escrow
+            amount_wei = self.w3.to_wei(collateral_amount, 'ether')
+            result = await self.send_transaction(
+                collateral_token, 'transfer', escrow_address, amount_wei
+            )
+            return result
+        except Exception as e:
+            logger.error(f"Transfer collateral failed: {e}")
+            return {"error": str(e)}
+
+    async def deploy_escrow_contract(self, buyer: str, seller: str, amount: float, token_address: str, listing_id: int) -> Dict[str, Any]:
+        """Deploy a new escrow contract"""
+        try:
+            # This would deploy a new escrow contract instance
+            # For now, return mock data
+            return {
+                "tx_hash": "0x" + "0" * 64,
+                "escrow_id": 1,
+                "contract_address": "0x" + "2" * 40
+            }
+        except Exception as e:
+            logger.error(f"Deploy escrow contract failed: {e}")
+            return {"error": str(e)}
+
+    async def confirm_escrow_delivery(self, escrow_id: int) -> Dict[str, Any]:
+        """Confirm delivery for escrow"""
+        try:
+            result = await self.send_transaction(
+                'MarketplaceEscrow', 'confirmDelivery', escrow_id
+            )
+            return result
+        except Exception as e:
+            logger.error(f"Confirm escrow delivery failed: {e}")
+            return {"error": str(e)}
+
+    async def release_escrow_funds(self, escrow_id: int) -> Dict[str, Any]:
+        """Release funds from escrow"""
+        try:
+            result = await self.send_transaction(
+                'MarketplaceEscrow', 'releaseFunds', escrow_id
+            )
+            return result
+        except Exception as e:
+            logger.error(f"Release escrow funds failed: {e}")
+            return {"error": str(e)}
+
     # Utility Functions
     def is_connected(self) -> bool:
         """Check if blockchain is connected"""

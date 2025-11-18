@@ -13,13 +13,21 @@ export function AccessibilityProvider({ children }: AccessibilityProviderProps) 
   useEffect(() => {
     // Apply accessibility styles to the document body
     const styles = getColorBlindStyles();
-    const fontClass = getFontSizeClass();
 
     // Apply filter styles
     document.body.style.filter = styles.filter || 'none';
 
     // Apply font size class to body
-    document.body.className = document.body.className.replace(/text-(sm|base|lg)/g, '') + ' ' + fontClass;
+    const fontClassMap = {
+      small: 'font-small',
+      medium: 'font-medium',
+      large: 'font-large'
+    };
+    const currentFontClass = fontClassMap[settings.fontSize];
+
+    // Remove existing font classes and add new one
+    document.body.classList.remove('font-small', 'font-medium', 'font-large');
+    document.body.classList.add(currentFontClass);
 
     // Apply high contrast if enabled
     if (settings.highContrast) {
@@ -33,7 +41,13 @@ export function AccessibilityProvider({ children }: AccessibilityProviderProps) 
       document.documentElement.classList.add('reduce-motion');
     }
 
-  }, [getColorBlindStyles, getFontSizeClass, settings]);
+    // Apply color blind filter classes
+    document.body.classList.remove('protanopia', 'deuteranopia', 'tritanopia');
+    if (settings.colorBlindMode !== 'none') {
+      document.body.classList.add(settings.colorBlindMode);
+    }
+
+  }, [getColorBlindStyles, settings]);
 
   return <>{children}</>;
 }

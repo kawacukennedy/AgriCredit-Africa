@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { OnboardingModal } from '@/components/OnboardingModal';
 import { getAuthToken, setAuthToken, getCurrentUser, getCreditScore, getYieldPrediction, getUserLoans, getUserNotifications, getSensorData, getUserDevices, getUserDashboardData, connectWebSocket, subscribeToNotifications, subscribeToSensorAlerts } from '@/lib/api';
 import { LogOut, TrendingUp, DollarSign, Leaf, Bell, BarChart3, Activity, Thermometer, Droplets, RefreshCw } from 'lucide-react';
-// import { CustomLineChart, CustomBarChart } from '@/components/charts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { SkeletonCard } from '@/components/Skeleton';
 
 export default function Dashboard() {
@@ -194,6 +194,7 @@ export default function Dashboard() {
       </AnimatePresence>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <header className="bg-white dark:bg-gray-800 shadow-sm">
+        <a href="#dashboard-main-content" className="skip-link">Skip to main content</a>
         <div className="container mx-auto px-6 py-4">
           <div className="flex justify-between items-center">
             <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Dashboard</h1>
@@ -233,13 +234,14 @@ export default function Dashboard() {
         </div>
       </header>
 
-      <main className="container mx-auto px-6 py-8">
+      <main id="dashboard-main-content" className="container mx-auto px-6 py-8">
         {/* AI Widgets */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm"
+            transition={{ duration: 0.5 }}
+            className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow"
           >
             <div className="flex items-center gap-2 mb-2">
               <TrendingUp className="w-5 h-5 text-green-600" />
@@ -402,22 +404,30 @@ export default function Dashboard() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Soil Moisture Chart */}
               <div>
-             <div className="h-48 bg-gray-100 dark:bg-gray-700 rounded flex items-center justify-center">
-               <div className="text-center">
-                 <Droplets className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-                 <p className="text-sm text-gray-600 dark:text-gray-400">Soil Moisture Chart</p>
-               </div>
-             </div>
+                <h4 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">Soil Moisture Levels</h4>
+                <ResponsiveContainer width="100%" height={200}>
+                  <LineChart data={dashboardData.sensorData.slice(-10)}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="timestamp" />
+                    <YAxis />
+                    <Tooltip />
+                    <Line type="monotone" dataKey="soil_moisture" stroke="#3b82f6" strokeWidth={2} />
+                  </LineChart>
+                </ResponsiveContainer>
               </div>
 
               {/* Temperature Chart */}
               <div>
-             <div className="h-48 bg-gray-100 dark:bg-gray-700 rounded flex items-center justify-center">
-               <div className="text-center">
-                 <Thermometer className="w-8 h-8 text-red-600 mx-auto mb-2" />
-                 <p className="text-sm text-gray-600 dark:text-gray-400">Temperature Chart</p>
-               </div>
-             </div>
+                <h4 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">Temperature Trends</h4>
+                <ResponsiveContainer width="100%" height={200}>
+                  <LineChart data={dashboardData.sensorData.slice(-10)}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="timestamp" />
+                    <YAxis />
+                    <Tooltip />
+                    <Line type="monotone" dataKey="temperature" stroke="#ef4444" strokeWidth={2} />
+                  </LineChart>
+                </ResponsiveContainer>
               </div>
             </div>
           </motion.div>
@@ -436,12 +446,16 @@ export default function Dashboard() {
               <h3 className="text-xl font-semibold text-gray-800 dark:text-white">Loan History</h3>
             </div>
 
-             <div className="h-64 bg-gray-100 dark:bg-gray-700 rounded flex items-center justify-center">
-               <div className="text-center">
-                 <BarChart3 className="w-8 h-8 text-purple-600 mx-auto mb-2" />
-                 <p className="text-sm text-gray-600 dark:text-gray-400">Loan History Chart</p>
-               </div>
-             </div>
+              <ResponsiveContainer width="100%" height={256}>
+               <BarChart data={dashboardData.loans}>
+                 <CartesianGrid strokeDasharray="3 3" />
+                 <XAxis dataKey="created_at" />
+                 <YAxis />
+                 <Tooltip />
+                 <Legend />
+                 <Bar dataKey="amount" fill="#8b5cf6" name="Loan Amount ($)" />
+               </BarChart>
+             </ResponsiveContainer>
           </motion.div>
         )}
 

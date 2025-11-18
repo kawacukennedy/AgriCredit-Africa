@@ -2,7 +2,6 @@
 
 import { useEffect } from 'react';
 import Head from 'next/head';
-import { Inter } from 'next/font/google';
 import "./globals.css";
 import { AccessibilityPanel } from "@/components/AccessibilityPanel";
 import { AccessibilityProvider } from "@/components/AccessibilityProvider";
@@ -13,7 +12,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { OfflineIndicator } from "@/components/OfflineIndicator";
 import '../lib/i18n';
 
-const inter = Inter({ subsets: ['latin'] });
+
 
 function RootLayout({
   children,
@@ -43,7 +42,7 @@ function RootLayout({
       </Head>
       <html lang="en">
         <body
-          className={`${inter.className} antialiased`}
+          className="antialiased"
         >
           <a href="#main-content" className="skip-link">Skip to main content</a>
           <ThemeProvider>

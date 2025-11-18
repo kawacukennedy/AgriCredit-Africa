@@ -1,9 +1,15 @@
 @tailwind base;
-@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
+  /* Design System Colors */
+  --primary: #22c55e;
+  --secondary: #16a34a;
+  --accent: #15803d;
+  --neutral: #f5f5f4;
+
+  /* Background and Foreground */
   --background: #ffffff;
   --foreground: #171717;
 }
@@ -18,7 +24,6 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
 }
 
 /* Smooth theme transitions */
