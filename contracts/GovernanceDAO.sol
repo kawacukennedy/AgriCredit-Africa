@@ -146,6 +146,45 @@ contract GovernanceDAO is Ownable, ReentrancyGuard, ERC2771Context {
     uint256 public maxLockDuration = 365 days; // Maximum lock period
     uint256 public timeWeightMultiplier = 2; // Multiplier for time-weighted voting
 
+    // Quadratic Voting
+    struct QuadraticVote {
+        uint256 proposalId;
+        uint256 creditsUsed;
+        bool support;
+        uint256 timestamp;
+    }
+
+    mapping(address => QuadraticVote[]) public quadraticVotes;
+    mapping(uint256 => uint256) public quadraticVotingCredits; // proposalId => total credits used
+    uint256 public quadraticCreditPrice = 1e16; // 0.01 ETH per credit
+    uint256 public maxQuadraticCredits = 100; // Max credits per voter
+
+    // Proposal Templates
+    struct ProposalTemplate {
+        string name;
+        string description;
+        ProposalType proposalType;
+        bytes templateCallData;
+        bool active;
+    }
+
+    mapping(uint256 => ProposalTemplate) public proposalTemplates;
+    uint256 public templateCount;
+
+    // Multi-sig Execution
+    struct MultiSigExecution {
+        uint256 proposalId;
+        address[] signers;
+        uint256 requiredSignatures;
+        mapping(address => bool) hasSigned;
+        uint256 signatureCount;
+        bool executed;
+    }
+
+    mapping(uint256 => MultiSigExecution) public multiSigExecutions;
+    mapping(address => bool) public multiSigSigners;
+    uint256 public requiredMultiSigSignatures = 3;
+
     // Treasury
     address public treasury;
     uint256 public treasuryBalance;
@@ -172,6 +211,10 @@ contract GovernanceDAO is Ownable, ReentrancyGuard, ERC2771Context {
     event ZKVoteCast(bytes32 indexed commitment, uint256 indexed proposalId, uint256 weight);
     event TokensLocked(address indexed user, uint256 amount, uint256 duration);
     event TokensUnlocked(address indexed user, uint256 amount);
+    event QuadraticVoteCast(uint256 indexed proposalId, address indexed voter, uint256 credits, bool support);
+    event ProposalTemplateCreated(uint256 indexed templateId, string name);
+    event MultiSigSigned(uint256 indexed proposalId, address indexed signer);
+    event MultiSigExecuted(uint256 indexed proposalId);
 
     constructor(
         address _governanceToken,
@@ -303,6 +346,52 @@ contract GovernanceDAO is Ownable, ReentrancyGuard, ERC2771Context {
         proposal.abstainVotes += weight;
 
         emit VoteCast(_proposalId, msg.sender, false, weight, block.timestamp);
+    }
+
+    // Quadratic Voting
+    function castQuadraticVote(uint256 _proposalId, uint256 _credits, bool _support) external payable proposalExists(_proposalId) {
+        Proposal storage proposal = proposals[_proposalId];
+        require(proposal.status == ProposalStatus.ACTIVE, "Proposal not active");
+        require(block.timestamp >= proposal.startTime, "Voting not started");
+        require(block.timestamp <= proposal.endTime, "Voting ended");
+        require(!proposal.votes[msg.sender].hasVoted, "Already voted");
+        require(_credits > 0 && _credits <= maxQuadraticCredits, "Invalid credit amount");
+
+        uint256 cost = _credits * quadraticCreditPrice;
+        require(msg.value >= cost, "Insufficient payment");
+
+        // Refund excess
+        if (msg.value > cost) {
+            payable(msg.sender).transfer(msg.value - cost);
+        }
+
+        // Calculate voting power (square root of credits for quadratic voting)
+        uint256 votingPower = Math.sqrt(_credits * 1e18); // Scale up for precision
+
+        proposal.votes[msg.sender] = Vote({
+            hasVoted: true,
+            support: _support,
+            weight: votingPower,
+            timestamp: block.timestamp
+        });
+
+        if (_support) {
+            proposal.forVotes += votingPower;
+        } else {
+            proposal.againstVotes += votingPower;
+        }
+
+        quadraticVotes[msg.sender].push(QuadraticVote({
+            proposalId: _proposalId,
+            creditsUsed: _credits,
+            support: _support,
+            timestamp: block.timestamp
+        }));
+
+        quadraticVotingCredits[_proposalId] += _credits;
+
+        emit QuadraticVoteCast(_proposalId, msg.sender, _credits, _support);
+        emit VoteCast(_proposalId, msg.sender, _support, votingPower, block.timestamp);
     }
 
     // Gasless voting functions
@@ -687,6 +776,100 @@ contract GovernanceDAO is Ownable, ReentrancyGuard, ERC2771Context {
 
     function isZKProofVerified(bytes32 commitment) external view returns (bool) {
         return verifiedZKProofs[commitment];
+    }
+
+    // Proposal Templates
+    function createProposalTemplate(
+        string memory _name,
+        string memory _description,
+        ProposalType _proposalType,
+        bytes memory _templateCallData
+    ) external onlyOwner returns (uint256) {
+        templateCount++;
+        proposalTemplates[templateCount] = ProposalTemplate({
+            name: _name,
+            description: _description,
+            proposalType: _proposalType,
+            templateCallData: _templateCallData,
+            active: true
+        });
+
+        emit ProposalTemplateCreated(templateCount, _name);
+        return templateCount;
+    }
+
+    function proposeFromTemplate(
+        uint256 _templateId,
+        address _targetContract,
+        uint256 _value,
+        bool _emergency
+    ) external returns (uint256) {
+        require(proposalTemplates[_templateId].active, "Template not active");
+
+        ProposalTemplate memory template = proposalTemplates[_templateId];
+
+        return propose(
+            template.proposalType,
+            template.description,
+            _targetContract,
+            template.templateCallData,
+            _value,
+            _emergency
+        );
+    }
+
+    function deactivateProposalTemplate(uint256 _templateId) external onlyOwner {
+        proposalTemplates[_templateId].active = false;
+    }
+
+    // Multi-sig Execution
+    function enableMultiSigExecution(uint256 _proposalId, address[] memory _signers, uint256 _requiredSignatures) external onlyOwner proposalExists(_proposalId) {
+        require(_signers.length >= _requiredSignatures, "Invalid signature requirements");
+
+        MultiSigExecution storage multiSig = multiSigExecutions[_proposalId];
+        multiSig.proposalId = _proposalId;
+        multiSig.signers = _signers;
+        multiSig.requiredSignatures = _requiredSignatures;
+        multiSig.executed = false;
+
+        for (uint256 i = 0; i < _signers.length; i++) {
+            multiSigSigners[_signers[i]] = true;
+        }
+    }
+
+    function signMultiSigExecution(uint256 _proposalId) external {
+        MultiSigExecution storage multiSig = multiSigExecutions[_proposalId];
+        require(multiSig.proposalId == _proposalId, "Multi-sig not enabled");
+        require(multiSigSigners[msg.sender], "Not authorized signer");
+        require(!multiSig.hasSigned[msg.sender], "Already signed");
+        require(!multiSig.executed, "Already executed");
+
+        multiSig.hasSigned[msg.sender] = true;
+        multiSig.signatureCount++;
+
+        emit MultiSigSigned(_proposalId, msg.sender);
+
+        // Auto-execute if threshold reached
+        if (multiSig.signatureCount >= multiSig.requiredSignatures) {
+            _executeMultiSigProposal(_proposalId);
+        }
+    }
+
+    function _executeMultiSigProposal(uint256 _proposalId) internal {
+        MultiSigExecution storage multiSig = multiSigExecutions[_proposalId];
+        require(!multiSig.executed, "Already executed");
+
+        Proposal storage proposal = proposals[_proposalId];
+        require(proposal.status == ProposalStatus.SUCCEEDED, "Proposal not succeeded");
+
+        proposal.status = ProposalStatus.EXECUTED;
+        proposal.executionTime = block.timestamp;
+
+        bool success = _executeProposal(proposal);
+        multiSig.executed = true;
+
+        emit MultiSigExecuted(_proposalId);
+        emit ProposalExecuted(_proposalId, success);
     }
 
     // Administrative functions

@@ -39,6 +39,34 @@ contract LiquidityPool is Ownable, ReentrancyGuard {
         mapping(address => uint256) userStakes;
     }
 
+    // Enhanced features
+    struct ImpermanentLossProtection {
+        uint256 protectionPeriod; // in seconds
+        uint256 maxProtection; // in basis points (e.g., 5000 = 50%)
+        uint256 protectionFee; // fee for IL protection
+    }
+
+    struct DynamicFee {
+        uint256 baseFee;
+        uint256 volatilityMultiplier;
+        uint256 volumeMultiplier;
+        uint256 lastUpdateTime;
+    }
+
+    struct CrossChainLiquidity {
+        uint256 chainId;
+        address remotePool;
+        uint256 lockedLiquidity;
+        bool active;
+    }
+
+    mapping(address => ImpermanentLossProtection) public ilProtections;
+    mapping(bytes32 => DynamicFee) public dynamicFees;
+    mapping(uint256 => CrossChainLiquidity) public crossChainPools;
+
+    uint256 public totalCrossChainLiquidity;
+    uint256 public ilProtectionFund;
+
     mapping(address => Pool) public pools;
     address[] public supportedTokens;
 
@@ -69,6 +97,9 @@ contract LiquidityPool is Ownable, ReentrancyGuard {
     event FarmUnstaked(address indexed user, address indexed token, uint256 amount);
     event FarmRewardsClaimed(address indexed user, address indexed token, uint256 amount);
     event FarmRewardRateUpdated(address indexed token, uint256 newRate);
+    event ILProtectionPurchased(address indexed user, bytes32 indexed poolHash, uint256 protectionAmount);
+    event CrossChainLiquidityBridged(uint256 indexed chainId, address indexed token, uint256 amount);
+    event DynamicFeeUpdated(bytes32 indexed poolHash, uint256 newFee);
 
     constructor(address _carbonToken) Ownable(msg.sender) {
         carbonToken = CarbonToken(_carbonToken);
@@ -125,20 +156,124 @@ contract LiquidityPool is Ownable, ReentrancyGuard {
      * @param amount Amount to remove
      */
     function removeLiquidity(address token, uint256 amount) external nonReentrant {
-        require(amount > 0, "Amount must be > 0");
+        require(pools[token].active, "Pool not active");
         require(userLiquidity[msg.sender][token] >= amount, "Insufficient liquidity");
 
         Pool storage pool = pools[token];
-        require(pool.totalLiquidity - pool.totalBorrowed >= amount, "Insufficient pool liquidity");
+        require(pool.totalLiquidity >= amount, "Insufficient pool liquidity");
 
-        // Update balances
-        pool.totalLiquidity -= amount;
         userLiquidity[msg.sender][token] -= amount;
+        pool.totalLiquidity -= amount;
 
-        // Transfer tokens back to user
         require(pool.token.transfer(msg.sender, amount), "Transfer failed");
 
         emit LiquidityRemoved(msg.sender, token, amount);
+    }
+
+    // Impermanent Loss Protection
+    function purchaseILProtection(bytes32 poolHash, uint256 protectionAmount) external payable {
+        AMMPool storage pool = ammPools[poolHash];
+        require(pool.active, "Pool not active");
+        require(protectionAmount > 0, "Invalid protection amount");
+
+        ImpermanentLossProtection storage protection = ilProtections[address(uint160(uint256(poolHash)))];
+        require(protection.protectionPeriod > 0, "IL protection not available");
+
+        uint256 cost = (protectionAmount * protection.protectionFee) / 10000;
+        require(msg.value >= cost, "Insufficient payment");
+
+        // Refund excess
+        if (msg.value > cost) {
+            payable(msg.sender).transfer(msg.value - cost);
+        }
+
+        ilProtectionFund += cost;
+
+        emit ILProtectionPurchased(msg.sender, poolHash, protectionAmount);
+    }
+
+    function claimILProtection(bytes32 poolHash, uint256 liquidityAmount) external {
+        // Simplified IL protection claim - in practice, would calculate actual IL
+        uint256 protectionAmount = (liquidityAmount * ilProtections[address(uint160(uint256(poolHash)))].maxProtection) / 10000;
+        require(protectionAmount > 0, "No protection available");
+
+        // Transfer from protection fund
+        require(ilProtectionFund >= protectionAmount, "Insufficient protection fund");
+        ilProtectionFund -= protectionAmount;
+
+        payable(msg.sender).transfer(protectionAmount);
+    }
+
+    function setILProtection(address poolAddress, uint256 _protectionPeriod, uint256 _maxProtection, uint256 _protectionFee) external onlyOwner {
+        ilProtections[poolAddress] = ImpermanentLossProtection({
+            protectionPeriod: _protectionPeriod,
+            maxProtection: _maxProtection,
+            protectionFee: _protectionFee
+        });
+    }
+
+    // Dynamic Fees
+    function updateDynamicFee(bytes32 poolHash) external {
+        DynamicFee storage fee = dynamicFees[poolHash];
+        require(fee.lastUpdateTime > 0, "Fee not configured");
+
+        // Simplified dynamic fee calculation based on time
+        uint256 timeSinceUpdate = block.timestamp - fee.lastUpdateTime;
+        uint256 newFee = fee.baseFee + (timeSinceUpdate * fee.volatilityMultiplier) / 1 days;
+
+        newFee = Math.min(newFee, 1000); // Max 10%
+        fee.lastUpdateTime = block.timestamp;
+
+        emit DynamicFeeUpdated(poolHash, newFee);
+    }
+
+    function setDynamicFee(bytes32 poolHash, uint256 _baseFee, uint256 _volatilityMultiplier, uint256 _volumeMultiplier) external onlyOwner {
+        dynamicFees[poolHash] = DynamicFee({
+            baseFee: _baseFee,
+            volatilityMultiplier: _volatilityMultiplier,
+            volumeMultiplier: _volumeMultiplier,
+            lastUpdateTime: block.timestamp
+        });
+    }
+
+    function getDynamicFee(bytes32 poolHash) external view returns (uint256) {
+        DynamicFee memory fee = dynamicFees[poolHash];
+        if (fee.lastUpdateTime == 0) return 30; // Default 0.3%
+
+        uint256 timeSinceUpdate = block.timestamp - fee.lastUpdateTime;
+        uint256 currentFee = fee.baseFee + (timeSinceUpdate * fee.volatilityMultiplier) / 1 days;
+
+        return Math.min(currentFee, 1000); // Max 10%
+    }
+
+    // Cross-Chain Liquidity
+    function bridgeLiquidity(uint256 chainId, address token, uint256 amount) external onlyOwner {
+        require(pools[token].active, "Pool not active");
+        require(pools[token].totalLiquidity >= amount, "Insufficient liquidity");
+
+        CrossChainLiquidity storage crossChain = crossChainPools[chainId];
+        crossChain.chainId = chainId;
+        crossChain.lockedLiquidity += amount;
+        crossChain.active = true;
+
+        totalCrossChainLiquidity += amount;
+        pools[token].totalLiquidity -= amount;
+
+        emit CrossChainLiquidityBridged(chainId, token, amount);
+    }
+
+    function unlockCrossChainLiquidity(uint256 chainId, address token, uint256 amount) external onlyOwner {
+        CrossChainLiquidity storage crossChain = crossChainPools[chainId];
+        require(crossChain.lockedLiquidity >= amount, "Insufficient locked liquidity");
+
+        crossChain.lockedLiquidity -= amount;
+        totalCrossChainLiquidity -= amount;
+        pools[token].totalLiquidity += amount;
+    }
+
+    function setCrossChainPool(uint256 chainId, address remotePool) external onlyOwner {
+        crossChainPools[chainId].remotePool = remotePool;
+        crossChainPools[chainId].active = true;
     }
 
     /**
