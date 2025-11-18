@@ -26,6 +26,29 @@ interface IInsurancePool {
     function getInsuranceCost(uint256 coverageAmount, uint256 duration) external view returns (uint256);
 }
 
+interface IYieldFarm {
+    function stake(address token, uint256 amount) external;
+    function unstake(address token, uint256 amount) external;
+    function claimRewards(address token) external returns (uint256);
+    function getPendingRewards(address user, address token) external view returns (uint256);
+}
+
+interface IPredictionMarket {
+    function createMarket(string memory description, uint256 endTime, address oracle) external returns (uint256);
+    function placeBet(uint256 marketId, bool outcome, uint256 amount) external;
+    function resolveMarket(uint256 marketId, bool outcome) external;
+    function claimWinnings(uint256 marketId) external returns (uint256);
+}
+
+interface IFlashLoanReceiver {
+    function executeOperation(
+        address asset,
+        uint256 amount,
+        uint256 premium,
+        bytes calldata params
+    ) external returns (bool);
+}
+
 contract LoanManager is Ownable, ReentrancyGuard, Pausable, ERC2771Context {
     using SafeERC20 for IERC20;
 
@@ -71,18 +94,59 @@ contract LoanManager is Ownable, ReentrancyGuard, Pausable, ERC2771Context {
         uint256 lastUpdateTime;
     }
 
+    struct FlashLoanParams {
+        address asset;
+        uint256 amount;
+        address borrower;
+        bytes params;
+    }
+
+    struct PredictionMarket {
+        uint256 id;
+        string description;
+        uint256 endTime;
+        address oracle;
+        bool resolved;
+        bool outcome;
+        uint256 totalPool;
+        mapping(bool => uint256) outcomePools;
+        mapping(address => mapping(bool => uint256)) userBets;
+    }
+
+    struct YieldFarmPosition {
+        address token;
+        uint256 stakedAmount;
+        uint256 stakingStart;
+        uint256 lastRewardClaim;
+        uint256 accumulatedRewards;
+    }
+
     IdentityRegistry public identityRegistry;
     LiquidityPool public liquidityPool;
     YieldToken public yieldToken;
     IERC20 public stableToken;
     IPriceOracle public priceOracle;
     IInsurancePool public insurancePool;
+    IYieldFarm public yieldFarm;
+    IPredictionMarket public predictionMarket;
 
     mapping(uint256 => Loan) public loans;
     mapping(address => uint256[]) public userLoans;
     mapping(uint256 => LoanTerms) public loanTerms; // Different terms for different credit scores
     mapping(uint256 => Insurance) public loanInsurance;
     mapping(uint256 => DynamicRateParams) public loanRateParams;
+
+    // Flash loans
+    mapping(address => bool) public authorizedFlashBorrowers;
+    uint256 public flashLoanFee = 9; // 0.09% in basis points
+
+    // Prediction markets
+    mapping(uint256 => PredictionMarket) public predictionMarkets;
+    uint256 public nextMarketId = 1;
+
+    // Yield farming
+    mapping(address => YieldFarmPosition[]) public userYieldPositions;
+    mapping(address => uint256) public totalStakedPerToken;
 
     uint256 public nextLoanId = 1;
     uint256 public totalLoansFunded;
@@ -112,6 +176,8 @@ contract LoanManager is Ownable, ReentrancyGuard, Pausable, ERC2771Context {
         address _stableToken,
         address _priceOracle,
         address _insurancePool,
+        address _yieldFarm,
+        address _predictionMarket,
         address trustedForwarder
     ) Ownable(msg.sender) ERC2771Context(trustedForwarder) {
         identityRegistry = IdentityRegistry(_identityRegistry);
@@ -120,6 +186,8 @@ contract LoanManager is Ownable, ReentrancyGuard, Pausable, ERC2771Context {
         stableToken = IERC20(_stableToken);
         priceOracle = IPriceOracle(_priceOracle);
         insurancePool = IInsurancePool(_insurancePool);
+        yieldFarm = IYieldFarm(_yieldFarm);
+        predictionMarket = IPredictionMarket(_predictionMarket);
 
         // Initialize default loan terms
         _setDefaultLoanTerms();
@@ -472,6 +540,223 @@ contract LoanManager is Ownable, ReentrancyGuard, Pausable, ERC2771Context {
         return Math.max(Math.min(newRate, MAX_INTEREST_RATE), 100);
     }
 
+    // ============ FLASH LOAN FUNCTIONS ============
+
+    function flashLoan(
+        address asset,
+        uint256 amount,
+        bytes calldata params
+    ) external nonReentrant whenNotPaused {
+        require(amount > 0, "Amount must be > 0");
+        require(authorizedFlashBorrowers[msg.sender] || identityRegistry.isIdentityVerified(msg.sender), "Not authorized for flash loans");
+
+        uint256 balanceBefore = IERC20(asset).balanceOf(address(this));
+        require(balanceBefore >= amount, "Insufficient liquidity");
+
+        // Calculate fee
+        uint256 fee = (amount * flashLoanFee) / 10000;
+        require(fee > 0, "Fee too small");
+
+        // Transfer tokens to borrower
+        SafeERC20.safeTransfer(IERC20(asset), msg.sender, amount);
+
+        // Execute borrower's callback
+        IFlashLoanReceiver(msg.sender).executeOperation(asset, amount, fee, params);
+
+        // Check repayment
+        uint256 balanceAfter = IERC20(asset).balanceOf(address(this));
+        uint256 totalOwed = amount + fee;
+        require(balanceAfter >= balanceBefore + fee, "Flash loan not repaid");
+
+        emit FlashLoan(msg.sender, asset, amount, fee);
+    }
+
+    function setAuthorizedFlashBorrower(address borrower, bool authorized) external onlyOwner {
+        authorizedFlashBorrowers[borrower] = authorized;
+        emit FlashBorrowerUpdated(borrower, authorized);
+    }
+
+    function setFlashLoanFee(uint256 newFee) external onlyOwner {
+        require(newFee <= 100, "Fee too high"); // Max 1%
+        flashLoanFee = newFee;
+        emit FlashLoanFeeUpdated(newFee);
+    }
+
+    // ============ PREDICTION MARKET FUNCTIONS ============
+
+    function createPredictionMarket(
+        string memory description,
+        uint256 endTime,
+        address oracle
+    ) external onlyOwner returns (uint256) {
+        require(endTime > block.timestamp, "End time must be in future");
+        require(oracle != address(0), "Invalid oracle");
+
+        uint256 marketId = nextMarketId++;
+        PredictionMarket storage market = predictionMarkets[marketId];
+        market.id = marketId;
+        market.description = description;
+        market.endTime = endTime;
+        market.oracle = oracle;
+        market.resolved = false;
+
+        emit PredictionMarketCreated(marketId, description, endTime, oracle);
+        return marketId;
+    }
+
+    function placePredictionBet(uint256 marketId, bool outcome, uint256 amount) external nonReentrant {
+        PredictionMarket storage market = predictionMarkets[marketId];
+        require(!market.resolved, "Market already resolved");
+        require(block.timestamp < market.endTime, "Market ended");
+        require(amount > 0, "Amount must be > 0");
+
+        // Transfer tokens to contract
+        SafeERC20.safeTransferFrom(stableToken, msg.sender, address(this), amount);
+
+        market.userBets[msg.sender][outcome] += amount;
+        market.outcomePools[outcome] += amount;
+        market.totalPool += amount;
+
+        emit PredictionBetPlaced(marketId, msg.sender, outcome, amount);
+    }
+
+    function resolvePredictionMarket(uint256 marketId, bool outcome) external {
+        PredictionMarket storage market = predictionMarkets[marketId];
+        require(!market.resolved, "Market already resolved");
+        require(block.timestamp >= market.endTime, "Market not ended");
+        require(msg.sender == market.oracle || msg.sender == owner(), "Not authorized to resolve");
+
+        market.resolved = true;
+        market.outcome = outcome;
+
+        emit PredictionMarketResolved(marketId, outcome);
+    }
+
+    function claimPredictionWinnings(uint256 marketId) external nonReentrant {
+        PredictionMarket storage market = predictionMarkets[marketId];
+        require(market.resolved, "Market not resolved");
+
+        uint256 userBet = market.userBets[msg.sender][market.outcome];
+        require(userBet > 0, "No winning bet");
+
+        uint256 winningPool = market.outcomePools[market.outcome];
+        uint256 totalPool = market.totalPool;
+        uint256 winnings = (userBet * totalPool) / winningPool;
+
+        // Mark as claimed
+        market.userBets[msg.sender][market.outcome] = 0;
+
+        // Transfer winnings
+        SafeERC20.safeTransfer(stableToken, msg.sender, winnings);
+
+        emit PredictionWinningsClaimed(marketId, msg.sender, winnings);
+    }
+
+    // ============ YIELD FARMING FUNCTIONS ============
+
+    function stakeInYieldFarm(address token, uint256 amount) external nonReentrant whenNotPaused {
+        require(amount > 0, "Amount must be > 0");
+        require(identityRegistry.isIdentityVerified(msg.sender), "Identity not verified");
+
+        // Transfer tokens to yield farm
+        SafeERC20.safeTransferFrom(IERC20(token), msg.sender, address(yieldFarm), amount);
+
+        // Stake in yield farm
+        yieldFarm.stake(token, amount);
+
+        // Record position
+        YieldFarmPosition memory position = YieldFarmPosition({
+            token: token,
+            stakedAmount: amount,
+            stakingStart: block.timestamp,
+            lastRewardClaim: block.timestamp,
+            accumulatedRewards: 0
+        });
+
+        userYieldPositions[msg.sender].push(position);
+        totalStakedPerToken[token] += amount;
+
+        emit YieldFarmStaked(msg.sender, token, amount);
+    }
+
+    function unstakeFromYieldFarm(address token, uint256 amount) external nonReentrant {
+        require(amount > 0, "Amount must be > 0");
+
+        // Find and update position
+        YieldFarmPosition[] storage positions = userYieldPositions[msg.sender];
+        bool found = false;
+        uint256 positionIndex;
+
+        for (uint256 i = 0; i < positions.length; i++) {
+            if (positions[i].token == token && positions[i].stakedAmount >= amount) {
+                positions[i].stakedAmount -= amount;
+                positionIndex = i;
+                found = true;
+                break;
+            }
+        }
+
+        require(found, "Insufficient staked amount");
+
+        // Claim any pending rewards first
+        _claimYieldFarmRewards(msg.sender, token);
+
+        // Unstake from yield farm
+        yieldFarm.unstake(token, amount);
+
+        totalStakedPerToken[token] -= amount;
+
+        // Remove position if fully unstaked
+        if (positions[positionIndex].stakedAmount == 0) {
+            positions[positionIndex] = positions[positions.length - 1];
+            positions.pop();
+        }
+
+        emit YieldFarmUnstaked(msg.sender, token, amount);
+    }
+
+    function claimYieldFarmRewards(address token) external nonReentrant {
+        _claimYieldFarmRewards(msg.sender, token);
+    }
+
+    function _claimYieldFarmRewards(address user, address token) internal {
+        uint256 rewards = yieldFarm.claimRewards(token);
+        if (rewards > 0) {
+            // Update position
+            YieldFarmPosition[] storage positions = userYieldPositions[user];
+            for (uint256 i = 0; i < positions.length; i++) {
+                if (positions[i].token == token) {
+                    positions[i].accumulatedRewards += rewards;
+                    positions[i].lastRewardClaim = block.timestamp;
+                    break;
+                }
+            }
+
+            emit YieldFarmRewardsClaimed(user, token, rewards);
+        }
+    }
+
+    function getYieldFarmInfo(address user, address token) external view returns (
+        uint256 stakedAmount,
+        uint256 pendingRewards,
+        uint256 totalRewards
+    ) {
+        YieldFarmPosition[] memory positions = userYieldPositions[user];
+        uint256 totalStaked = 0;
+        uint256 totalAccumulated = 0;
+
+        for (uint256 i = 0; i < positions.length; i++) {
+            if (positions[i].token == token) {
+                totalStaked += positions[i].stakedAmount;
+                totalAccumulated += positions[i].accumulatedRewards;
+            }
+        }
+
+        uint256 pending = yieldFarm.getPendingRewards(user, token);
+
+        return (totalStaked, pending, totalAccumulated);
+    }
+
     // ============ ORACLE INTEGRATION ============
 
     function getCollateralValue(address _token, uint256 _amount) public view returns (uint256) {
@@ -549,6 +834,16 @@ contract LoanManager is Ownable, ReentrancyGuard, Pausable, ERC2771Context {
     event InsuranceClaimed(uint256 indexed loanId, uint256 claimAmount);
     event RateUpdated(uint256 indexed loanId, uint256 newRate);
     event MetaTxExecuted(bytes32 indexed txHash, address indexed user, uint256 gasUsed);
+    event FlashLoan(address indexed borrower, address indexed asset, uint256 amount, uint256 fee);
+    event FlashBorrowerUpdated(address indexed borrower, bool authorized);
+    event FlashLoanFeeUpdated(uint256 newFee);
+    event PredictionMarketCreated(uint256 indexed marketId, string description, uint256 endTime, address oracle);
+    event PredictionBetPlaced(uint256 indexed marketId, address indexed user, bool outcome, uint256 amount);
+    event PredictionMarketResolved(uint256 indexed marketId, bool outcome);
+    event PredictionWinningsClaimed(uint256 indexed marketId, address indexed user, uint256 amount);
+    event YieldFarmStaked(address indexed user, address indexed token, uint256 amount);
+    event YieldFarmUnstaked(address indexed user, address indexed token, uint256 amount);
+    event YieldFarmRewardsClaimed(address indexed user, address indexed token, uint256 amount);
 
     // ============ OVERRIDE FUNCTIONS ============
 

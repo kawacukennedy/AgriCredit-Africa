@@ -108,11 +108,10 @@ async function main() {
     console.log("\n6️⃣  Deploying GovernanceDAO...");
     const GovernanceDAO = await ethers.getContractFactory("GovernanceDAO");
     const governanceDAO = await GovernanceDAO.deploy(
-      agriCreditAddress,
-      1, // voting delay (1 block)
-      5, // voting period (5 blocks)
-      ethers.parseEther("4"), // proposal threshold (4 tokens)
-      400 // quorum (4% of total supply)
+      agriCreditAddress, // governance token
+      deployer.address, // treasury
+      ethers.ZeroAddress, // trusted forwarder (none for now)
+      ethers.ZeroAddress // ZK verifier (none for now)
     );
     await governanceDAO.waitForDeployment();
     const governanceDAOAddress = await governanceDAO.getAddress();
@@ -214,7 +213,9 @@ async function verifyContracts(deploymentConfig) {
         case 'GovernanceDAO':
           constructorArgs = [
             deploymentConfig.contracts.AgriCredit.address,
-            1, 5, ethers.parseEther("4"), 400
+            deployer.address,
+            ethers.ZeroAddress,
+            ethers.ZeroAddress
           ];
           break;
         case 'YieldToken':

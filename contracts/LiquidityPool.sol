@@ -4,6 +4,7 @@ pragma solidity ^0.8.28;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/math/Math.sol";
 import "./CarbonToken.sol";
 
 contract LiquidityPool is Ownable, ReentrancyGuard {
@@ -16,8 +17,38 @@ contract LiquidityPool is Ownable, ReentrancyGuard {
         bool active;
     }
 
+    struct AMMPool {
+        address tokenA;
+        address tokenB;
+        uint256 reserveA;
+        uint256 reserveB;
+        uint256 totalLiquidity;
+        uint256 fee; // in basis points (e.g., 30 = 0.3%)
+        bool active;
+    }
+
+    struct YieldFarm {
+        address stakingToken;
+        address rewardToken;
+        uint256 totalStaked;
+        uint256 rewardRate; // rewards per second
+        uint256 lastRewardTime;
+        uint256 rewardPerTokenStored;
+        mapping(address => uint256) userRewardPerTokenPaid;
+        mapping(address => uint256) userRewards;
+        mapping(address => uint256) userStakes;
+    }
+
     mapping(address => Pool) public pools;
     address[] public supportedTokens;
+
+    // AMM pools
+    mapping(bytes32 => AMMPool) public ammPools; // keccak256(abi.encodePacked(tokenA, tokenB)) => pool
+    mapping(address => bytes32[]) public userAMMLiquidity; // user => pool hashes
+
+    // Yield farming
+    mapping(address => YieldFarm) public yieldFarms;
+    address[] public farmingTokens;
 
     CarbonToken public carbonToken;
 
@@ -29,6 +60,15 @@ contract LiquidityPool is Ownable, ReentrancyGuard {
     event LiquidityAdded(address indexed user, address indexed token, uint256 amount);
     event LiquidityRemoved(address indexed user, address indexed token, uint256 amount);
     event LoanIssued(address indexed borrower, address indexed token, uint256 amount);
+    event AMMPoolCreated(address indexed tokenA, address indexed tokenB, uint256 fee);
+    event AMMLiquidityAdded(address indexed user, bytes32 indexed poolHash, uint256 amountA, uint256 amountB, uint256 liquidity);
+    event AMMLiquidityRemoved(address indexed user, bytes32 indexed poolHash, uint256 amountA, uint256 amountB, uint256 liquidity);
+    event AMMSwap(address indexed user, bytes32 indexed poolHash, address tokenIn, address tokenOut, uint256 amountIn, uint256 amountOut);
+    event YieldFarmCreated(address indexed stakingToken, address indexed rewardToken, uint256 rewardRate);
+    event FarmStaked(address indexed user, address indexed token, uint256 amount);
+    event FarmUnstaked(address indexed user, address indexed token, uint256 amount);
+    event FarmRewardsClaimed(address indexed user, address indexed token, uint256 amount);
+    event FarmRewardRateUpdated(address indexed token, uint256 newRate);
 
     constructor(address _carbonToken) Ownable(msg.sender) {
         carbonToken = CarbonToken(_carbonToken);
@@ -143,6 +183,274 @@ contract LiquidityPool is Ownable, ReentrancyGuard {
         Pool memory pool = pools[token];
         if (pool.totalLiquidity == 0) return 0;
         return (pool.totalBorrowed * 10000) / pool.totalLiquidity;
+    }
+
+    // ============ AUTOMATED MARKET MAKER FUNCTIONS ============
+
+    function createAMMPool(address tokenA, address tokenB, uint256 fee) external onlyOwner returns (bytes32) {
+        require(tokenA != tokenB, "Tokens must be different");
+        require(tokenA < tokenB, "TokenA must be less than tokenB"); // Ensure consistent ordering
+        require(fee <= 100, "Fee too high"); // Max 1%
+
+        bytes32 poolHash = keccak256(abi.encodePacked(tokenA, tokenB));
+        require(ammPools[poolHash].tokenA == address(0), "Pool already exists");
+
+        ammPools[poolHash] = AMMPool({
+            tokenA: tokenA,
+            tokenB: tokenB,
+            reserveA: 0,
+            reserveB: 0,
+            totalLiquidity: 0,
+            fee: fee,
+            active: true
+        });
+
+        emit AMMPoolCreated(tokenA, tokenB, fee);
+        return poolHash;
+    }
+
+    function addAMMLiquidity(
+        bytes32 poolHash,
+        uint256 amountA,
+        uint256 amountB,
+        uint256 minLiquidity
+    ) external nonReentrant returns (uint256) {
+        AMMPool storage pool = ammPools[poolHash];
+        require(pool.active, "Pool not active");
+        require(amountA > 0 && amountB > 0, "Amounts must be > 0");
+
+        uint256 liquidity;
+
+        if (pool.totalLiquidity == 0) {
+            // First liquidity provision
+            liquidity = Math.sqrt(amountA * amountB);
+            require(liquidity >= minLiquidity, "Insufficient liquidity minted");
+        } else {
+            // Subsequent liquidity provision
+            uint256 liquidityA = (amountA * pool.totalLiquidity) / pool.reserveA;
+            uint256 liquidityB = (amountB * pool.totalLiquidity) / pool.reserveB;
+            liquidity = Math.min(liquidityA, liquidityB);
+            require(liquidity >= minLiquidity, "Insufficient liquidity minted");
+        }
+
+        // Transfer tokens
+        IERC20(pool.tokenA).transferFrom(msg.sender, address(this), amountA);
+        IERC20(pool.tokenB).transferFrom(msg.sender, address(this), amountB);
+
+        // Update reserves and liquidity
+        pool.reserveA += amountA;
+        pool.reserveB += amountB;
+        pool.totalLiquidity += liquidity;
+
+        // Track user liquidity
+        userAMMLiquidity[msg.sender].push(poolHash);
+
+        emit AMMLiquidityAdded(msg.sender, poolHash, amountA, amountB, liquidity);
+        return liquidity;
+    }
+
+    function removeAMMLiquidity(bytes32 poolHash, uint256 liquidity) external nonReentrant {
+        AMMPool storage pool = ammPools[poolHash];
+        require(pool.active, "Pool not active");
+        require(liquidity > 0, "Liquidity must be > 0");
+
+        uint256 amountA = (liquidity * pool.reserveA) / pool.totalLiquidity;
+        uint256 amountB = (liquidity * pool.reserveB) / pool.totalLiquidity;
+
+        // Update reserves and liquidity
+        pool.reserveA -= amountA;
+        pool.reserveB -= amountB;
+        pool.totalLiquidity -= liquidity;
+
+        // Transfer tokens back
+        IERC20(pool.tokenA).transfer(msg.sender, amountA);
+        IERC20(pool.tokenB).transfer(msg.sender, amountB);
+
+        emit AMMLiquidityRemoved(msg.sender, poolHash, amountA, amountB, liquidity);
+    }
+
+    function swap(
+        bytes32 poolHash,
+        address tokenIn,
+        uint256 amountIn,
+        uint256 minAmountOut
+    ) external nonReentrant returns (uint256) {
+        AMMPool storage pool = ammPools[poolHash];
+        require(pool.active, "Pool not active");
+
+        bool isTokenA = tokenIn == pool.tokenA;
+        require(isTokenA || tokenIn == pool.tokenB, "Invalid token");
+
+        // Calculate output amount with fee
+        uint256 amountInWithFee = amountIn * (10000 - pool.fee);
+        uint256 numerator = amountInWithFee * (isTokenA ? pool.reserveB : pool.reserveA);
+        uint256 denominator = (isTokenA ? pool.reserveA : pool.reserveB) * 10000 + amountInWithFee;
+        uint256 amountOut = numerator / denominator;
+
+        require(amountOut >= minAmountOut, "Insufficient output amount");
+        require(amountOut <= (isTokenA ? pool.reserveB : pool.reserveA), "Insufficient liquidity");
+
+        // Transfer input token
+        IERC20(tokenIn).transferFrom(msg.sender, address(this), amountIn);
+
+        // Transfer output token
+        address tokenOut = isTokenA ? pool.tokenB : pool.tokenA;
+        IERC20(tokenOut).transfer(msg.sender, amountOut);
+
+        // Update reserves
+        if (isTokenA) {
+            pool.reserveA += amountIn;
+            pool.reserveB -= amountOut;
+        } else {
+            pool.reserveB += amountIn;
+            pool.reserveA -= amountOut;
+        }
+
+        emit AMMSwap(msg.sender, poolHash, tokenIn, tokenOut, amountIn, amountOut);
+        return amountOut;
+    }
+
+    function getAMMPool(bytes32 poolHash) external view returns (AMMPool memory) {
+        return ammPools[poolHash];
+    }
+
+    function getAMMPrice(bytes32 poolHash, address tokenIn, uint256 amountIn) external view returns (uint256) {
+        AMMPool memory pool = ammPools[poolHash];
+        require(pool.active, "Pool not active");
+
+        bool isTokenA = tokenIn == pool.tokenA;
+        require(isTokenA || tokenIn == pool.tokenB, "Invalid token");
+
+        uint256 amountInWithFee = amountIn * (10000 - pool.fee);
+        uint256 numerator = amountInWithFee * (isTokenA ? pool.reserveB : pool.reserveA);
+        uint256 denominator = (isTokenA ? pool.reserveA : pool.reserveB) * 10000 + amountInWithFee;
+
+        return numerator / denominator;
+    }
+
+    // ============ ADVANCED YIELD FARMING FUNCTIONS ============
+
+    function createYieldFarm(
+        address stakingToken,
+        address rewardToken,
+        uint256 rewardRate
+    ) external onlyOwner {
+        require(stakingToken != address(0), "Invalid staking token");
+        require(rewardToken != address(0), "Invalid reward token");
+        require(rewardRate > 0, "Reward rate must be > 0");
+
+        YieldFarm storage farm = yieldFarms[stakingToken];
+        require(farm.stakingToken == address(0), "Farm already exists");
+
+        farm.stakingToken = stakingToken;
+        farm.rewardToken = rewardToken;
+        farm.rewardRate = rewardRate;
+        farm.lastRewardTime = block.timestamp;
+
+        farmingTokens.push(stakingToken);
+
+        emit YieldFarmCreated(stakingToken, rewardToken, rewardRate);
+    }
+
+    function stakeInFarm(address token, uint256 amount) external nonReentrant {
+        YieldFarm storage farm = yieldFarms[token];
+        require(farm.stakingToken != address(0), "Farm does not exist");
+        require(amount > 0, "Amount must be > 0");
+
+        _updateFarmRewards(token);
+
+        // Transfer staking tokens
+        IERC20(token).transferFrom(msg.sender, address(this), amount);
+
+        // Update user stake
+        farm.userStakes[msg.sender] += amount;
+        farm.totalStaked += amount;
+
+        emit FarmStaked(msg.sender, token, amount);
+    }
+
+    function unstakeFromFarm(address token, uint256 amount) external nonReentrant {
+        YieldFarm storage farm = yieldFarms[token];
+        require(farm.userStakes[msg.sender] >= amount, "Insufficient stake");
+
+        _updateFarmRewards(token);
+
+        // Update user stake
+        farm.userStakes[msg.sender] -= amount;
+        farm.totalStaked -= amount;
+
+        // Transfer staking tokens back
+        IERC20(token).transfer(msg.sender, amount);
+
+        emit FarmUnstaked(msg.sender, token, amount);
+    }
+
+    function claimFarmRewards(address token) external nonReentrant {
+        _updateFarmRewards(token);
+
+        YieldFarm storage farm = yieldFarms[token];
+        uint256 rewards = farm.userRewards[msg.sender];
+        require(rewards > 0, "No rewards to claim");
+
+        farm.userRewards[msg.sender] = 0;
+
+        // Transfer reward tokens
+        IERC20(farm.rewardToken).transfer(msg.sender, rewards);
+
+        emit FarmRewardsClaimed(msg.sender, token, rewards);
+    }
+
+    function _updateFarmRewards(address token) internal {
+        YieldFarm storage farm = yieldFarms[token];
+        uint256 currentTime = block.timestamp;
+
+        if (farm.totalStaked > 0 && currentTime > farm.lastRewardTime) {
+            uint256 timeElapsed = currentTime - farm.lastRewardTime;
+            uint256 rewards = timeElapsed * farm.rewardRate;
+
+            farm.rewardPerTokenStored += (rewards * 1e18) / farm.totalStaked;
+            farm.lastRewardTime = currentTime;
+        }
+
+        // Update user rewards
+        uint256 userReward = (farm.userStakes[msg.sender] *
+            (farm.rewardPerTokenStored - farm.userRewardPerTokenPaid[msg.sender])) / 1e18;
+        farm.userRewards[msg.sender] += userReward;
+        farm.userRewardPerTokenPaid[msg.sender] = farm.rewardPerTokenStored;
+    }
+
+    function getFarmInfo(address token, address user) external view returns (
+        uint256 totalStaked,
+        uint256 userStaked,
+        uint256 userRewards,
+        uint256 rewardRate
+    ) {
+        YieldFarm memory farm = yieldFarms[token];
+
+        // Calculate pending rewards
+        uint256 currentTime = block.timestamp;
+        uint256 timeElapsed = currentTime - farm.lastRewardTime;
+        uint256 pendingRewards = timeElapsed * farm.rewardRate;
+
+        uint256 rewardPerToken = farm.rewardPerTokenStored;
+        if (farm.totalStaked > 0) {
+            rewardPerToken += (pendingRewards * 1e18) / farm.totalStaked;
+        }
+
+        uint256 userReward = farm.userRewards[user] +
+            (farm.userStakes[user] * (rewardPerToken - farm.userRewardPerTokenPaid[user])) / 1e18;
+
+        return (farm.totalStaked, farm.userStakes[user], userReward, farm.rewardRate);
+    }
+
+    function updateFarmRewardRate(address token, uint256 newRate) external onlyOwner {
+        YieldFarm storage farm = yieldFarms[token];
+        require(farm.stakingToken != address(0), "Farm does not exist");
+
+        _updateFarmRewards(token);
+        farm.rewardRate = newRate;
+
+        emit FarmRewardRateUpdated(token, newRate);
     }
 
     /**

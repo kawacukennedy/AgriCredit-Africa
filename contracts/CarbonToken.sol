@@ -119,7 +119,7 @@ contract CarbonToken is ERC20, ERC20Burnable, Ownable, ReentrancyGuard {
 
     RewardParams public rewardParams;
 
-    // Cross-chain bridging
+    // Enhanced Cross-chain bridging with validator security
     struct BridgeRequest {
         address user;
         uint256 amount;
@@ -127,10 +127,25 @@ contract CarbonToken is ERC20, ERC20Burnable, Ownable, ReentrancyGuard {
         address targetContract;
         uint256 requestTime;
         bool completed;
+        uint256 approvals;
+        mapping(address => bool) validatorApprovals;
     }
 
     mapping(uint256 => BridgeRequest) public bridgeRequests;
     uint256 public nextBridgeId = 1;
+
+    // Bridge validator system
+    mapping(address => bool) public bridgeValidators;
+    address[] public activeValidators;
+    mapping(address => uint256) public validatorStakes;
+    uint256 public minValidatorStake = 10000 * 10**18; // 10k tokens
+    uint256 public requiredValidatorApprovals = 3; // Minimum approvals needed
+    uint256 public validatorTimeout = 7 days; // Validators must approve within timeout
+
+    // Bridge security
+    bool public bridgePaused;
+    mapping(uint256 => uint256) public bridgeRequestTimeouts;
+    uint256 public maxBridgeAmount = 100000 * 10**18; // Max 100k tokens per bridge
 
     // Oracle for carbon pricing
     address public carbonPriceOracle;
@@ -153,6 +168,12 @@ contract CarbonToken is ERC20, ERC20Burnable, Ownable, ReentrancyGuard {
     event RewardParamsUpdated(uint256 baseRate, uint256 marketMultiplier, uint256 scarcityBonus);
     event BridgeInitiated(uint256 indexed bridgeId, address indexed user, uint256 amount, uint256 targetChainId);
     event BridgeCompleted(uint256 indexed bridgeId, address indexed user, uint256 amount);
+    event BridgeApproval(uint256 indexed bridgeId, address indexed validator);
+    event BridgeValidatorAdded(address indexed validator, uint256 stakeAmount);
+    event BridgeValidatorRemoved(address indexed validator);
+    event BridgeValidatorSlashed(address indexed validator, uint256 penalty);
+    event BridgePaused();
+    event BridgeUnpaused();
     event CarbonPriceOracleSet(address indexed oracle);
 
     constructor() ERC20("AgriCredit Carbon Token", "CARBT") Ownable(msg.sender) {
@@ -408,6 +429,22 @@ contract CarbonToken is ERC20, ERC20Burnable, Ownable, ReentrancyGuard {
         return total;
     }
 
+    function getBridgeValidators() external view returns (address[] memory) {
+        return activeValidators;
+    }
+
+    function getBridgeRequestApprovals(uint256 bridgeId) external view returns (uint256 approvals, uint256 required) {
+        return (bridgeRequests[bridgeId].approvals, requiredValidatorApprovals);
+    }
+
+    function isBridgeApproved(uint256 bridgeId) external view returns (bool) {
+        return bridgeRequests[bridgeId].approvals >= requiredValidatorApprovals;
+    }
+
+    function getValidatorStake(address validator) external view returns (uint256) {
+        return validatorStakes[validator];
+    }
+
     // ============ CROSS-CHAIN BRIDGING ============
 
     function initiateBridge(
@@ -415,21 +452,25 @@ contract CarbonToken is ERC20, ERC20Burnable, Ownable, ReentrancyGuard {
         uint256 targetChainId,
         address targetContract
     ) external returns (uint256) {
+        require(!bridgePaused, "Bridge is paused");
         require(balanceOf(msg.sender) >= amount, "Insufficient balance");
-        require(amount > 0, "Amount must be > 0");
+        require(amount > 0 && amount <= maxBridgeAmount, "Invalid bridge amount");
+        require(targetContract != address(0), "Invalid target contract");
 
         // Lock tokens
         _transfer(msg.sender, address(this), amount);
 
         uint256 bridgeId = nextBridgeId++;
-        bridgeRequests[bridgeId] = BridgeRequest({
-            user: msg.sender,
-            amount: amount,
-            targetChainId: targetChainId,
-            targetContract: targetContract,
-            requestTime: block.timestamp,
-            completed: false
-        });
+        BridgeRequest storage request = bridgeRequests[bridgeId];
+        request.user = msg.sender;
+        request.amount = amount;
+        request.targetChainId = targetChainId;
+        request.targetContract = targetContract;
+        request.requestTime = block.timestamp;
+        request.completed = false;
+        request.approvals = 0;
+
+        bridgeRequestTimeouts[bridgeId] = block.timestamp + validatorTimeout;
 
         emit BridgeInitiated(bridgeId, msg.sender, amount, targetChainId);
 
@@ -439,12 +480,14 @@ contract CarbonToken is ERC20, ERC20Burnable, Ownable, ReentrancyGuard {
     function completeBridge(
         uint256 bridgeId,
         bytes memory proof
-    ) external onlyOwner {
+    ) external {
         BridgeRequest storage request = bridgeRequests[bridgeId];
         require(!request.completed, "Bridge already completed");
+        require(block.timestamp <= bridgeRequestTimeouts[bridgeId], "Bridge request timed out");
+        require(request.approvals >= requiredValidatorApprovals, "Insufficient validator approvals");
 
         // In production, verify proof from bridge oracle
-        // For now, assume valid proof
+        // For now, assume valid proof after validator approvals
 
         request.completed = true;
 
@@ -452,6 +495,116 @@ contract CarbonToken is ERC20, ERC20Burnable, Ownable, ReentrancyGuard {
         _mint(request.user, request.amount);
 
         emit BridgeCompleted(bridgeId, request.user, request.amount);
+    }
+
+    // ============ BRIDGE VALIDATOR MANAGEMENT ============
+
+    function addBridgeValidator(address validator) external payable {
+        require(!bridgeValidators[validator], "Already a validator");
+        require(msg.value >= minValidatorStake, "Insufficient stake");
+
+        bridgeValidators[validator] = true;
+        validatorStakes[validator] = msg.value;
+        activeValidators.push(validator);
+
+        emit BridgeValidatorAdded(validator, msg.value);
+    }
+
+    function removeBridgeValidator() external {
+        require(bridgeValidators[msg.sender], "Not a validator");
+
+        bridgeValidators[msg.sender] = false;
+        uint256 stakeAmount = validatorStakes[msg.sender];
+        validatorStakes[msg.sender] = 0;
+
+        // Remove from active validators
+        for (uint256 i = 0; i < activeValidators.length; i++) {
+            if (activeValidators[i] == msg.sender) {
+                activeValidators[i] = activeValidators[activeValidators.length - 1];
+                activeValidators.pop();
+                break;
+            }
+        }
+
+        // Return stake
+        payable(msg.sender).transfer(stakeAmount);
+
+        emit BridgeValidatorRemoved(msg.sender);
+    }
+
+    function approveBridgeRequest(uint256 bridgeId) external {
+        require(bridgeValidators[msg.sender], "Not a bridge validator");
+        require(bridgeRequests[bridgeId].user != address(0), "Bridge request does not exist");
+
+        BridgeRequest storage request = bridgeRequests[bridgeId];
+        require(!request.completed, "Bridge already completed");
+        require(block.timestamp <= bridgeRequestTimeouts[bridgeId], "Bridge request timed out");
+        require(!request.validatorApprovals[msg.sender], "Already approved by this validator");
+
+        request.validatorApprovals[msg.sender] = true;
+        request.approvals++;
+
+        emit BridgeApproval(bridgeId, msg.sender);
+    }
+
+    function slashBridgeValidator(address validator, uint256 penalty) external onlyOwner {
+        require(bridgeValidators[validator], "Not a validator");
+        require(validatorStakes[validator] >= penalty, "Insufficient stake for penalty");
+
+        validatorStakes[validator] -= penalty;
+
+        // If stake falls below minimum, remove validator
+        if (validatorStakes[validator] < minValidatorStake) {
+            _removeValidator(validator);
+        }
+
+        emit BridgeValidatorSlashed(validator, penalty);
+    }
+
+    function _removeValidator(address validator) internal {
+        bridgeValidators[validator] = false;
+        uint256 stakeAmount = validatorStakes[validator];
+        validatorStakes[validator] = 0;
+
+        // Remove from active validators
+        for (uint256 i = 0; i < activeValidators.length; i++) {
+            if (activeValidators[i] == validator) {
+                activeValidators[i] = activeValidators[activeValidators.length - 1];
+                activeValidators.pop();
+                break;
+            }
+        }
+
+        // Return remaining stake
+        if (stakeAmount > 0) {
+            payable(validator).transfer(stakeAmount);
+        }
+
+        emit BridgeValidatorRemoved(validator);
+    }
+
+    // ============ BRIDGE SECURITY FUNCTIONS ============
+
+    function pauseBridge() external onlyOwner {
+        bridgePaused = true;
+        emit BridgePaused();
+    }
+
+    function unpauseBridge() external onlyOwner {
+        bridgePaused = false;
+        emit BridgeUnpaused();
+    }
+
+    function emergencyCancelBridge(uint256 bridgeId) external onlyOwner {
+        BridgeRequest storage request = bridgeRequests[bridgeId];
+        require(!request.completed, "Bridge already completed");
+
+        request.completed = true;
+
+        // Return tokens to user
+        _transfer(address(this), request.user, request.amount);
+
+        emit BridgeCompleted(bridgeId, request.user, 0); // 0 amount indicates cancellation
     }
 
     function setCarbonPriceOracle(address _oracle) external onlyOwner {
@@ -488,5 +641,17 @@ contract CarbonToken is ERC20, ERC20Burnable, Ownable, ReentrancyGuard {
         require(newRate <= 2000, "Rate too high"); // Max 20%
         _updateRewards(address(0)); // Update all rewards before changing rate
         rewardRate = newRate;
+    }
+
+    function updateBridgeParameters(
+        uint256 _minValidatorStake,
+        uint256 _requiredApprovals,
+        uint256 _validatorTimeout,
+        uint256 _maxBridgeAmount
+    ) external onlyOwner {
+        minValidatorStake = _minValidatorStake;
+        requiredValidatorApprovals = _requiredApprovals;
+        validatorTimeout = _validatorTimeout;
+        maxBridgeAmount = _maxBridgeAmount;
     }
 }

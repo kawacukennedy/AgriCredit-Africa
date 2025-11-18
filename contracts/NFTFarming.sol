@@ -98,14 +98,29 @@ contract NFTFarming is ERC721, Ownable, ReentrancyGuard {
     mapping(uint256 => bool) public isFractionalized;
     mapping(uint256 => uint256) public fractionalSupply; // Total fractional shares
 
-    // Staking and rewards
-    mapping(uint256 => mapping(address => uint256)) public nftStakes; // NFT ID => staker => amount
+    // Enhanced Staking and rewards
+    struct StakeInfo {
+        uint256 stakeTime;
+        uint256 lastRewardClaim;
+        uint256 accumulatedRewards;
+        bool isActive;
+    }
+
+    mapping(uint256 => mapping(address => StakeInfo)) public nftStakeInfo; // NFT ID => staker => stake info
     mapping(uint256 => uint256) public totalNftStakes;
     mapping(address => uint256[]) public stakerNFTs;
     mapping(address => uint256) public stakingRewards;
 
-    uint256 public stakingRewardRate = 500; // 5% APY in basis points
+    uint256 public baseStakingRewardRate = 500; // 5% APY in basis points
+    uint256 public qualityBonusMultiplier = 200; // 2x bonus for quality score > 80
+    uint256 public longTermBonusRate = 100; // Additional 1% per month staked
+    uint256 public maxLongTermBonus = 500; // Max 5% additional bonus
     uint256 public lastRewardUpdate;
+
+    // Bridge validator security
+    mapping(address => bool) public bridgeValidators;
+    mapping(uint256 => address[]) public nftValidators; // NFT ID => approved validators
+    uint256 public minValidatorApprovals = 2; // Minimum validator approvals for cross-chain transfers
 
     IdentityRegistry public identityRegistry;
     IERC20 public rewardToken;
@@ -357,21 +372,30 @@ contract NFTFarming is ERC721, Ownable, ReentrancyGuard {
     function stakeNFT(uint256 tokenId) external nonReentrant {
         require(ownerOf(tokenId) == msg.sender, "Not the owner");
         require(farmNFTs[tokenId].isActive, "Farm NFT not active");
-        require(nftStakes[tokenId][msg.sender] == 0, "Already staked");
+        require(!nftStakeInfo[tokenId][msg.sender].isActive, "Already staked");
 
-        nftStakes[tokenId][msg.sender] = 1; // Staked
+        nftStakeInfo[tokenId][msg.sender] = StakeInfo({
+            stakeTime: block.timestamp,
+            lastRewardClaim: block.timestamp,
+            accumulatedRewards: 0,
+            isActive: true
+        });
+
         totalNftStakes[tokenId]++;
         stakerNFTs[msg.sender].push(tokenId);
 
         _updateStakingRewards(msg.sender);
 
-        emit NFTStaked(tokenId, msg.sender);
+        emit NFTStaked(tokenId, msg.sender, block.timestamp);
     }
 
     function unstakeNFT(uint256 tokenId) external nonReentrant {
-        require(nftStakes[tokenId][msg.sender] > 0, "Not staked");
+        require(nftStakeInfo[tokenId][msg.sender].isActive, "Not staked");
 
-        nftStakes[tokenId][msg.sender] = 0;
+        StakeInfo storage stake = nftStakeInfo[tokenId][msg.sender];
+        uint256 stakeDuration = block.timestamp - stake.stakeTime;
+
+        stake.isActive = false;
         totalNftStakes[tokenId]--;
 
         // Remove from staker's list
@@ -386,7 +410,7 @@ contract NFTFarming is ERC721, Ownable, ReentrancyGuard {
 
         _updateStakingRewards(msg.sender);
 
-        emit NFTUnstaked(tokenId, msg.sender);
+        emit NFTUnstaked(tokenId, msg.sender, stakeDuration);
     }
 
     function claimStakingRewards() external nonReentrant {
@@ -404,38 +428,208 @@ contract NFTFarming is ERC721, Ownable, ReentrancyGuard {
         uint256 timeElapsed = block.timestamp - lastRewardUpdate;
         if (timeElapsed > 0) {
             uint256[] memory stakedTokens = stakerNFTs[staker];
-            uint256 totalStakedByUser = stakedTokens.length;
+            uint256 totalRewards = 0;
 
-            if (totalStakedByUser > 0) {
-                // Calculate rewards based on number of staked NFTs
-                uint256 rewards = (totalStakedByUser * stakingRewardRate * timeElapsed) / (365 days * 10000);
-                stakingRewards[staker] += rewards;
+            for (uint256 i = 0; i < stakedTokens.length; i++) {
+                uint256 tokenId = stakedTokens[i];
+                StakeInfo storage stake = nftStakeInfo[tokenId][staker];
+
+                if (stake.isActive) {
+                    uint256 stakeDuration = block.timestamp - stake.stakeTime;
+                    uint256 baseRewards = _calculateBaseRewards(tokenId, timeElapsed);
+
+                    // Apply quality bonus
+                    uint256 qualityBonus = _calculateQualityBonus(tokenId);
+
+                    // Apply long-term staking bonus
+                    uint256 longTermBonus = _calculateLongTermBonus(stakeDuration);
+
+                    uint256 totalTokenRewards = baseRewards * (10000 + qualityBonus + longTermBonus) / 10000;
+                    totalRewards += totalTokenRewards;
+
+                    stake.accumulatedRewards += totalTokenRewards;
+                }
+            }
+
+            if (totalRewards > 0) {
+                stakingRewards[staker] += totalRewards;
             }
         }
         lastRewardUpdate = block.timestamp;
     }
 
-    function getStakingInfo(address staker) external view returns (uint256 stakedCount, uint256 pendingRewards) {
+    function _calculateBaseRewards(uint256 tokenId, uint256 timeElapsed) internal view returns (uint256) {
+        // Base rewards scaled by NFT value (expected yield as proxy)
+        uint256 nftValue = farmNFTs[tokenId].expectedYield;
+        return (nftValue * baseStakingRewardRate * timeElapsed) / (365 days * 10000);
+    }
+
+    function _calculateQualityBonus(uint256 tokenId) internal view returns (uint256) {
+        uint256 qualityScore = farmNFTs[tokenId].qualityScore;
+        if (qualityScore >= 80) {
+            return qualityBonusMultiplier; // 2x bonus
+        } else if (qualityScore >= 60) {
+            return qualityBonusMultiplier / 2; // 1x bonus
+        }
+        return 0;
+    }
+
+    function _calculateLongTermBonus(uint256 stakeDuration) internal view returns (uint256) {
+        uint256 monthsStaked = stakeDuration / 30 days;
+        uint256 bonus = monthsStaked * longTermBonusRate;
+        return bonus > maxLongTermBonus ? maxLongTermBonus : bonus;
+    }
+
+    function getStakingInfo(address staker) external view returns (uint256 stakedCount, uint256 pendingRewards, uint256 totalAccumulated) {
         uint256[] memory stakedTokens = stakerNFTs[staker];
         stakedCount = stakedTokens.length;
+        totalAccumulated = 0;
 
         // Calculate pending rewards
         uint256 timeElapsed = block.timestamp - lastRewardUpdate;
-        if (timeElapsed > 0 && stakedCount > 0) {
-            pendingRewards = stakingRewards[staker] + (stakedCount * stakingRewardRate * timeElapsed) / (365 days * 10000);
-        } else {
-            pendingRewards = stakingRewards[staker];
+        uint256 newRewards = 0;
+
+        for (uint256 i = 0; i < stakedTokens.length; i++) {
+            uint256 tokenId = stakedTokens[i];
+            StakeInfo memory stake = nftStakeInfo[tokenId][staker];
+
+            if (stake.isActive) {
+                totalAccumulated += stake.accumulatedRewards;
+
+                if (timeElapsed > 0) {
+                    uint256 stakeDuration = block.timestamp - stake.stakeTime;
+                    uint256 baseRewards = _calculateBaseRewards(tokenId, timeElapsed);
+                    uint256 qualityBonus = _calculateQualityBonus(tokenId);
+                    uint256 longTermBonus = _calculateLongTermBonus(stakeDuration);
+                    newRewards += baseRewards * (10000 + qualityBonus + longTermBonus) / 10000;
+                }
+            }
         }
 
-        return (stakedCount, pendingRewards);
+        pendingRewards = stakingRewards[staker] + newRewards;
+        return (stakedCount, pendingRewards, totalAccumulated);
+    }
+
+    // ============ BRIDGE VALIDATOR FUNCTIONS ============
+
+    function addBridgeValidator(address validator) external onlyOwner {
+        require(validator != address(0), "Invalid validator address");
+        require(!bridgeValidators[validator], "Already a validator");
+
+        bridgeValidators[validator] = true;
+        emit BridgeValidatorAdded(validator);
+    }
+
+    function removeBridgeValidator(address validator) external onlyOwner {
+        require(bridgeValidators[validator], "Not a validator");
+
+        bridgeValidators[validator] = false;
+        emit BridgeValidatorRemoved(validator);
+    }
+
+    function initiateCrossChainTransfer(uint256 tokenId, address to, string memory destinationChain) external {
+        require(ownerOf(tokenId) == msg.sender, "Not the owner");
+        require(bytes(destinationChain).length > 0, "Invalid destination chain");
+
+        // Reset validator approvals for this transfer
+        delete nftValidators[tokenId];
+
+        emit CrossChainTransferInitiated(tokenId, msg.sender, to, destinationChain);
+    }
+
+    function approveCrossChainTransfer(uint256 tokenId, address recipient) external {
+        require(bridgeValidators[msg.sender], "Not a bridge validator");
+        require(ownerOf(tokenId) != address(0), "NFT does not exist");
+
+        // Check if validator already approved
+        address[] storage validators = nftValidators[tokenId];
+        for (uint256 i = 0; i < validators.length; i++) {
+            require(validators[i] != msg.sender, "Already approved by this validator");
+        }
+
+        validators.push(msg.sender);
+
+        emit CrossChainTransferApproved(tokenId, msg.sender);
+
+        // If minimum approvals reached, execute transfer
+        if (validators.length >= minValidatorApprovals) {
+            _executeCrossChainTransfer(tokenId, recipient);
+        }
+    }
+
+    function _executeCrossChainTransfer(uint256 tokenId, address recipient) internal {
+        address currentOwner = ownerOf(tokenId);
+
+        // Transfer NFT to recipient
+        _transfer(currentOwner, recipient, tokenId);
+
+        // Update farmer NFT lists
+        _removeFromFarmerList(currentOwner, tokenId);
+        farmerNFTs[recipient].push(tokenId);
+        farmNFTs[tokenId].farmer = recipient;
+
+        // Clear validator approvals
+        delete nftValidators[tokenId];
+
+        emit FarmNFTTransferred(tokenId, currentOwner, recipient);
+    }
+
+    function getCrossChainValidators(uint256 tokenId) external view returns (address[] memory) {
+        return nftValidators[tokenId];
+    }
+
+    function isBridgeValidator(address validator) external view returns (bool) {
+        return bridgeValidators[validator];
+    }
+
+    // ============ ADMIN FUNCTIONS ============
+
+    function updateStakingParameters(
+        uint256 _baseRewardRate,
+        uint256 _qualityBonus,
+        uint256 _longTermBonus,
+        uint256 _maxLongTermBonus
+    ) external onlyOwner {
+        baseStakingRewardRate = _baseRewardRate;
+        qualityBonusMultiplier = _qualityBonus;
+        longTermBonusRate = _longTermBonus;
+        maxLongTermBonus = _maxLongTermBonus;
+    }
+
+    function updateBridgeParameters(uint256 _minValidatorApprovals) external onlyOwner {
+        minValidatorApprovals = _minValidatorApprovals;
+    }
+
+    function emergencyUnstake(uint256 tokenId, address staker) external onlyOwner {
+        require(nftStakeInfo[tokenId][staker].isActive, "Not staked");
+
+        StakeInfo storage stake = nftStakeInfo[tokenId][staker];
+        stake.isActive = false;
+        totalNftStakes[tokenId]--;
+
+        // Remove from staker's list
+        uint256[] storage stakerTokens = stakerNFTs[staker];
+        for (uint256 i = 0; i < stakerTokens.length; i++) {
+            if (stakerTokens[i] == tokenId) {
+                stakerTokens[i] = stakerTokens[stakerTokens.length - 1];
+                stakerTokens.pop();
+                break;
+            }
+        }
+
+        emit NFTUnstaked(tokenId, staker, block.timestamp - stake.stakeTime);
     }
 
     // ============ ADDITIONAL EVENTS ============
 
     event NFTFractionalized(uint256 indexed tokenId, address indexed shareToken, uint256 totalShares);
-    event NFTStaked(uint256 indexed tokenId, address indexed staker);
-    event NFTUnstaked(uint256 indexed tokenId, address indexed staker);
+    event NFTStaked(uint256 indexed tokenId, address indexed staker, uint256 stakeTime);
+    event NFTUnstaked(uint256 indexed tokenId, address indexed staker, uint256 stakeDuration);
     event RewardsClaimed(address indexed staker, uint256 amount);
     event QualityScoreUpdated(uint256 indexed tokenId, uint256 score);
     event BatchAssociated(uint256 indexed tokenId, uint256 batchId);
+    event BridgeValidatorAdded(address indexed validator);
+    event BridgeValidatorRemoved(address indexed validator);
+    event CrossChainTransferInitiated(uint256 indexed tokenId, address indexed from, address indexed to, string destinationChain);
+    event CrossChainTransferApproved(uint256 indexed tokenId, address indexed validator);
 }

@@ -8,6 +8,7 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@openzeppelin/contracts/metatx/ERC2771Context.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
+import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 
 contract GovernanceDAO is Ownable, ReentrancyGuard, ERC2771Context {
     using ECDSA for bytes32;
@@ -113,6 +114,38 @@ contract GovernanceDAO is Ownable, ReentrancyGuard, ERC2771Context {
 
     mapping(bytes32 => bool) public executedGaslessVotes;
 
+    // ZK-Rollup Integration
+    struct ZKProof {
+        uint256[2] a;
+        uint256[2][2] b;
+        uint256[2] c;
+        uint256[1] input;
+    }
+
+    struct PrivateVote {
+        uint256 proposalId;
+        bool support;
+        uint256 weight;
+        bytes32 commitment;
+        ZKProof proof;
+    }
+
+    mapping(bytes32 => bool) public verifiedZKProofs;
+    address public zkVerifier; // ZK proof verification contract
+
+    // Time-weighted Governance
+    struct TokenLock {
+        uint256 amount;
+        uint256 lockTime;
+        uint256 lockDuration;
+        bool active;
+    }
+
+    mapping(address => TokenLock[]) public tokenLocks;
+    mapping(address => uint256) public totalLockedTokens;
+    uint256 public maxLockDuration = 365 days; // Maximum lock period
+    uint256 public timeWeightMultiplier = 2; // Multiplier for time-weighted voting
+
     // Treasury
     address public treasury;
     uint256 public treasuryBalance;
@@ -136,14 +169,19 @@ contract GovernanceDAO is Ownable, ReentrancyGuard, ERC2771Context {
     event DelegateChanged(address indexed delegator, address indexed fromDelegate, address indexed toDelegate);
     event TreasuryTransfer(address indexed to, uint256 amount);
     event EmergencyDeclared(uint256 indexed proposalId);
+    event ZKVoteCast(bytes32 indexed commitment, uint256 indexed proposalId, uint256 weight);
+    event TokensLocked(address indexed user, uint256 amount, uint256 duration);
+    event TokensUnlocked(address indexed user, uint256 amount);
 
     constructor(
         address _governanceToken,
         address _treasury,
-        address trustedForwarder
+        address trustedForwarder,
+        address _zkVerifier
     ) Ownable(msg.sender) ERC2771Context(trustedForwarder) {
         governanceToken = IERC20(_governanceToken);
         treasury = _treasury;
+        zkVerifier = _zkVerifier;
 
         // Initialize emergency committee
         emergencyCommittee[msg.sender] = true;
@@ -297,6 +335,55 @@ contract GovernanceDAO is Ownable, ReentrancyGuard, ERC2771Context {
         _castVote(voteData.proposalId, signer, voteData.support, voteData.weight);
 
         emit GaslessVoteCast(voteHash, signer, voteData.proposalId, voteData.support, voteData.weight);
+    }
+
+    // ZK-Rollup Private Voting
+    function castZKVote(PrivateVote memory zkVote) external {
+        require(zkVerifier != address(0), "ZK verifier not set");
+        require(!verifiedZKProofs[zkVote.commitment], "ZK proof already used");
+
+        // Verify ZK proof (simplified - in practice, call external verifier)
+        require(_verifyZKProof(zkVote.proof, zkVote.commitment), "Invalid ZK proof");
+
+        // Mark proof as used
+        verifiedZKProofs[zkVote.commitment] = true;
+
+        // Cast the private vote
+        _castPrivateVote(zkVote.proposalId, zkVote.support, zkVote.weight);
+
+        emit ZKVoteCast(zkVote.commitment, zkVote.proposalId, zkVote.weight);
+    }
+
+    function _verifyZKProof(ZKProof memory proof, bytes32 commitment) internal view returns (bool) {
+        // Simplified ZK verification - in practice, this would call an external verifier contract
+        // For demonstration, we'll do a basic check
+        return proof.input[0] != 0; // Placeholder verification
+    }
+
+    function _castPrivateVote(uint256 _proposalId, bool support, uint256 weight) internal {
+        Proposal storage proposal = proposals[_proposalId];
+        require(proposal.status == ProposalStatus.ACTIVE, "Proposal not active");
+
+        // Use a pseudo-random voter address based on commitment for privacy
+        bytes32 pseudoVoter = keccak256(abi.encodePacked(_proposalId, support, weight, block.timestamp));
+        address voterAddress = address(uint160(uint256(pseudoVoter)));
+
+        require(!proposal.votes[voterAddress].hasVoted, "Already voted");
+
+        proposal.votes[voterAddress] = Vote({
+            hasVoted: true,
+            support: support,
+            weight: weight,
+            timestamp: block.timestamp
+        });
+
+        if (support) {
+            proposal.forVotes += weight;
+        } else {
+            proposal.againstVotes += weight;
+        }
+
+        emit VoteCast(_proposalId, voterAddress, support, weight, block.timestamp);
     }
 
     function _castVote(uint256 _proposalId, address voter, bool support, uint256 weight) internal {
@@ -462,7 +549,10 @@ contract GovernanceDAO is Ownable, ReentrancyGuard, ERC2771Context {
         // Add votes from delegation chains
         uint256 chainVotes = _calculateDelegationChainVotes(account);
 
-        return baseVotes + chainVotes;
+        // Add time-weighted votes from locked tokens
+        uint256 timeWeightedVotes = _calculateTimeWeightedLockedVotes(account);
+
+        return baseVotes + chainVotes + timeWeightedVotes;
     }
 
     function _calculateDelegationChainVotes(address account) internal view returns (uint256) {
@@ -480,6 +570,67 @@ contract GovernanceDAO is Ownable, ReentrancyGuard, ERC2771Context {
         }
 
         return totalChainVotes;
+    }
+
+    // Time-weighted Governance - Token Locking
+    function lockTokens(uint256 amount, uint256 duration) external {
+        require(amount > 0, "Amount must be positive");
+        require(duration > 0 && duration <= maxLockDuration, "Invalid lock duration");
+        require(governanceToken.balanceOf(msg.sender) >= amount, "Insufficient balance");
+
+        // Transfer tokens to contract
+        require(governanceToken.transferFrom(msg.sender, address(this), amount), "Transfer failed");
+
+        tokenLocks[msg.sender].push(TokenLock({
+            amount: amount,
+            lockTime: block.timestamp,
+            lockDuration: duration,
+            active: true
+        }));
+
+        totalLockedTokens[msg.sender] += amount;
+
+        emit TokensLocked(msg.sender, amount, duration);
+    }
+
+    function unlockTokens(uint256 lockIndex) external {
+        require(lockIndex < tokenLocks[msg.sender].length, "Invalid lock index");
+
+        TokenLock storage lock = tokenLocks[msg.sender][lockIndex];
+        require(lock.active, "Lock not active");
+        require(block.timestamp >= lock.lockTime + lock.lockDuration, "Lock period not expired");
+
+        // Transfer tokens back
+        require(governanceToken.transfer(msg.sender, lock.amount), "Transfer failed");
+
+        totalLockedTokens[msg.sender] -= lock.amount;
+        lock.active = false;
+
+        emit TokensUnlocked(msg.sender, lock.amount);
+    }
+
+    function getTimeWeightedVotes(address account) public view returns (uint256) {
+        uint256 baseVotes = getVotes(account);
+        uint256 lockedVotes = _calculateTimeWeightedLockedVotes(account);
+
+        return baseVotes + lockedVotes;
+    }
+
+    function _calculateTimeWeightedLockedVotes(address account) internal view returns (uint256) {
+        TokenLock[] memory locks = tokenLocks[account];
+        uint256 weightedVotes = 0;
+
+        for (uint256 i = 0; i < locks.length; i++) {
+            if (locks[i].active) {
+                uint256 timeHeld = block.timestamp - locks[i].lockTime;
+                uint256 timeWeight = (timeHeld * timeWeightMultiplier) / locks[i].lockDuration;
+                timeWeight = Math.min(timeWeight, timeWeightMultiplier); // Cap at multiplier
+
+                weightedVotes += (locks[i].amount * timeWeight) / 1e18; // Normalize
+            }
+        }
+
+        return weightedVotes;
     }
 
     // View functions
@@ -526,6 +677,18 @@ contract GovernanceDAO is Ownable, ReentrancyGuard, ERC2771Context {
         return ProposalStatus.DEFEATED;
     }
 
+    function getTokenLocks(address account) external view returns (TokenLock[] memory) {
+        return tokenLocks[account];
+    }
+
+    function getLockedTokenBalance(address account) external view returns (uint256) {
+        return totalLockedTokens[account];
+    }
+
+    function isZKProofVerified(bytes32 commitment) external view returns (bool) {
+        return verifiedZKProofs[commitment];
+    }
+
     // Administrative functions
     function addEmergencyCommitteeMember(address member) external onlyOwner {
         emergencyCommittee[member] = true;
@@ -553,6 +716,18 @@ contract GovernanceDAO is Ownable, ReentrancyGuard, ERC2771Context {
         emergencyThreshold = _emergencyThreshold;
         emergencyVotingPeriod = _emergencyVotingPeriod;
         proposalCooldown = _proposalCooldown;
+    }
+
+    function updateZKVerifier(address _zkVerifier) external onlyOwner {
+        zkVerifier = _zkVerifier;
+    }
+
+    function updateTimeWeightedParameters(
+        uint256 _maxLockDuration,
+        uint256 _timeWeightMultiplier
+    ) external onlyOwner {
+        maxLockDuration = _maxLockDuration;
+        timeWeightMultiplier = _timeWeightMultiplier;
     }
 
     function depositToTreasury() external payable {

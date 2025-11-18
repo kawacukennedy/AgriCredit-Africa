@@ -11,7 +11,14 @@ import {
   LIQUIDITY_POOL_ABI,
   YIELD_TOKEN_ABI,
   NFT_FARMING_ABI,
-  AGRI_CREDIT_ABI
+  AGRI_CREDIT_ABI,
+  AI_PREDICTOR_ABI,
+  DYNAMIC_NFT_ABI,
+  CROSS_CHAIN_GOVERNANCE_ABI,
+  ADVANCED_INSURANCE_ABI,
+  YIELD_VAULT_ABI,
+  DECENTRALIZED_ORACLE_ABI,
+  PARAMETRIC_INSURANCE_ABI
 } from './contracts';
 
 export class ContractInteractions {
@@ -138,9 +145,9 @@ export class ContractInteractions {
     return new ethers.Contract(CONTRACT_ADDRESSES.GovernanceDAO, GOVERNANCE_DAO_ABI, signer);
   }
 
-  async propose(description: string) {
+  async propose(targets: string[], values: string[], calldatas: string[], description: string) {
     const contract = await this.getGovernanceDAOContract();
-    const tx = await contract.propose(description);
+    const tx = await contract.propose(targets, values.map(v => ethers.parseEther(v)), calldatas, description);
     return await tx.wait();
   }
 
@@ -161,6 +168,23 @@ export class ContractInteractions {
     return await contract.getProposal(proposalId);
   }
 
+  async getVotes(account: string) {
+    const contract = await this.getGovernanceDAOContract();
+    const votes = await contract.getVotes(account);
+    return ethers.formatEther(votes);
+  }
+
+  async lockTokens(amount: string, duration: number) {
+    const contract = await this.getGovernanceDAOContract();
+    const tx = await contract.lockTokens(ethers.parseEther(amount), duration);
+    return await tx.wait();
+  }
+
+  async getTokenLocks(account: string) {
+    const contract = await this.getGovernanceDAOContract();
+    return await contract.getTokenLocks(account);
+  }
+
   // Carbon Token Contract
   async getCarbonTokenContract() {
     if (!this.provider) throw new Error('Provider not available');
@@ -168,9 +192,15 @@ export class ContractInteractions {
     return new ethers.Contract(CONTRACT_ADDRESSES.CarbonToken, CARBON_TOKEN_ABI, signer);
   }
 
-  async mintCarbonTokens(to: string, carbonAmount: string, verificationProof: string) {
+  async mintCarbonCredit(farmer: string, co2Amount: string, methodology: string, location: string, aiConfidence: number, aiProof: string) {
     const contract = await this.getCarbonTokenContract();
-    const tx = await contract.mintCarbonTokens(to, ethers.parseEther(carbonAmount), verificationProof);
+    const tx = await contract.mintCarbonCredit(farmer, ethers.parseEther(co2Amount), methodology, location, aiConfidence, aiProof);
+    return await tx.wait();
+  }
+
+  async retireCarbonCredits(creditId: number) {
+    const contract = await this.getCarbonTokenContract();
+    const tx = await contract.retireCarbonCredits(creditId);
     return await tx.wait();
   }
 
@@ -180,10 +210,44 @@ export class ContractInteractions {
     return await tx.wait();
   }
 
-  async getCarbonOffset(userAddress: string) {
+  async stakeTokens(amount: string) {
     const contract = await this.getCarbonTokenContract();
-    const offset = await contract.getCarbonOffset(userAddress);
-    return ethers.formatEther(offset);
+    const tx = await contract.stakeTokens(ethers.parseEther(amount));
+    return await tx.wait();
+  }
+
+  async unstakeTokens(amount: string) {
+    const contract = await this.getCarbonTokenContract();
+    const tx = await contract.unstakeTokens(ethers.parseEther(amount));
+    return await tx.wait();
+  }
+
+  async claimStakingRewards() {
+    const contract = await this.getCarbonTokenContract();
+    const tx = await contract.claimRewards();
+    return await tx.wait();
+  }
+
+  async getStakingInfo(userAddress: string) {
+    const contract = await this.getCarbonTokenContract();
+    return await contract.getStakingInfo(userAddress);
+  }
+
+  async initiateBridge(amount: string, targetChainId: number, targetContract: string) {
+    const contract = await this.getCarbonTokenContract();
+    const tx = await contract.initiateBridge(ethers.parseEther(amount), targetChainId, targetContract);
+    return await tx.wait();
+  }
+
+  async approveBridgeRequest(bridgeId: number) {
+    const contract = await this.getCarbonTokenContract();
+    const tx = await contract.approveBridgeRequest(bridgeId);
+    return await tx.wait();
+  }
+
+  async getBridgeValidators() {
+    const contract = await this.getCarbonTokenContract();
+    return await contract.getBridgeValidators();
   }
 
   // Carbon Marketplace functions using MarketplaceEscrow
@@ -305,15 +369,50 @@ export class ContractInteractions {
     return new ethers.Contract(CONTRACT_ADDRESSES.NFTFarming, NFT_FARMING_ABI, signer);
   }
 
-  async mintFarmNFT(farmer: string, farmName: string, location: string, size: number, cropType: string, expectedYield: number, metadataURI: string) {
+  async mintFarmNFT(farmer: string, farmName: string, location: string, size: number, cropType: string, expectedYield: number, metadataURI: string, initialSupplyChainData: string = "") {
     const contract = await this.getNFTFarmingContract();
-    const tx = await contract.mintFarmNFT(farmer, farmName, location, size, cropType, expectedYield, metadataURI);
+    const tx = await contract.mintFarmNFT(farmer, farmName, location, size, cropType, expectedYield, metadataURI, initialSupplyChainData);
     return await tx.wait();
   }
 
-  async recordHarvest(tokenId: number, actualYield: number) {
+  async recordHarvest(tokenId: number, actualYield: number, harvestProof: string = "") {
     const contract = await this.getNFTFarmingContract();
-    const tx = await contract.recordHarvest(tokenId, actualYield);
+    const tx = await contract.recordHarvest(tokenId, actualYield, harvestProof);
+    return await tx.wait();
+  }
+
+  async stakeNFT(tokenId: number) {
+    const contract = await this.getNFTFarmingContract();
+    const tx = await contract.stakeNFT(tokenId);
+    return await tx.wait();
+  }
+
+  async unstakeNFT(tokenId: number) {
+    const contract = await this.getNFTFarmingContract();
+    const tx = await contract.unstakeNFT(tokenId);
+    return await tx.wait();
+  }
+
+  async claimStakingRewards() {
+    const contract = await this.getNFTFarmingContract();
+    const tx = await contract.claimStakingRewards();
+    return await tx.wait();
+  }
+
+  async getStakingInfo(staker: string) {
+    const contract = await this.getNFTFarmingContract();
+    return await contract.getStakingInfo(staker);
+  }
+
+  async initiateCrossChainTransfer(tokenId: number, to: string, destinationChain: string) {
+    const contract = await this.getNFTFarmingContract();
+    const tx = await contract.initiateCrossChainTransfer(tokenId, to, destinationChain);
+    return await tx.wait();
+  }
+
+  async approveCrossChainTransfer(tokenId: number, recipient: string) {
+    const contract = await this.getNFTFarmingContract();
+    const tx = await contract.approveCrossChainTransfer(tokenId, recipient);
     return await tx.wait();
   }
 
@@ -580,6 +679,179 @@ export class ContractInteractions {
   async transferAgriCredit(to: string, amount: string) {
     const contract = await this.getAgriCreditContract();
     const tx = await contract.transfer(to, ethers.parseEther(amount));
+    return await tx.wait();
+  }
+
+  // ============ NEW ENHANCED CONTRACTS ============
+
+  // AI Predictor Contract
+  async getAIPredictorContract() {
+    if (!this.provider) throw new Error('Provider not available');
+    const signer = await this.getSigner();
+    return new ethers.Contract(CONTRACT_ADDRESSES.AIPredictor, AI_PREDICTOR_ABI, signer);
+  }
+
+  async predictCreditScore(userAddress: string, userData: string) {
+    const contract = await this.getAIPredictorContract();
+    const tx = await contract.predictCreditScore(userAddress, ethers.toUtf8Bytes(userData), { value: ethers.parseEther("0.01") });
+    return await tx.wait();
+  }
+
+  async predictYield(farmSize: number, cropType: string, location: string, plantingDate: number) {
+    const contract = await this.getAIPredictorContract();
+    const tx = await contract.predictYield(farmSize, cropType, location, plantingDate, { value: ethers.parseEther("0.01") });
+    return await tx.wait();
+  }
+
+  async getRiskProfile(userAddress: string) {
+    const contract = await this.getAIPredictorContract();
+    return await contract.getRiskProfile(userAddress);
+  }
+
+  // Dynamic NFT Contract
+  async getDynamicNFTContract() {
+    if (!this.provider) throw new Error('Provider not available');
+    const signer = await this.getSigner();
+    return new ethers.Contract(CONTRACT_ADDRESSES.DynamicNFT, DYNAMIC_NFT_ABI, signer);
+  }
+
+  async mintDynamicNFT(to: string, baseURI: string, initialYield: number, cropType: string) {
+    const contract = await this.getDynamicNFTContract();
+    const tx = await contract.mintDynamicNFT(to, baseURI, initialYield, cropType);
+    return await tx.wait();
+  }
+
+  async updateNFTAttributes(tokenId: number) {
+    const contract = await this.getDynamicNFTContract();
+    const tx = await contract.updateNFTAttributes(tokenId);
+    return await tx.wait();
+  }
+
+  async evolveNFT(tokenId: number) {
+    const contract = await this.getDynamicNFTContract();
+    const tx = await contract.evolveNFT(tokenId);
+    return await tx.wait();
+  }
+
+  async getNFTAttributes(tokenId: number) {
+    const contract = await this.getDynamicNFTContract();
+    return await contract.getNFTAttributes(tokenId);
+  }
+
+  // Cross-Chain Governance Contract
+  async getCrossChainGovernanceContract() {
+    if (!this.provider) throw new Error('Provider not available');
+    const signer = await this.getSigner();
+    return new ethers.Contract(CONTRACT_ADDRESSES.CrossChainGovernance, CROSS_CHAIN_GOVERNANCE_ABI, signer);
+  }
+
+  async createCrossChainProposal(description: string, callData: string, targetContract: string, value: string) {
+    const contract = await this.getCrossChainGovernanceContract();
+    const tx = await contract.createCrossChainProposal(description, callData, targetContract, ethers.parseEther(value));
+    return await tx.wait();
+  }
+
+  async submitCrossChainVote(message: any) {
+    const contract = await this.getCrossChainGovernanceContract();
+    const tx = await contract.submitCrossChainVote(message);
+    return await tx.wait();
+  }
+
+  // Advanced Insurance Contract
+  async getAdvancedInsuranceContract() {
+    if (!this.provider) throw new Error('Provider not available');
+    const signer = await this.getSigner();
+    return new ethers.Contract(CONTRACT_ADDRESSES.AdvancedInsurance, ADVANCED_INSURANCE_ABI, signer);
+  }
+
+  async createCatastropheBond(catastropheType: string, region: string, coverageAmount: string, premium: string, triggerThreshold: number, maturityDays: number) {
+    const contract = await this.getAdvancedInsuranceContract();
+    const tx = await contract.createCatastropheBond(catastropheType, region, ethers.parseEther(coverageAmount), ethers.parseEther(premium), triggerThreshold, maturityDays);
+    return await tx.wait();
+  }
+
+  async investInCatastropheBond(bondId: number, amount: string) {
+    const contract = await this.getAdvancedInsuranceContract();
+    const tx = await contract.investInCatastropheBond(bondId, ethers.parseEther(amount));
+    return await tx.wait();
+  }
+
+  async createParametricOption(underlyingAsset: string, strikePrice: number, premium: string, notionalAmount: string, isCall: boolean, expirationDays: number) {
+    const contract = await this.getAdvancedInsuranceContract();
+    const tx = await contract.createParametricOption(underlyingAsset, strikePrice, ethers.parseEther(premium), ethers.parseEther(notionalAmount), isCall, expirationDays);
+    return await tx.wait();
+  }
+
+  // Yield Vault Contract
+  async getYieldVaultContract() {
+    if (!this.provider) throw new Error('Provider not available');
+    const signer = await this.getSigner();
+    return new ethers.Contract(CONTRACT_ADDRESSES.YieldVault, YIELD_VAULT_ABI, signer);
+  }
+
+  async createYieldStrategy(name: string, description: string, allocationPercentages: number[], protocols: string[], minDeposit: string, lockPeriod: number, apy: number) {
+    const contract = await this.getYieldVaultContract();
+    const tx = await contract.createStrategy(name, description, allocationPercentages, protocols, ethers.parseEther(minDeposit), lockPeriod, apy);
+    return await tx.wait();
+  }
+
+  async depositToYieldVault(strategyId: number, amount: string, autoCompound: boolean) {
+    const contract = await this.getYieldVaultContract();
+    const tx = await contract.deposit(strategyId, ethers.parseEther(amount), autoCompound);
+    return await tx.wait();
+  }
+
+  async claimYieldVaultRewards(strategyId: number) {
+    const contract = await this.getYieldVaultContract();
+    const tx = await contract.claimRewards(strategyId);
+    return await tx.wait();
+  }
+
+  async getYieldVaultPosition(strategyId: number, userAddress: string) {
+    const contract = await this.getYieldVaultContract();
+    return await contract.getUserPosition(strategyId, userAddress);
+  }
+
+  // Decentralized Oracle Contract
+  async getDecentralizedOracleContract() {
+    if (!this.provider) throw new Error('Provider not available');
+    const signer = await this.getSigner();
+    return new ethers.Contract(CONTRACT_ADDRESSES.DecentralizedOracle, DECENTRALIZED_ORACLE_ABI, signer);
+  }
+
+  async registerOracleNode() {
+    const contract = await this.getDecentralizedOracleContract();
+    const tx = await contract.registerOracleNode({ value: ethers.parseEther("1000") });
+    return await tx.wait();
+  }
+
+  async submitOracleData(dataType: number, location: string, parameters: string, value: number, confidence: number) {
+    const contract = await this.getDecentralizedOracleContract();
+    const tx = await contract.submitData(dataType, location, parameters, value, confidence);
+    return await tx.wait();
+  }
+
+  async getOracleData(dataType: number, location: string, parameters: string) {
+    const contract = await this.getDecentralizedOracleContract();
+    return await contract.getLatestData(dataType, location, parameters);
+  }
+
+  // Parametric Insurance Contract
+  async getParametricInsuranceContract() {
+    if (!this.provider) throw new Error('Provider not available');
+    const signer = await this.getSigner();
+    return new ethers.Contract(CONTRACT_ADDRESSES.ParametricInsurance, PARAMETRIC_INSURANCE_ABI, signer);
+  }
+
+  async createParametricPolicy(riskType: string, coverageAmount: string, premium: string, triggerValue: number, expiryDate: number) {
+    const contract = await this.getParametricInsuranceContract();
+    const tx = await contract.createPolicy(riskType, ethers.parseEther(coverageAmount), ethers.parseEther(premium), triggerValue, expiryDate);
+    return await tx.wait();
+  }
+
+  async triggerInsurancePayout(policyId: number) {
+    const contract = await this.getParametricInsuranceContract();
+    const tx = await contract.triggerPayout(policyId);
     return await tx.wait();
   }
 }
