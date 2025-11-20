@@ -1,11 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
+import "./DecentralizedOracle.sol";
 
 interface IWeatherOracle {
     function getWeatherData(string memory location) external view returns (
@@ -24,8 +27,8 @@ interface ICropOracle {
     );
 }
 
-contract ParametricInsurance is Ownable, ReentrancyGuard {
-    using SafeERC20 for IERC20;
+contract ParametricInsurance is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable {
+    using SafeERC20Upgradeable for IERC20Upgradeable;
 
     enum InsuranceType { Drought, Flood, Pest, Disease, ExtremeWeather }
     enum ClaimStatus { None, Submitted, Approved, Rejected, Paid }
@@ -69,6 +72,7 @@ contract ParametricInsurance is Ownable, ReentrancyGuard {
     // Oracles
     IWeatherOracle public weatherOracle;
     ICropOracle public cropOracle;
+    DecentralizedOracle public decentralizedOracle;
 
     // Insurance data
     mapping(uint256 => InsurancePolicy) public policies;
@@ -82,22 +86,56 @@ contract ParametricInsurance is Ownable, ReentrancyGuard {
     mapping(InsuranceType => uint256) public basePremiumRates; // in basis points
     mapping(InsuranceType => uint256) public triggerThresholds;
 
-    IERC20 public paymentToken;
+    IERC20Upgradeable public paymentToken;
+
+    // AI-enhanced risk assessment
+    struct AIRiskAssessment {
+        uint256 policyId;
+        uint256 aiRiskScore;
+        uint256 predictedLoss;
+        uint256 confidenceLevel;
+        uint256 timestamp;
+    }
+
+    mapping(uint256 => AIRiskAssessment) public aiRiskAssessments;
+
+    // Cross-chain insurance
+    struct CrossChainPolicy {
+        uint256 sourceChainId;
+        uint256 policyId;
+        address beneficiary;
+        uint256 coverageAmount;
+        uint256 expirationDate;
+        bool active;
+        bytes32 bridgeTxHash;
+    }
+
+    mapping(uint256 => CrossChainPolicy) public crossChainPolicies;
+    uint256 public nextCrossChainPolicyId = 1;
 
     // Events
     event PolicyCreated(uint256 indexed policyId, address indexed farmer, InsuranceType insuranceType, uint256 coverageAmount);
     event ClaimSubmitted(uint256 indexed claimId, uint256 indexed policyId, address indexed claimant, uint256 claimAmount);
     event ClaimProcessed(uint256 indexed claimId, ClaimStatus status, uint256 payoutAmount);
     event ParametricTrigger(uint256 indexed policyId, uint256 oracleData, uint256 payoutAmount);
+    event AIRiskAssessed(uint256 indexed policyId, uint256 aiRiskScore, uint256 predictedLoss, uint256 confidenceLevel);
+    event CrossChainPolicyCreated(uint256 indexed policyId, uint256 sourceChainId, uint256 coverageAmount);
+    event CrossChainClaimProcessed(uint256 indexed policyId, uint256 payoutAmount);
 
-    constructor(
+    function initialize(
         address _weatherOracle,
         address _cropOracle,
-        address _paymentToken
-    ) Ownable(msg.sender) {
+        address _paymentToken,
+        address _decentralizedOracle
+    ) public initializer {
+        __Ownable_init(msg.sender);
+        __ReentrancyGuard_init();
+        __UUPSUpgradeable_init();
+
         weatherOracle = IWeatherOracle(_weatherOracle);
         cropOracle = ICropOracle(_cropOracle);
-        paymentToken = IERC20(_paymentToken);
+        paymentToken = IERC20Upgradeable(_paymentToken);
+        decentralizedOracle = DecentralizedOracle(_decentralizedOracle);
 
         // Initialize base premium rates (in basis points)
         basePremiumRates[InsuranceType.Drought] = 200; // 2%
@@ -125,6 +163,8 @@ contract ParametricInsurance is Ownable, ReentrancyGuard {
             });
         }
     }
+
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
     // ============ POLICY MANAGEMENT ============
 
@@ -369,6 +409,101 @@ contract ParametricInsurance is Ownable, ReentrancyGuard {
         }
 
         return userPolicies;
+    }
+
+    // ============ AI-ENHANCED RISK ASSESSMENT ============
+
+    function assessRiskWithAI(
+        uint256 _policyId,
+        string memory _location,
+        string memory _cropType,
+        InsuranceType _insuranceType
+    ) external returns (uint256 aiRiskScore, uint256 predictedLoss, uint256 confidenceLevel) {
+        // Get AI prediction from decentralized oracle
+        (uint256 aiPrediction, , ) = decentralizedOracle.getLatestData(
+            DecentralizedOracle.DataType.AIModel,
+            _location,
+            string(abi.encodePacked(_cropType, "_", _insuranceType, "_risk"))
+        );
+
+        // Parse AI prediction (simplified - in practice would decode structured data)
+        aiRiskScore = aiPrediction % 1000; // 0-999 risk score
+        predictedLoss = (aiPrediction / 1000) % 1000000; // Up to 1M loss prediction
+        confidenceLevel = (aiPrediction / 1000000000) % 100; // 0-99 confidence
+
+        // Store assessment
+        aiRiskAssessments[_policyId] = AIRiskAssessment({
+            policyId: _policyId,
+            aiRiskScore: aiRiskScore,
+            predictedLoss: predictedLoss,
+            confidenceLevel: confidenceLevel,
+            timestamp: block.timestamp
+        });
+
+        emit AIRiskAssessed(_policyId, aiRiskScore, predictedLoss, confidenceLevel);
+    }
+
+    function getAIRiskAssessment(uint256 _policyId) external view returns (AIRiskAssessment memory) {
+        return aiRiskAssessments[_policyId];
+    }
+
+    // ============ CROSS-CHAIN INSURANCE ============
+
+    function createCrossChainPolicy(
+        uint256 _sourceChainId,
+        InsuranceType _insuranceType,
+        string memory _location,
+        string memory _cropType,
+        uint256 _coverageAmount,
+        uint256 _duration
+    ) external payable returns (uint256) {
+        require(_coverageAmount > 0, "Coverage amount must be > 0");
+        require(_duration > 0 && _duration <= 365 days, "Invalid duration");
+
+        InsurancePool storage pool = insurancePools[_insuranceType];
+        require(pool.active, "Insurance type not available");
+
+        // Calculate premium
+        uint256 premium = calculatePremium(_insuranceType, _coverageAmount, _duration, _location, _cropType);
+
+        // Transfer premium payment
+        paymentToken.safeTransferFrom(msg.sender, address(this), premium);
+
+        uint256 policyId = nextCrossChainPolicyId++;
+        crossChainPolicies[policyId] = CrossChainPolicy({
+            sourceChainId: _sourceChainId,
+            policyId: policyId,
+            beneficiary: msg.sender,
+            coverageAmount: _coverageAmount,
+            expirationDate: block.timestamp + _duration,
+            active: true,
+            bridgeTxHash: bytes32(0)
+        });
+
+        // Update pool
+        pool.totalPremiums += premium;
+        pool.totalCoverage += _coverageAmount;
+        pool.poolBalance += premium;
+
+        emit CrossChainPolicyCreated(policyId, _sourceChainId, _coverageAmount);
+        return policyId;
+    }
+
+    function claimCrossChainInsurance(uint256 _policyId, bytes memory _proof) external {
+        CrossChainPolicy storage policy = crossChainPolicies[_policyId];
+        require(policy.active, "Policy not active");
+        require(policy.beneficiary == msg.sender, "Not the beneficiary");
+        require(block.timestamp <= policy.expirationDate, "Policy expired");
+
+        // Verify cross-chain proof (simplified)
+        require(_proof.length > 0, "Invalid proof");
+
+        policy.active = false;
+
+        // Transfer coverage amount
+        paymentToken.safeTransfer(msg.sender, policy.coverageAmount);
+
+        emit CrossChainClaimProcessed(_policyId, policy.coverageAmount);
     }
 
     // ============ ADMIN FUNCTIONS ============

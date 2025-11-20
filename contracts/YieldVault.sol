@@ -1,14 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "./LiquidityPool.sol";
 import "./YieldToken.sol";
+import "./DecentralizedOracle.sol";
 
-contract YieldVault is Ownable, ReentrancyGuard {
+contract YieldVault is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable {
     using Math for uint256;
 
     struct VaultStrategy {
@@ -55,7 +58,31 @@ contract YieldVault is Ownable, ReentrancyGuard {
     // Protocol integrations
     LiquidityPool public liquidityPool;
     YieldToken public yieldToken;
-    IERC20 public agriCreditToken;
+    IERC20Upgradeable public agriCreditToken;
+    DecentralizedOracle public decentralizedOracle;
+
+    // AI-enhanced yield optimization
+    struct AIYieldPrediction {
+        uint256 strategyId;
+        uint256 predictedAPY;
+        uint256 confidenceScore;
+        uint256 recommendedAllocation;
+        uint256 timestamp;
+    }
+
+    mapping(uint256 => AIYieldPrediction) public aiYieldPredictions;
+
+    // Cross-chain yield farming
+    struct CrossChainPosition {
+        uint256 sourceChainId;
+        uint256 strategyId;
+        uint256 shares;
+        uint256 depositAmount;
+        bytes32 bridgeTxHash;
+        bool active;
+    }
+
+    mapping(address => CrossChainPosition[]) public crossChainPositions;
 
     // Vault parameters
     uint256 public totalValueLocked;
@@ -76,17 +103,28 @@ contract YieldVault is Ownable, ReentrancyGuard {
     event AutoCompounded(uint256 indexed strategyId, address indexed user, uint256 rewards, uint256 newShares);
     event StrategyRebalanced(uint256 indexed strategyId, uint256[] newAllocations);
     event PerformanceFeeCollected(uint256 indexed strategyId, uint256 amount);
+    event AIYieldPredicted(uint256 indexed strategyId, uint256 predictedAPY, uint256 confidenceScore, uint256 recommendedAllocation);
+    event CrossChainPositionCreated(address indexed user, uint256 sourceChainId, uint256 strategyId, uint256 amount, uint256 shares);
+    event CrossChainRewardsClaimed(address indexed user, uint256 positionIndex, uint256 rewards);
 
-    constructor(
+    function initialize(
         address _liquidityPool,
         address _yieldToken,
-        address _agriCreditToken
-    ) Ownable(msg.sender) {
+        address _agriCreditToken,
+        address _decentralizedOracle
+    ) public initializer {
+        __Ownable_init(msg.sender);
+        __ReentrancyGuard_init();
+        __UUPSUpgradeable_init();
+
         liquidityPool = LiquidityPool(_liquidityPool);
         yieldToken = YieldToken(_yieldToken);
-        agriCreditToken = IERC20(_agriCreditToken);
+        agriCreditToken = IERC20Upgradeable(_agriCreditToken);
+        decentralizedOracle = DecentralizedOracle(_decentralizedOracle);
         lastGlobalCompound = block.timestamp;
     }
+
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
     // ============ STRATEGY MANAGEMENT ============
 
@@ -426,6 +464,94 @@ contract YieldVault is Ownable, ReentrancyGuard {
 
     function getAutoCompoundSettings(address _user) external view returns (AutoCompoundSettings memory) {
         return userAutoCompoundSettings[_user];
+    }
+
+    // ============ AI-ENHANCED YIELD OPTIMIZATION ============
+
+    function predictYieldWithAI(uint256 _strategyId) external returns (uint256 predictedAPY, uint256 confidenceScore, uint256 recommendedAllocation) {
+        VaultStrategy storage strategy = vaultStrategies[_strategyId];
+
+        // Get AI prediction from decentralized oracle
+        (uint256 aiPrediction, , ) = decentralizedOracle.getLatestData(
+            DecentralizedOracle.DataType.AIModel,
+            "yield_prediction",
+            string(abi.encodePacked("strategy_", _strategyId, "_yield"))
+        );
+
+        // Parse AI prediction
+        predictedAPY = aiPrediction % 100000; // Up to 1000% APY
+        confidenceScore = (aiPrediction / 100000) % 101; // 0-100 confidence
+        recommendedAllocation = (aiPrediction / 10000000) % 10001; // 0-100% allocation
+
+        // Store prediction
+        aiYieldPredictions[_strategyId] = AIYieldPrediction({
+            strategyId: _strategyId,
+            predictedAPY: predictedAPY,
+            confidenceScore: confidenceScore,
+            recommendedAllocation: recommendedAllocation,
+            timestamp: block.timestamp
+        });
+
+        emit AIYieldPredicted(_strategyId, predictedAPY, confidenceScore, recommendedAllocation);
+    }
+
+    function getAIYieldPrediction(uint256 _strategyId) external view returns (AIYieldPrediction memory) {
+        return aiYieldPredictions[_strategyId];
+    }
+
+    // ============ CROSS-CHAIN YIELD FARMING ============
+
+    function createCrossChainPosition(
+        uint256 _sourceChainId,
+        uint256 _strategyId,
+        uint256 _amount
+    ) external payable returns (uint256) {
+        require(msg.value == _amount, "Incorrect deposit amount");
+        VaultStrategy storage strategy = vaultStrategies[_strategyId];
+        require(strategy.active, "Strategy not active");
+
+        // Calculate shares
+        uint256 shares = strategy.totalShares == 0 ? _amount : (_amount * strategy.totalShares) / strategy.totalDeposits;
+
+        CrossChainPosition memory position = CrossChainPosition({
+            sourceChainId: _sourceChainId,
+            strategyId: _strategyId,
+            shares: shares,
+            depositAmount: _amount,
+            bridgeTxHash: bytes32(0), // To be set by bridge
+            active: true
+        });
+
+        crossChainPositions[msg.sender].push(position);
+
+        // Update strategy totals
+        strategy.totalDeposits += _amount;
+        strategy.totalShares += shares;
+        totalValueLocked += _amount;
+
+        emit CrossChainPositionCreated(msg.sender, _sourceChainId, _strategyId, _amount, shares);
+        return crossChainPositions[msg.sender].length - 1; // Return position index
+    }
+
+    function claimCrossChainRewards(uint256 _positionIndex, bytes memory _proof) external nonReentrant {
+        CrossChainPosition storage position = crossChainPositions[msg.sender][_positionIndex];
+        require(position.active, "Position not active");
+
+        // Verify cross-chain proof (simplified)
+        require(_proof.length > 0, "Invalid proof");
+
+        // Calculate rewards (simplified)
+        uint256 rewards = (position.depositAmount * vaultStrategies[position.strategyId].apy * 30) / (10000 * 365); // 30 days rewards
+
+        position.active = false;
+
+        payable(msg.sender).transfer(rewards);
+
+        emit CrossChainRewardsClaimed(msg.sender, _positionIndex, rewards);
+    }
+
+    function getCrossChainPositions(address _user) external view returns (CrossChainPosition[] memory) {
+        return crossChainPositions[_user];
     }
 
     // ============ ADMIN FUNCTIONS ============

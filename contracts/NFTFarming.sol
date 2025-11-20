@@ -3,8 +3,8 @@ pragma solidity ^0.8.28;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+
+import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -61,7 +61,7 @@ contract FarmShareToken is Initializable, IERC20 {
 }
 
 contract NFTFarming is Initializable, ERC721Upgradeable, OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable {
-    using Counters for Counters.Counter;
+
 
     struct FarmNFT {
         uint256 id;
@@ -89,7 +89,7 @@ contract NFTFarming is Initializable, ERC721Upgradeable, OwnableUpgradeable, Ree
         address recordedBy;
     }
 
-    CountersUpgradeable.Counter private _tokenIdCounter;
+    uint256 private _tokenIdCounter;
     mapping(uint256 => FarmNFT) public farmNFTs;
     mapping(address => uint256[]) public farmerNFTs;
     mapping(uint256 => SupplyChainEvent[]) public supplyChainHistory;
@@ -216,8 +216,8 @@ contract NFTFarming is Initializable, ERC721Upgradeable, OwnableUpgradeable, Ree
         require(identityRegistry.isIdentityVerified(farmer), "Farmer not verified");
         require(msg.sender == farmer || msg.sender == owner(), "Not authorized");
 
-        _tokenIdCounter.increment();
-        uint256 tokenId = _tokenIdCounter.current();
+        _tokenIdCounter++;
+        uint256 tokenId = _tokenIdCounter;
 
         uint256[] memory emptyBatches;
 
@@ -393,7 +393,7 @@ contract NFTFarming is Initializable, ERC721Upgradeable, OwnableUpgradeable, Ree
      * @dev Get total supply of farm NFTs
      */
     function totalSupply() external view returns (uint256) {
-        return _tokenIdCounter.current();
+        return _tokenIdCounter;
     }
 
     // ============ FRACTIONAL OWNERSHIP FUNCTIONS ============
@@ -721,8 +721,8 @@ contract NFTFarming is Initializable, ERC721Upgradeable, OwnableUpgradeable, Ree
         ) = abi.decode(nftData, (uint256, uint256, address, address, FarmNFT));
 
         // Mint bridged NFT
-        uint256 newTokenId = _tokenIdCounter.current();
-        _tokenIdCounter.increment();
+        _tokenIdCounter++;
+        uint256 newTokenId = _tokenIdCounter;
 
         farmNFTs[newTokenId] = farmData;
         farmerNFTs[owner].push(newTokenId);

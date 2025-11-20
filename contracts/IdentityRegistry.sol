@@ -8,7 +8,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721URIStorageUpgradeable.sol";
-import "@openzeppelin/contracts/utils/Counters.sol";
+
 import "@openzeppelin/contracts/utils/Strings.sol";
 
 // ERC-725 Identity Interface
@@ -19,8 +19,8 @@ interface IERC725Y {
 
 // Soulbound Token for Identity Credentials
 contract SoulboundCredential is Initializable, ERC721Upgradeable, ERC721URIStorageUpgradeable, OwnableUpgradeable, UUPSUpgradeable {
-    using Counters for Counters.Counter;
-    Counters.Counter private _tokenIdCounter;
+
+    uint256 private _tokenIdCounter;
 
     mapping(uint256 => bool) public soulbound; // Soulbound tokens cannot be transferred
 
@@ -34,8 +34,8 @@ contract SoulboundCredential is Initializable, ERC721Upgradeable, ERC721URIStora
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
     function safeMint(address to, string memory uri) external onlyOwner returns (uint256) {
-        uint256 tokenId = _tokenIdCounter.current();
-        _tokenIdCounter.increment();
+        _tokenIdCounter++;
+        uint256 tokenId = _tokenIdCounter;
         _safeMint(to, tokenId);
         _setTokenURI(tokenId, uri);
         soulbound[tokenId] = true;

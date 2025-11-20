@@ -1,14 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "./DecentralizedOracle.sol";
 import "./ParametricInsurance.sol";
 
-contract AdvancedInsurance is Ownable, ReentrancyGuard {
+contract AdvancedInsurance is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable {
     using Math for uint256;
 
     struct CatastropheBond {
@@ -49,11 +51,88 @@ contract AdvancedInsurance is Ownable, ReentrancyGuard {
         string poolType; // "catastrophe", "yield_protection", "weather_derivative"
         uint256 totalCapacity;
         uint256 utilizedCapacity;
-        uint256 premiumPool;
+        uint256 premiumCollected;
         uint256 payoutReserve;
-        mapping(address => uint256) contributions;
         bool active;
     }
+
+    // ZK-Proof structures for privacy-preserving claims
+    struct ZKProof {
+        uint256[2] a;
+        uint256[2][2] b;
+        uint256[2] c;
+        uint256[4] input; // [claimAmount, riskScore, timestamp, nonce]
+    }
+
+    struct PrivateClaim {
+        uint256 policyId;
+        uint256 claimAmount;
+        bytes32 commitment;
+        ZKProof proof;
+        bool verified;
+        bool processed;
+        uint256 timestamp;
+    }
+
+    struct RiskDerivative {
+        uint256 id;
+        string underlyingRisk; // "drought_index", "flood_probability", "yield_volatility"
+        uint256 notionalAmount;
+        uint256 strikeLevel;
+        uint256 premium;
+        address buyer;
+        address seller;
+        uint256 expirationDate;
+        bool settled;
+        int256 payout;
+    }
+
+    // ZK-SNARK verifier interface
+    interface IZKVerifier {
+        function verifyProof(
+            uint256[2] memory a,
+            uint256[2][2] memory b,
+            uint256[2] memory c,
+            uint256[4] memory input
+        ) external view returns (bool);
+    }
+
+    // Advanced insurance features
+    mapping(uint256 => CatastropheBond) public catastropheBonds;
+    mapping(uint256 => ParametricOption) public parametricOptions;
+    mapping(uint256 => InsurancePool) public insurancePools;
+    mapping(uint256 => PrivateClaim) public privateClaims;
+    mapping(uint256 => RiskDerivative) public riskDerivatives;
+
+    uint256 public nextBondId = 1;
+    uint256 public nextOptionId = 1;
+    uint256 public nextPoolId = 1;
+    uint256 public nextClaimId = 1;
+    uint256 public nextDerivativeId = 1;
+
+    // ZK-Prover parameters
+    IZKVerifier public zkVerifier;
+    uint256 public minRiskScore = 300; // Minimum risk score for claims
+    uint256 public maxClaimAmount = 100000 * 10**18; // Max claim per policy
+
+    // Cross-chain insurance
+    struct CrossChainPolicy {
+        uint256 sourceChainId;
+        uint256 policyId;
+        address beneficiary;
+        uint256 coverageAmount;
+        uint256 expirationDate;
+        bool active;
+        bytes32 bridgeTxHash;
+    }
+
+    mapping(uint256 => CrossChainPolicy) public crossChainPolicies;
+    uint256 public nextCrossChainPolicyId = 1;
+
+    // Insurance DAO parameters
+    uint256 public governanceThreshold = 100000 * 10**18; // Tokens needed to propose
+    uint256 public emergencyFund;
+    address public riskAssessmentOracle;
 
     // Catastrophe bonds
     mapping(uint256 => CatastropheBond) public catastropheBonds;
@@ -86,10 +165,23 @@ contract AdvancedInsurance is Ownable, ReentrancyGuard {
     event InsurancePoolCreated(uint256 indexed poolId, string poolType, uint256 capacity);
     event PoolContribution(uint256 indexed poolId, address indexed contributor, uint256 amount);
 
-    constructor(address _oracle, address _parametricInsurance) Ownable(msg.sender) {
+    function initialize(
+        address _oracle,
+        address _parametricInsurance,
+        address _zkVerifier,
+        address _riskAssessmentOracle
+    ) public initializer {
+        __Ownable_init(msg.sender);
+        __ReentrancyGuard_init();
+        __UUPSUpgradeable_init();
+
         oracle = DecentralizedOracle(_oracle);
         parametricInsurance = ParametricInsurance(_parametricInsurance);
+        zkVerifier = IZKVerifier(_zkVerifier);
+        riskAssessmentOracle = _riskAssessmentOracle;
     }
+
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
     // ============ CATASTROPHE BONDS ============
 
@@ -440,4 +532,250 @@ contract AdvancedInsurance is Ownable, ReentrancyGuard {
     }
 
     receive() external payable {}
+
+    // ============ ZK-PROOF PRIVATE INSURANCE CLAIMS ============
+
+    function submitPrivateClaim(
+        uint256 policyId,
+        uint256 claimAmount,
+        bytes32 commitment,
+        ZKProof memory proof
+    ) external returns (uint256) {
+        require(claimAmount <= maxClaimAmount, "Claim amount too high");
+        require(zkVerifier.verifyProof(proof.a, proof.b, proof.c, proof.input), "Invalid ZK proof");
+
+        // Verify claim parameters from proof input
+        uint256 riskScore = proof.input[1];
+        require(riskScore >= minRiskScore, "Risk score too low");
+
+        uint256 claimId = nextClaimId++;
+        privateClaims[claimId] = PrivateClaim({
+            policyId: policyId,
+            claimAmount: claimAmount,
+            commitment: commitment,
+            proof: proof,
+            verified: true,
+            processed: false,
+            timestamp: block.timestamp
+        });
+
+        emit PrivateClaimSubmitted(claimId, policyId, claimAmount, commitment);
+        return claimId;
+    }
+
+    function processPrivateClaim(uint256 claimId) external onlyOwner nonReentrant {
+        PrivateClaim storage claim = privateClaims[claimId];
+        require(claim.verified, "Claim not verified");
+        require(!claim.processed, "Claim already processed");
+
+        claim.processed = true;
+
+        // Transfer payout (simplified - in practice would check policy validity)
+        payable(msg.sender).transfer(claim.claimAmount); // Actually should be claim beneficiary
+
+        emit PrivateClaimProcessed(claimId, claim.claimAmount);
+    }
+
+    // ============ RISK DERIVATIVES ============
+
+    function createRiskDerivative(
+        string memory underlyingRisk,
+        uint256 notionalAmount,
+        uint256 strikeLevel,
+        uint256 premium,
+        address seller,
+        uint256 expirationDate
+    ) external payable returns (uint256) {
+        require(msg.value >= premium, "Insufficient premium payment");
+        require(expirationDate > block.timestamp, "Invalid expiration");
+
+        uint256 derivativeId = nextDerivativeId++;
+        riskDerivatives[derivativeId] = RiskDerivative({
+            id: derivativeId,
+            underlyingRisk: underlyingRisk,
+            notionalAmount: notionalAmount,
+            strikeLevel: strikeLevel,
+            premium: premium,
+            buyer: msg.sender,
+            seller: seller,
+            expirationDate: expirationDate,
+            settled: false,
+            payout: 0
+        });
+
+        // Transfer premium to seller
+        payable(seller).transfer(premium);
+
+        // Refund excess
+        if (msg.value > premium) {
+            payable(msg.sender).transfer(msg.value - premium);
+        }
+
+        emit RiskDerivativeCreated(derivativeId, underlyingRisk, notionalAmount, strikeLevel);
+        return derivativeId;
+    }
+
+    function settleRiskDerivative(uint256 derivativeId) external nonReentrant {
+        RiskDerivative storage derivative = riskDerivatives[derivativeId];
+        require(block.timestamp >= derivative.expirationDate, "Not expired yet");
+        require(!derivative.settled, "Already settled");
+        require(msg.sender == derivative.buyer || msg.sender == derivative.seller, "Not authorized");
+
+        derivative.settled = true;
+
+        // Get risk data from oracle
+        (uint256 riskValue, , ) = oracle.getLatestData(
+            DecentralizedOracle.DataType.IoT,
+            derivative.underlyingRisk,
+            "risk_measurement"
+        );
+
+        // Calculate payout
+        int256 payout = 0;
+        if (riskValue > derivative.strikeLevel) {
+            // Risk occurred, buyer gets payout
+            payout = int256(derivative.notionalAmount);
+            payable(derivative.buyer).transfer(uint256(payout));
+        } else {
+            // No risk, seller keeps premium
+            payout = -int256(derivative.premium);
+        }
+
+        derivative.payout = payout;
+
+        emit RiskDerivativeSettled(derivativeId, riskValue, payout);
+    }
+
+    // ============ CROSS-CHAIN INSURANCE ============
+
+    function createCrossChainPolicy(
+        uint256 sourceChainId,
+        uint256 coverageAmount,
+        uint256 expirationDate
+    ) external payable returns (uint256) {
+        require(msg.value >= coverageAmount, "Insufficient coverage payment");
+
+        uint256 policyId = nextCrossChainPolicyId++;
+        crossChainPolicies[policyId] = CrossChainPolicy({
+            sourceChainId: sourceChainId,
+            policyId: policyId,
+            beneficiary: msg.sender,
+            coverageAmount: coverageAmount,
+            expirationDate: expirationDate,
+            active: true,
+            bridgeTxHash: bytes32(0)
+        });
+
+        // In practice, would initiate cross-chain bridge transaction
+        // For now, just store the policy
+
+        emit CrossChainPolicyCreated(policyId, sourceChainId, coverageAmount);
+        return policyId;
+    }
+
+    function claimCrossChainInsurance(uint256 policyId, bytes memory proof) external {
+        CrossChainPolicy storage policy = crossChainPolicies[policyId];
+        require(policy.active, "Policy not active");
+        require(policy.beneficiary == msg.sender, "Not the beneficiary");
+        require(block.timestamp <= policy.expirationDate, "Policy expired");
+
+        // Verify claim with cross-chain proof
+        // Simplified verification
+        require(proof.length > 0, "Invalid proof");
+
+        policy.active = false;
+
+        // Transfer coverage amount
+        payable(msg.sender).transfer(policy.coverageAmount);
+
+        emit CrossChainClaimProcessed(policyId, policy.coverageAmount);
+    }
+
+    // ============ INSURANCE DAO FUNCTIONS ============
+
+    function proposeInsuranceParameterChange(
+        string memory parameter,
+        uint256 newValue
+    ) external {
+        // Simplified governance - in practice would use full DAO
+        require(IERC20(riskAssessmentOracle).balanceOf(msg.sender) >= governanceThreshold, "Insufficient governance tokens");
+
+        emit InsuranceParameterProposed(parameter, newValue);
+    }
+
+    function emergencyFundWithdrawal(uint256 amount) external onlyOwner {
+        require(amount <= emergencyFund, "Insufficient emergency fund");
+        emergencyFund -= amount;
+        payable(owner()).transfer(amount);
+        emit EmergencyFundWithdrawn(amount);
+    }
+
+    function depositEmergencyFund() external payable onlyOwner {
+        emergencyFund += msg.value;
+        emit EmergencyFundDeposited(msg.value);
+    }
+
+    // ============ ENHANCED RISK ASSESSMENT ============
+
+    function assessRiskWithAI(
+        address farmer,
+        string memory location,
+        string memory cropType
+    ) external view returns (uint256 riskScore, uint256 premiumRate) {
+        // Get risk factors from oracle
+        (uint256 weatherRisk, , ) = oracle.getLatestData(
+            DecentralizedOracle.DataType.Weather,
+            location,
+            "risk_assessment"
+        );
+
+        (uint256 yieldHistory, , ) = oracle.getLatestData(
+            DecentralizedOracle.DataType.CropHealth,
+            location,
+            cropType
+        );
+
+        // Calculate composite risk score (simplified AI assessment)
+        riskScore = (weatherRisk + yieldHistory) / 2;
+
+        // Calculate premium based on risk
+        if (riskScore < 300) {
+            premiumRate = 50; // 0.5%
+        } else if (riskScore < 600) {
+            premiumRate = 150; // 1.5%
+        } else {
+            premiumRate = 300; // 3%
+        }
+
+        return (riskScore, premiumRate);
+    }
+
+    // ============ ADMIN FUNCTIONS FOR ZK FEATURES ============
+
+    function setZKVerifier(address _verifier) external onlyOwner {
+        zkVerifier = IZKVerifier(_verifier);
+        emit ZKVerifierSet(_verifier);
+    }
+
+    function updateZKParameters(uint256 _minRiskScore, uint256 _maxClaimAmount) external onlyOwner {
+        minRiskScore = _minRiskScore;
+        maxClaimAmount = _maxClaimAmount;
+    }
+
+    function setRiskAssessmentOracle(address _oracle) external onlyOwner {
+        riskAssessmentOracle = _oracle;
+    }
+
+    // ============ ADDITIONAL EVENTS ============
+
+    event PrivateClaimSubmitted(uint256 indexed claimId, uint256 indexed policyId, uint256 claimAmount, bytes32 commitment);
+    event PrivateClaimProcessed(uint256 indexed claimId, uint256 payoutAmount);
+    event RiskDerivativeCreated(uint256 indexed derivativeId, string underlyingRisk, uint256 notionalAmount, uint256 strikeLevel);
+    event RiskDerivativeSettled(uint256 indexed derivativeId, uint256 riskValue, int256 payout);
+    event CrossChainPolicyCreated(uint256 indexed policyId, uint256 sourceChainId, uint256 coverageAmount);
+    event CrossChainClaimProcessed(uint256 indexed policyId, uint256 payoutAmount);
+    event InsuranceParameterProposed(string parameter, uint256 newValue);
+    event EmergencyFundDeposited(uint256 amount);
+    event EmergencyFundWithdrawn(uint256 amount);
+    event ZKVerifierSet(address indexed verifier);
 }

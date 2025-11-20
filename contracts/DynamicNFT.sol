@@ -1,15 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/Counters.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "./DecentralizedOracle.sol";
 import "./AIPredictor.sol";
 
-contract DynamicNFT is ERC721, Ownable {
-    using Counters for Counters.Counter;
+contract DynamicNFT is Initializable, ERC721Upgradeable, OwnableUpgradeable, UUPSUpgradeable {
+
     using Strings for uint256;
 
     struct NFTAttributes {
@@ -32,7 +34,7 @@ contract DynamicNFT is ERC721, Ownable {
     }
 
     // NFT data
-    Counters.Counter private _tokenIdCounter;
+    uint256 private _tokenIdCounter;
     mapping(uint256 => NFTAttributes) public nftAttributes;
     mapping(uint256 => string) private _tokenURIs;
     mapping(uint256 => EvolutionCriteria) public evolutionCriteria;
@@ -40,6 +42,29 @@ contract DynamicNFT is ERC721, Ownable {
     // Oracle and AI integration
     DecentralizedOracle public oracle;
     AIPredictor public aiPredictor;
+
+    // AI-enhanced NFT evolution
+    struct AIEvolutionPrediction {
+        uint256 tokenId;
+        uint256 predictedLevel;
+        uint256 evolutionProbability;
+        uint256 recommendedActions;
+        uint256 timestamp;
+    }
+
+    mapping(uint256 => AIEvolutionPrediction) public aiEvolutionPredictions;
+
+    // Cross-chain NFT bridging
+    struct CrossChainNFT {
+        uint256 sourceChainId;
+        uint256 tokenId;
+        address originalOwner;
+        bytes32 bridgeTxHash;
+        bool bridged;
+        uint256 bridgeTimestamp;
+    }
+
+    mapping(uint256 => CrossChainNFT) public crossChainNFTs;
 
     // Evolution parameters
     uint256 public evolutionCooldown = 7 days;
@@ -51,14 +76,20 @@ contract DynamicNFT is ERC721, Ownable {
     event NFTEvolved(uint256 indexed tokenId, uint256 newLevel, string newStage);
     event NFTAttributesUpdated(uint256 indexed tokenId, uint256 health, uint256 yield);
     event NFTExperienceGained(uint256 indexed tokenId, uint256 experience, string source);
+    event AIEvolutionPredicted(uint256 indexed tokenId, uint256 predictedLevel, uint256 evolutionProbability, uint256 recommendedActions);
+    event NFTBridged(uint256 indexed tokenId, uint256 targetChainId, address indexed owner);
+    event NFTClaimed(uint256 indexed tokenId, address indexed owner);
 
-    constructor(address _oracle, address _aiPredictor)
-        ERC721("AgriCredit Dynamic Farm NFT", "DFARM")
-        Ownable(msg.sender)
-    {
+    function initialize(address _oracle, address _aiPredictor) public initializer {
+        __ERC721_init("AgriCredit Dynamic Farm NFT", "DFARM");
+        __Ownable_init(msg.sender);
+        __UUPSUpgradeable_init();
+
         oracle = DecentralizedOracle(_oracle);
         aiPredictor = AIPredictor(_aiPredictor);
     }
+
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
     // ============ NFT MINTING ============
 
@@ -68,8 +99,8 @@ contract DynamicNFT is ERC721, Ownable {
         uint256 initialYield,
         string memory cropType
     ) external returns (uint256) {
-        _tokenIdCounter.increment();
-        uint256 tokenId = _tokenIdCounter.current();
+        _tokenIdCounter++;
+        uint256 tokenId = _tokenIdCounter;
 
         _mint(to, tokenId);
         _setTokenURI(tokenId, baseURI);
@@ -409,6 +440,78 @@ contract DynamicNFT is ERC721, Ownable {
         // Simplified base64 encoding for demonstration
         // In production, use a proper base64 library
         return "BASE64_ENCODED_DATA";
+    }
+
+    // ============ AI-ENHANCED EVOLUTION ============
+
+    function predictEvolutionWithAI(uint256 tokenId) external returns (uint256 predictedLevel, uint256 evolutionProbability, uint256 recommendedActions) {
+        NFTAttributes storage attributes = nftAttributes[tokenId];
+
+        // Get AI prediction from decentralized oracle
+        (uint256 aiPrediction, , ) = oracle.getLatestData(
+            DecentralizedOracle.DataType.AIModel,
+            "nft_evolution",
+            string(abi.encodePacked("token_", tokenId, "_evolution"))
+        );
+
+        // Parse AI prediction
+        predictedLevel = aiPrediction % 101; // 0-100 level
+        evolutionProbability = (aiPrediction / 100) % 101; // 0-100 probability
+        recommendedActions = (aiPrediction / 10000) % 1000; // Action codes
+
+        // Store prediction
+        aiEvolutionPredictions[tokenId] = AIEvolutionPrediction({
+            tokenId: tokenId,
+            predictedLevel: predictedLevel,
+            evolutionProbability: evolutionProbability,
+            recommendedActions: recommendedActions,
+            timestamp: block.timestamp
+        });
+
+        emit AIEvolutionPredicted(tokenId, predictedLevel, evolutionProbability, recommendedActions);
+    }
+
+    function getAIEvolutionPrediction(uint256 tokenId) external view returns (AIEvolutionPrediction memory) {
+        return aiEvolutionPredictions[tokenId];
+    }
+
+    // ============ CROSS-CHAIN NFT BRIDGING ============
+
+    function bridgeNFT(uint256 tokenId, uint256 targetChainId) external {
+        require(ownerOf(tokenId) == msg.sender, "Not the owner");
+
+        crossChainNFTs[tokenId] = CrossChainNFT({
+            sourceChainId: block.chainid,
+            tokenId: tokenId,
+            originalOwner: msg.sender,
+            bridgeTxHash: bytes32(0), // To be set by bridge
+            bridged: true,
+            bridgeTimestamp: block.timestamp
+        });
+
+        // Transfer to bridge contract (simplified)
+        _transfer(msg.sender, address(this), tokenId);
+
+        emit NFTBridged(tokenId, targetChainId, msg.sender);
+    }
+
+    function claimBridgedNFT(uint256 tokenId, bytes memory proof) external {
+        CrossChainNFT storage bridgedNFT = crossChainNFTs[tokenId];
+        require(bridgedNFT.bridged, "NFT not bridged");
+        require(bridgedNFT.originalOwner == msg.sender, "Not the original owner");
+
+        // Verify cross-chain proof (simplified)
+        require(proof.length > 0, "Invalid proof");
+
+        // Transfer back to owner
+        _transfer(address(this), msg.sender, tokenId);
+        bridgedNFT.bridged = false;
+
+        emit NFTClaimed(tokenId, msg.sender);
+    }
+
+    function getCrossChainNFT(uint256 tokenId) external view returns (CrossChainNFT memory) {
+        return crossChainNFTs[tokenId];
     }
 
     // ============ ADMIN FUNCTIONS ============

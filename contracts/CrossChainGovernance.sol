@@ -1,12 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "./GovernanceDAO.sol";
+import "./DecentralizedOracle.sol";
 
-contract CrossChainGovernance is Ownable, ReentrancyGuard {
+contract CrossChainGovernance is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable {
     using ECDSA for bytes32;
 
     struct CrossChainProposal {
@@ -74,6 +77,31 @@ contract CrossChainGovernance is Ownable, ReentrancyGuard {
     // Message verification
     mapping(bytes32 => bool) public processedMessages;
 
+    // AI-enhanced governance
+    DecentralizedOracle public decentralizedOracle;
+
+    struct AIVotingAnalysis {
+        uint256 proposalId;
+        uint256 predictedOutcome; // 0-100 confidence score
+        uint256 recommendedVotes;
+        uint256 riskAssessment;
+        uint256 timestamp;
+    }
+
+    mapping(uint256 => AIVotingAnalysis) public aiVotingAnalyses;
+
+    // DeFi staking for voting power
+    struct StakerInfo {
+        uint256 stakedAmount;
+        uint256 votingPower;
+        uint256 lastStakeTime;
+        uint256 rewards;
+    }
+
+    mapping(address => StakerInfo) public stakers;
+    uint256 public totalStaked;
+    uint256 public rewardRate = 100; // Basis points per year
+
     // Events
     event CrossChainProposalCreated(uint256 indexed proposalId, uint256 originChainId, string description);
     event ChainConnected(uint256 indexed chainId, address governanceContract, uint256 votingPower);
@@ -81,11 +109,23 @@ contract CrossChainGovernance is Ownable, ReentrancyGuard {
     event CrossChainProposalExecuted(uint256 indexed proposalId);
     event BridgeValidatorAdded(address indexed validator, uint256[] chainIds);
     event BridgeValidatorRemoved(address indexed validator);
+    event AIProposalAnalysis(uint256 indexed proposalId, uint256 predictedOutcome, uint256 recommendedVotes, uint256 riskAssessment);
+    event StakedForVotingPower(address indexed staker, uint256 amount, uint256 votingPower);
+    event Unstaked(address indexed staker, uint256 amount, uint256 rewards);
+    event RewardsClaimed(address indexed staker, uint256 rewards);
 
-    constructor() Ownable(msg.sender) {
+    function initialize(address _decentralizedOracle) public initializer {
+        __Ownable_init(msg.sender);
+        __ReentrancyGuard_init();
+        __UUPSUpgradeable_init();
+
+        decentralizedOracle = DecentralizedOracle(_decentralizedOracle);
+
         // Initialize with current chain
         _addChain(block.chainid, address(this), 100);
     }
+
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
     // ============ CHAIN MANAGEMENT ============
 
@@ -361,6 +401,105 @@ contract CrossChainGovernance is Ownable, ReentrancyGuard {
 
         address signer = ECDSA.recover(_message.messageHash, _message.signature);
         return signer == _message.voter;
+    }
+
+    // ============ AI-ENHANCED GOVERNANCE ============
+
+    function analyzeProposalWithAI(uint256 _proposalId) external returns (uint256 predictedOutcome, uint256 recommendedVotes, uint256 riskAssessment) {
+        CrossChainProposal storage proposal = crossChainProposals[_proposalId];
+
+        // Get AI analysis from decentralized oracle
+        (uint256 aiAnalysis, , ) = decentralizedOracle.getLatestData(
+            DecentralizedOracle.DataType.AIModel,
+            "governance",
+            string(abi.encodePacked("proposal_", _proposalId, "_analysis"))
+        );
+
+        // Parse AI analysis
+        predictedOutcome = aiAnalysis % 101; // 0-100
+        recommendedVotes = (aiAnalysis / 100) % 1000000; // Up to 1M recommended votes
+        riskAssessment = (aiAnalysis / 100000000) % 101; // 0-100 risk level
+
+        // Store analysis
+        aiVotingAnalyses[_proposalId] = AIVotingAnalysis({
+            proposalId: _proposalId,
+            predictedOutcome: predictedOutcome,
+            recommendedVotes: recommendedVotes,
+            riskAssessment: riskAssessment,
+            timestamp: block.timestamp
+        });
+
+        emit AIProposalAnalysis(_proposalId, predictedOutcome, recommendedVotes, riskAssessment);
+    }
+
+    function getAIVotingAnalysis(uint256 _proposalId) external view returns (AIVotingAnalysis memory) {
+        return aiVotingAnalyses[_proposalId];
+    }
+
+    // ============ DEFI STAKING FOR VOTING POWER ============
+
+    function stakeForVotingPower(uint256 _amount) external payable nonReentrant {
+        require(msg.value == _amount, "Incorrect stake amount");
+
+        StakerInfo storage staker = stakers[msg.sender];
+        staker.stakedAmount += _amount;
+        staker.lastStakeTime = block.timestamp;
+
+        // Calculate voting power (1:1 ratio with some multiplier for long-term staking)
+        uint256 multiplier = 10000; // 1x base
+        if (staker.stakedAmount >= 1000 ether) multiplier = 12000; // 1.2x for large stakes
+
+        staker.votingPower = (staker.stakedAmount * multiplier) / 10000;
+        totalStaked += _amount;
+
+        emit StakedForVotingPower(msg.sender, _amount, staker.votingPower);
+    }
+
+    function unstake(uint256 _amount) external nonReentrant {
+        StakerInfo storage staker = stakers[msg.sender];
+        require(staker.stakedAmount >= _amount, "Insufficient staked amount");
+
+        staker.stakedAmount -= _amount;
+        totalStaked -= _amount;
+
+        // Update voting power
+        uint256 multiplier = staker.stakedAmount >= 1000 ether ? 12000 : 10000;
+        staker.votingPower = (staker.stakedAmount * multiplier) / 10000;
+
+        // Calculate and distribute rewards
+        uint256 rewards = calculateRewards(msg.sender);
+        staker.rewards += rewards;
+
+        payable(msg.sender).transfer(_amount + rewards);
+
+        emit Unstaked(msg.sender, _amount, rewards);
+    }
+
+    function claimRewards() external nonReentrant {
+        StakerInfo storage staker = stakers[msg.sender];
+        uint256 rewards = staker.rewards + calculateRewards(msg.sender);
+
+        require(rewards > 0, "No rewards to claim");
+
+        staker.rewards = 0;
+        staker.lastStakeTime = block.timestamp;
+
+        payable(msg.sender).transfer(rewards);
+
+        emit RewardsClaimed(msg.sender, rewards);
+    }
+
+    function calculateRewards(address _staker) public view returns (uint256) {
+        StakerInfo storage staker = stakers[_staker];
+        if (staker.stakedAmount == 0) return 0;
+
+        uint256 timeStaked = block.timestamp - staker.lastStakeTime;
+        uint256 annualRewards = (staker.stakedAmount * rewardRate) / 10000;
+        return (annualRewards * timeStaked) / 365 days;
+    }
+
+    function getStakerInfo(address _staker) external view returns (StakerInfo memory) {
+        return stakers[_staker];
     }
 
     // ============ ADMIN FUNCTIONS ============
