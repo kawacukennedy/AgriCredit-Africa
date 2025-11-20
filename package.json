@@ -8,6 +8,8 @@
     "start": "next start"
   },
   "dependencies": {
+    "@openzeppelin/contracts": "^5.4.0",
+    "@openzeppelin/contracts-upgradeable": "^5.4.0",
     "autoprefixer": "^10.4.16",
     "ethers": "^6.8.1",
     "framer-motion": "^10.16.16",
@@ -22,9 +24,9 @@
     "tailwindcss": "^3.4.0"
   },
   "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^6.1.0",
     "@types/react": "19.2.4",
     "hardhat": "^2.27.0",
-    "@nomicfoundation/hardhat-toolbox": "^6.1.0",
     "typescript": "5.9.3"
   }
 }

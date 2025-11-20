@@ -1,14 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/security/Pausable.sol";
-import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import "@openzeppelin/contracts/metatx/ERC2771Context.sol";
-import "@openzeppelin/contracts/utils/Context.sol";
+import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/cryptography/ECDSAUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/metatx/ERC2771ContextUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "./IdentityRegistry.sol";
 import "./LiquidityPool.sol";
@@ -49,8 +52,9 @@ interface IFlashLoanReceiver {
     ) external returns (bool);
 }
 
-contract LoanManager is Ownable, ReentrancyGuard, Pausable, ERC2771Context {
+contract LoanManager is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable, PausableUpgradeable, ERC2771ContextUpgradeable, UUPSUpgradeable {
     using SafeERC20 for IERC20;
+    using SafeERC20Upgradeable for IERC20Upgradeable;
 
     struct Loan {
         uint256 id;
@@ -124,7 +128,7 @@ contract LoanManager is Ownable, ReentrancyGuard, Pausable, ERC2771Context {
     IdentityRegistry public identityRegistry;
     LiquidityPool public liquidityPool;
     YieldToken public yieldToken;
-    IERC20 public stableToken;
+    IERC20Upgradeable public stableToken;
     IPriceOracle public priceOracle;
     IInsurancePool public insurancePool;
     IYieldFarm public yieldFarm;
@@ -169,7 +173,7 @@ contract LoanManager is Ownable, ReentrancyGuard, Pausable, ERC2771Context {
     event CollateralLiquidated(uint256 indexed loanId, uint256 amount);
     event YieldDistributed(uint256 indexed loanId, address indexed lender, uint256 amount);
 
-    constructor(
+    function initialize(
         address _identityRegistry,
         address _liquidityPool,
         address _yieldToken,
@@ -179,11 +183,17 @@ contract LoanManager is Ownable, ReentrancyGuard, Pausable, ERC2771Context {
         address _yieldFarm,
         address _predictionMarket,
         address trustedForwarder
-    ) Ownable(msg.sender) ERC2771Context(trustedForwarder) {
+    ) public initializer {
+        __Ownable_init(msg.sender);
+        __ReentrancyGuard_init();
+        __Pausable_init();
+        __ERC2771Context_init(trustedForwarder);
+        __UUPSUpgradeable_init();
+
         identityRegistry = IdentityRegistry(_identityRegistry);
         liquidityPool = LiquidityPool(_liquidityPool);
         yieldToken = YieldToken(_yieldToken);
-        stableToken = IERC20(_stableToken);
+        stableToken = IERC20Upgradeable(_stableToken);
         priceOracle = IPriceOracle(_priceOracle);
         insurancePool = IInsurancePool(_insurancePool);
         yieldFarm = IYieldFarm(_yieldFarm);
@@ -192,6 +202,8 @@ contract LoanManager is Ownable, ReentrancyGuard, Pausable, ERC2771Context {
         // Initialize default loan terms
         _setDefaultLoanTerms();
     }
+
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
     function _setDefaultLoanTerms() internal {
         // Low credit score (300-649)
@@ -847,11 +859,11 @@ contract LoanManager is Ownable, ReentrancyGuard, Pausable, ERC2771Context {
 
     // ============ OVERRIDE FUNCTIONS ============
 
-    function _msgSender() internal view override(Context, ERC2771Context) returns (address) {
-        return ERC2771Context._msgSender();
+    function _msgSender() internal view override(ContextUpgradeable, ERC2771ContextUpgradeable) returns (address) {
+        return ERC2771ContextUpgradeable._msgSender();
     }
 
-    function _msgData() internal view override(Context, ERC2771Context) returns (bytes calldata) {
-        return ERC2771Context._msgData();
+    function _msgData() internal view override(ContextUpgradeable, ERC2771ContextUpgradeable) returns (bytes calldata) {
+        return ERC2771ContextUpgradeable._msgData();
     }
 }

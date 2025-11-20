@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/cryptography/ECDSAUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/cryptography/MessageHashUtilsUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721URIStorageUpgradeable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
@@ -16,13 +18,20 @@ interface IERC725Y {
 }
 
 // Soulbound Token for Identity Credentials
-contract SoulboundCredential is ERC721, ERC721URIStorage, Ownable {
+contract SoulboundCredential is Initializable, ERC721Upgradeable, ERC721URIStorageUpgradeable, OwnableUpgradeable, UUPSUpgradeable {
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIdCounter;
 
     mapping(uint256 => bool) public soulbound; // Soulbound tokens cannot be transferred
 
-    constructor() ERC721("AgriCredit Soulbound Credential", "ASC") Ownable(msg.sender) {}
+    function initialize() public initializer {
+        __ERC721_init("AgriCredit Soulbound Credential", "ASC");
+        __ERC721URIStorage_init();
+        __Ownable_init(msg.sender);
+        __UUPSUpgradeable_init();
+    }
+
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
     function safeMint(address to, string memory uri) external onlyOwner returns (uint256) {
         uint256 tokenId = _tokenIdCounter.current();
@@ -35,20 +44,20 @@ contract SoulboundCredential is ERC721, ERC721URIStorage, Ownable {
 
     function _beforeTokenTransfer(address from, address to, uint256 tokenId, uint256 batchSize)
         internal
-        override(ERC721)
+        override(ERC721Upgradeable)
     {
         require(from == address(0) || !soulbound[tokenId], "Soulbound token cannot be transferred");
         super._beforeTokenTransfer(from, to, tokenId, batchSize);
     }
 
-    function _burn(uint256 tokenId) internal override(ERC721, ERC721URIStorage) {
+    function _burn(uint256 tokenId) internal override(ERC721Upgradeable, ERC721URIStorageUpgradeable) {
         super._burn(tokenId);
     }
 
     function tokenURI(uint256 tokenId)
         public
         view
-        override(ERC721, ERC721URIStorage)
+        override(ERC721Upgradeable, ERC721URIStorageUpgradeable)
         returns (string memory)
     {
         return super.tokenURI(tokenId);
@@ -57,15 +66,15 @@ contract SoulboundCredential is ERC721, ERC721URIStorage, Ownable {
     function supportsInterface(bytes4 interfaceId)
         public
         view
-        override(ERC721, ERC721URIStorage)
+        override(ERC721Upgradeable, ERC721URIStorageUpgradeable)
         returns (bool)
     {
         return super.supportsInterface(interfaceId);
     }
 }
 
-contract IdentityRegistry is Ownable {
-    using ECDSA for bytes32;
+contract IdentityRegistry is Initializable, OwnableUpgradeable, UUPSUpgradeable {
+    using ECDSAUpgradeable for bytes32;
 
     struct Identity {
         string did;
@@ -151,9 +160,14 @@ contract IdentityRegistry is Ownable {
     event CredentialRevoked(bytes32 credentialHash);
     event AIKYCCompleted(address indexed user, bool passed, uint256 confidenceScore);
 
-    constructor() Ownable(msg.sender) {
-        soulboundCredential = new SoulboundCredential();
+    function initialize(address _soulboundCredential) public initializer {
+        __Ownable_init(msg.sender);
+        __UUPSUpgradeable_init();
+
+        soulboundCredential = SoulboundCredential(_soulboundCredential);
     }
+
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
     // DID Identity Management
     function createIdentity(

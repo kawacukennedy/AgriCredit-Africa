@@ -1,13 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "./DecentralizedOracle.sol";
 
-contract AIPredictor is Ownable, ReentrancyGuard {
+contract AIPredictor is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable {
     using Math for uint256;
 
     struct AIModel {
@@ -65,9 +67,15 @@ contract AIPredictor is Ownable, ReentrancyGuard {
     event RiskProfileUpdated(address indexed user, uint256 creditScore, uint256 riskLevel);
     event ModelAccuracyUpdated(bytes32 indexed modelId, uint256 accuracy);
 
-    constructor(address _oracle) Ownable(msg.sender) {
+    function initialize(address _oracle) public initializer {
+        __Ownable_init(msg.sender);
+        __ReentrancyGuard_init();
+        __UUPSUpgradeable_init();
+
         oracle = DecentralizedOracle(_oracle);
     }
+
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
     // ============ AI MODEL MANAGEMENT ============
 

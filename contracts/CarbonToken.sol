@@ -1,25 +1,34 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20BurnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721URIStorageUpgradeable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
 // Soulbound Token for Verified Carbon Credits
-contract SoulboundCarbonCredit is ERC721, ERC721URIStorage, Ownable {
+contract SoulboundCarbonCredit is Initializable, ERC721Upgradeable, ERC721URIStorageUpgradeable, OwnableUpgradeable, UUPSUpgradeable {
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIdCounter;
 
     mapping(uint256 => bool) public soulbound; // Soulbound tokens cannot be transferred
     mapping(uint256 => uint256) public carbonAmount; // Carbon amount represented by token
 
-    constructor() ERC721("Soulbound Carbon Credit", "SCC") Ownable(msg.sender) {}
+    function initialize() public initializer {
+        __ERC721_init("Soulbound Carbon Credit", "SCC");
+        __ERC721URIStorage_init();
+        __Ownable_init(msg.sender);
+        __UUPSUpgradeable_init();
+    }
+
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
     function safeMint(address to, string memory uri, uint256 _carbonAmount) external onlyOwner returns (uint256) {
         uint256 tokenId = _tokenIdCounter.current();
@@ -33,20 +42,20 @@ contract SoulboundCarbonCredit is ERC721, ERC721URIStorage, Ownable {
 
     function _beforeTokenTransfer(address from, address to, uint256 tokenId, uint256 batchSize)
         internal
-        override(ERC721)
+        override(ERC721Upgradeable)
     {
         require(from == address(0) || !soulbound[tokenId], "Soulbound token cannot be transferred");
         super._beforeTokenTransfer(from, to, tokenId, batchSize);
     }
 
-    function _burn(uint256 tokenId) internal override(ERC721, ERC721URIStorage) {
+    function _burn(uint256 tokenId) internal override(ERC721Upgradeable, ERC721URIStorageUpgradeable) {
         super._burn(tokenId);
     }
 
     function tokenURI(uint256 tokenId)
         public
         view
-        override(ERC721, ERC721URIStorage)
+        override(ERC721Upgradeable, ERC721URIStorageUpgradeable)
         returns (string memory)
     {
         return super.tokenURI(tokenId);
@@ -55,14 +64,14 @@ contract SoulboundCarbonCredit is ERC721, ERC721URIStorage, Ownable {
     function supportsInterface(bytes4 interfaceId)
         public
         view
-        override(ERC721, ERC721URIStorage)
+        override(ERC721Upgradeable, ERC721URIStorageUpgradeable)
         returns (bool)
     {
         return super.supportsInterface(interfaceId);
     }
 }
 
-contract CarbonToken is ERC20, ERC20Burnable, Ownable, ReentrancyGuard {
+contract CarbonToken is Initializable, ERC20Upgradeable, ERC20BurnableUpgradeable, OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable {
     using Math for uint256;
 
     struct CarbonCredit {
@@ -176,9 +185,15 @@ contract CarbonToken is ERC20, ERC20Burnable, Ownable, ReentrancyGuard {
     event BridgeUnpaused();
     event CarbonPriceOracleSet(address indexed oracle);
 
-    constructor() ERC20("AgriCredit Carbon Token", "CARBT") Ownable(msg.sender) {
+    function initialize(address _soulboundCredit) public initializer {
+        __ERC20_init("AgriCredit Carbon Token", "CARBT");
+        __ERC20Burnable_init();
+        __Ownable_init(msg.sender);
+        __ReentrancyGuard_init();
+        __UUPSUpgradeable_init();
+
         lastRewardUpdate = block.timestamp;
-        soulboundCredit = new SoulboundCarbonCredit();
+        soulboundCredit = SoulboundCarbonCredit(_soulboundCredit);
 
         // Initialize reward params
         rewardParams = RewardParams({
@@ -188,6 +203,8 @@ contract CarbonToken is ERC20, ERC20Burnable, Ownable, ReentrancyGuard {
             lastUpdate: block.timestamp
         });
     }
+
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
     // Climate AI Data Submission
     function submitClimateData(
@@ -632,7 +649,7 @@ contract CarbonToken is ERC20, ERC20Burnable, Ownable, ReentrancyGuard {
     /**
      * @dev Override decimals to match carbon measurement precision
      */
-    function decimals() public pure override returns (uint8) {
+    function decimals() public pure override(ERC20Upgradeable) returns (uint8) {
         return 18; // Standard ERC20 decimals for fractional tons
     }
 

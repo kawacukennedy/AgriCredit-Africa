@@ -1,16 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/cryptography/ECDSAUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/cryptography/MessageHashUtilsUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/metatx/ERC2771ContextUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
-import "@openzeppelin/contracts/metatx/ERC2771Context.sol";
-import "@openzeppelin/contracts/utils/Context.sol";
-import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 
-contract GovernanceDAO is Ownable, ReentrancyGuard, ERC2771Context {
+contract GovernanceDAO is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable, ERC2771ContextUpgradeable, UUPSUpgradeable {
     using ECDSA for bytes32;
 
     enum ProposalType {
@@ -71,7 +74,7 @@ contract GovernanceDAO is Ownable, ReentrancyGuard, ERC2771Context {
     }
 
     // Governance parameters
-    IERC20 public governanceToken;
+    IERC20Upgradeable public governanceToken;
     mapping(uint256 => Proposal) public proposals;
     uint256 public proposalCount;
 
@@ -216,12 +219,17 @@ contract GovernanceDAO is Ownable, ReentrancyGuard, ERC2771Context {
     event MultiSigSigned(uint256 indexed proposalId, address indexed signer);
     event MultiSigExecuted(uint256 indexed proposalId);
 
-    constructor(
+    function initialize(
         address _governanceToken,
         address _treasury,
         address trustedForwarder,
         address _zkVerifier
-    ) Ownable(msg.sender) ERC2771Context(trustedForwarder) {
+    ) public initializer {
+        __Ownable_init(msg.sender);
+        __ReentrancyGuard_init();
+        __ERC2771Context_init(trustedForwarder);
+        __UUPSUpgradeable_init();
+
         governanceToken = IERC20(_governanceToken);
         treasury = _treasury;
         zkVerifier = _zkVerifier;
@@ -229,6 +237,8 @@ contract GovernanceDAO is Ownable, ReentrancyGuard, ERC2771Context {
         // Initialize emergency committee
         emergencyCommittee[msg.sender] = true;
     }
+
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
     modifier onlyEmergencyCommittee() {
         require(emergencyCommittee[msg.sender], "Not emergency committee member");
@@ -943,12 +953,12 @@ contract GovernanceDAO is Ownable, ReentrancyGuard, ERC2771Context {
 
     // ============ ERC2771 OVERRIDE FUNCTIONS ============
 
-    function _msgSender() internal view override(Context, ERC2771Context) returns (address) {
-        return ERC2771Context._msgSender();
+    function _msgSender() internal view override(ContextUpgradeable, ERC2771ContextUpgradeable) returns (address) {
+        return ERC2771ContextUpgradeable._msgSender();
     }
 
-    function _msgData() internal view override(Context, ERC2771Context) returns (bytes calldata) {
-        return ERC2771Context._msgData();
+    function _msgData() internal view override(ContextUpgradeable, ERC2771ContextUpgradeable) returns (bytes calldata) {
+        return ERC2771ContextUpgradeable._msgData();
     }
 
     // ============ ADDITIONAL EVENTS ============
