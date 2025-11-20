@@ -9,7 +9,18 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 
-contract AgriDEX is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable {
+// Flash Loan Interface
+interface IFlashLoanReceiver {
+    function executeOperation(
+        address token,
+        uint256 amount,
+        uint256 fee,
+        address initiator,
+        bytes calldata params
+    ) external returns (bool);
+}
+
+contract AgriDEX is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable, IFlashLoanReceiver {
     using SafeERC20Upgradeable for IERC20Upgradeable;
 
     struct Order {
@@ -45,8 +56,29 @@ contract AgriDEX is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeabl
         uint256 rewards;
     }
 
-    enum OrderType { Limit, Market }
+    enum OrderType { Limit, Market, StopLoss, TakeProfit }
     enum OrderSide { Buy, Sell }
+
+    // Flash Loan structures
+    struct FlashLoanParams {
+        address token;
+        uint256 amount;
+        address borrower;
+        bytes data;
+    }
+
+    // Advanced order structures
+    struct StopLossOrder {
+        uint256 orderId;
+        uint256 triggerPrice;
+        bool isAbove; // true for stop-loss sell when price goes below, false for stop-loss buy when price goes above
+    }
+
+    struct TakeProfitOrder {
+        uint256 orderId;
+        uint256 triggerPrice;
+        bool isAbove; // true for take-profit sell when price goes above, false for take-profit buy when price goes below
+    }
 
     // Orders
     mapping(uint256 => Order) public orders;
@@ -64,6 +96,14 @@ contract AgriDEX is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeabl
     // User positions
     mapping(address => uint256[]) public userOrders;
     mapping(address => uint256[]) public userPositions;
+
+    // Flash loan parameters
+    uint256 public flashLoanFee; // Fee in basis points
+
+    // Advanced orders
+    mapping(uint256 => StopLossOrder) public stopLossOrders;
+    mapping(uint256 => TakeProfitOrder) public takeProfitOrders;
+    uint256 public orderCount;
 
     // Trading parameters
     uint256 public tradingFee = 30; // 0.3% in basis points
@@ -87,6 +127,10 @@ contract AgriDEX is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeabl
     event SwapExecuted(address indexed user, address tokenIn, address tokenOut, uint256 amountIn, uint256 amountOut, uint256 fee);
     event RewardsClaimed(address indexed user, uint256 amount);
     event FlashLoanExecuted(address indexed borrower, address token, uint256 amount, uint256 fee);
+    event FlashLoanFeeUpdated(uint256 newFee);
+    event StopLossOrderCreated(uint256 indexed orderId, address indexed maker, address tokenIn, address tokenOut, uint256 amountIn, uint256 triggerPrice, bool isAbove);
+    event TakeProfitOrderCreated(uint256 indexed orderId, address indexed maker, address tokenIn, address tokenOut, uint256 amountIn, uint256 triggerPrice, bool isAbove);
+    event AdvancedOrderExecuted(uint256 indexed orderId, address indexed executor, uint256 executedAmount);
 
     function initialize() public initializer {
         __Ownable_init(msg.sender);
@@ -95,6 +139,191 @@ contract AgriDEX is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeabl
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
+
+    // ============ FLASH LOAN FUNCTIONALITY ============
+
+    /**
+     * @dev Executes a flash loan
+     * @param token The token to borrow
+     * @param amount The amount to borrow
+     * @param params Additional parameters for the flash loan
+     */
+    function flashLoan(
+        address token,
+        uint256 amount,
+        bytes calldata params
+    ) external nonReentrant {
+        require(supportedTokens[token], "Token not supported");
+        require(amount > 0, "Amount must be greater than 0");
+
+        uint256 balanceBefore = IERC20Upgradeable(token).balanceOf(address(this));
+        require(balanceBefore >= amount, "Insufficient liquidity");
+
+        uint256 fee = (amount * flashLoanFee) / 10000; // Fee in basis points
+        uint256 totalDebt = amount + fee;
+
+        // Transfer tokens to borrower
+        IERC20Upgradeable(token).safeTransfer(msg.sender, amount);
+
+        // Execute borrower's operation
+        require(
+            IFlashLoanReceiver(msg.sender).executeOperation(token, amount, fee, msg.sender, params),
+            "Flash loan execution failed"
+        );
+
+        // Check that borrower returned the funds
+        uint256 balanceAfter = IERC20Upgradeable(token).balanceOf(address(this));
+        require(balanceAfter >= balanceBefore + fee, "Flash loan not repaid");
+
+        emit FlashLoanExecuted(msg.sender, token, amount, fee);
+    }
+
+    /**
+     * @dev Executes operation for flash loan receiver
+     */
+    function executeOperation(
+        address token,
+        uint256 amount,
+        uint256 fee,
+        address initiator,
+        bytes calldata params
+    ) external override returns (bool) {
+        // This function should be implemented by contracts inheriting from IFlashLoanReceiver
+        // For AgriDEX itself, we don't need to do anything special
+        return true;
+    }
+
+    /**
+     * @dev Sets the flash loan fee
+     * @param _fee Fee in basis points (e.g., 9 = 0.09%)
+     */
+    function setFlashLoanFee(uint256 _fee) external onlyOwner {
+        require(_fee <= 100, "Fee too high"); // Max 1%
+        flashLoanFee = _fee;
+        emit FlashLoanFeeUpdated(_fee);
+    }
+
+    // ============ ADVANCED ORDER MANAGEMENT ============
+
+    /**
+     * @dev Creates a stop-loss order
+     */
+    function createStopLossOrder(
+        address tokenIn,
+        address tokenOut,
+        uint256 amountIn,
+        uint256 triggerPrice,
+        bool isAbove,
+        uint256 expiry
+    ) external nonReentrant returns (uint256) {
+        require(supportedTokens[tokenIn] && supportedTokens[tokenOut], "Tokens not supported");
+        require(amountIn > 0, "Amount must be greater than 0");
+        require(expiry > block.timestamp, "Expiry must be in future");
+
+        orderCount++;
+        uint256 orderId = orderCount;
+
+        orders[orderId] = Order({
+            id: orderId,
+            maker: msg.sender,
+            tokenIn: tokenIn,
+            tokenOut: tokenOut,
+            amountIn: amountIn,
+            amountOut: 0, // Will be calculated when triggered
+            filledAmount: 0,
+            price: triggerPrice,
+            expiry: expiry,
+            active: true,
+            orderType: OrderType.StopLoss
+        });
+
+        stopLossOrders[orderId] = StopLossOrder({
+            orderId: orderId,
+            triggerPrice: triggerPrice,
+            isAbove: isAbove
+        });
+
+        emit StopLossOrderCreated(orderId, msg.sender, tokenIn, tokenOut, amountIn, triggerPrice, isAbove);
+        return orderId;
+    }
+
+    /**
+     * @dev Creates a take-profit order
+     */
+    function createTakeProfitOrder(
+        address tokenIn,
+        address tokenOut,
+        uint256 amountIn,
+        uint256 triggerPrice,
+        bool isAbove,
+        uint256 expiry
+    ) external nonReentrant returns (uint256) {
+        require(supportedTokens[tokenIn] && supportedTokens[tokenOut], "Tokens not supported");
+        require(amountIn > 0, "Amount must be greater than 0");
+        require(expiry > block.timestamp, "Expiry must be in future");
+
+        orderCount++;
+        uint256 orderId = orderCount;
+
+        orders[orderId] = Order({
+            id: orderId,
+            maker: msg.sender,
+            tokenIn: tokenIn,
+            tokenOut: tokenOut,
+            amountIn: amountIn,
+            amountOut: 0,
+            filledAmount: 0,
+            price: triggerPrice,
+            expiry: expiry,
+            active: true,
+            orderType: OrderType.TakeProfit
+        });
+
+        takeProfitOrders[orderId] = TakeProfitOrder({
+            orderId: orderId,
+            triggerPrice: triggerPrice,
+            isAbove: isAbove
+        });
+
+        emit TakeProfitOrderCreated(orderId, msg.sender, tokenIn, tokenOut, amountIn, triggerPrice, isAbove);
+        return orderId;
+    }
+
+    /**
+     * @dev Checks and executes stop-loss and take-profit orders
+     * @param tokenA First token in pair
+     * @param tokenB Second token in pair
+     * @param currentPrice Current price of tokenA in terms of tokenB
+     */
+    function checkAndExecuteOrders(
+        address tokenA,
+        address tokenB,
+        uint256 currentPrice
+    ) external {
+        // Check stop-loss orders
+        for (uint256 i = 1; i <= orderCount; i++) {
+            if (orders[i].active && orders[i].orderType == OrderType.StopLoss) {
+                StopLossOrder memory slo = stopLossOrders[i];
+                bool shouldTrigger = slo.isAbove ? (currentPrice >= slo.triggerPrice) : (currentPrice <= slo.triggerPrice);
+
+                if (shouldTrigger && orders[i].expiry > block.timestamp) {
+                    _executeOrder(i);
+                }
+            }
+        }
+
+        // Check take-profit orders
+        for (uint256 i = 1; i <= orderCount; i++) {
+            if (orders[i].active && orders[i].orderType == OrderType.TakeProfit) {
+                TakeProfitOrder memory tpo = takeProfitOrders[i];
+                bool shouldTrigger = tpo.isAbove ? (currentPrice >= tpo.triggerPrice) : (currentPrice <= tpo.triggerPrice);
+
+                if (shouldTrigger && orders[i].expiry > block.timestamp) {
+                    _executeOrder(i);
+                }
+            }
+        }
+    }
 
     // ============ TOKEN MANAGEMENT ============
 

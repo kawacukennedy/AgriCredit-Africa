@@ -44,6 +44,54 @@ contract GovernanceToken is Initializable, ERC20Upgradeable, ERC20VotesUpgradeab
     mapping(address => address) public delegates;
     mapping(address => uint256) public delegatedPower;
 
+    // Quadratic voting structures
+    struct QuadraticProposal {
+        uint256 proposalId;
+        address proposer;
+        string description;
+        address[] targets;
+        uint256[] values;
+        bytes[] calldatas;
+        uint256 startTime;
+        uint256 endTime;
+        uint256 totalQuadraticVotes;
+        uint256 totalLinearVotes;
+        bool executed;
+        bool canceled;
+        mapping(address => QuadraticVote) votes;
+    }
+
+    struct QuadraticVote {
+        uint256 linearVotes;    // Raw token votes
+        uint256 quadraticVotes; // sqrt(linearVotes) for quadratic voting
+        bool hasVoted;
+        uint256 timestamp;
+    }
+
+    mapping(uint256 => QuadraticProposal) public quadraticProposals;
+    uint256 public quadraticProposalCount;
+
+    // Conviction voting (continuous approval voting)
+    struct ConvictionProposal {
+        uint256 proposalId;
+        address proposer;
+        string description;
+        uint256 requestedAmount;
+        address beneficiary;
+        uint256 convictionScore;
+        uint256 lastUpdate;
+        bool active;
+        mapping(address => uint256) stakedTokens;
+        uint256 totalStaked;
+    }
+
+    mapping(uint256 => ConvictionProposal) public convictionProposals;
+    uint256 public convictionProposalCount;
+
+    // Parameters for conviction voting
+    uint256 public convictionGrowthRate = 2; // Conviction grows with sqrt(time)
+    uint256 public convictionHalfLife = 30 days; // Conviction half-life
+
     // Fee collection for treasury
     uint256 public collectedFees;
     address public treasury;
@@ -60,6 +108,21 @@ contract GovernanceToken is Initializable, ERC20Upgradeable, ERC20VotesUpgradeab
     event DelegationSet(address indexed delegator, address indexed delegatee);
     event TreasuryFeesCollected(uint256 amount);
 
+    // Quadratic voting events
+    event QuadraticProposalCreated(uint256 indexed proposalId, address indexed proposer, string description);
+    event QuadraticVoteCast(uint256 indexed proposalId, address indexed voter, uint256 linearVotes, uint256 quadraticVotes);
+    event QuadraticProposalExecuted(uint256 indexed proposalId);
+
+    // Conviction voting events
+    event ConvictionProposalCreated(uint256 indexed proposalId, address indexed proposer, string description, uint256 requestedAmount);
+    event TokensStakedOnProposal(uint256 indexed proposalId, address indexed staker, uint256 amount);
+    event TokensUnstakedFromProposal(uint256 indexed proposalId, address indexed staker, uint256 amount);
+    event ConvictionProposalExecuted(uint256 indexed proposalId, address indexed beneficiary, uint256 amount);
+
+    // Advanced delegation events
+    event Delegated(address indexed delegator, address indexed delegatee, uint256 amount, uint256 duration);
+    event Undelegated(address indexed delegator, address indexed delegatee, uint256 amount);
+
     function initialize(address _treasury) public initializer {
         __ERC20_init("AgriCredit Governance Token", "AGC");
         __ERC20Votes_init();
@@ -74,6 +137,240 @@ contract GovernanceToken is Initializable, ERC20Upgradeable, ERC20VotesUpgradeab
         // Create vesting schedules
         _createVestingSchedule(owner(), TEAM_ALLOCATION, 2 * 365 days, 180 days, true);
         _createVestingSchedule(treasury, COMMUNITY_ALLOCATION, 365 days, 0, false);
+    }
+
+    // ============ QUADRATIC VOTING FUNCTIONS ============
+
+    /**
+     * @dev Creates a quadratic voting proposal
+     */
+    function createQuadraticProposal(
+        string memory description,
+        address[] memory targets,
+        uint256[] memory values,
+        bytes[] memory calldatas
+    ) external returns (uint256) {
+        require(getVotes(msg.sender) >= proposalThreshold, "Insufficient voting power");
+
+        quadraticProposalCount++;
+        uint256 proposalId = quadraticProposalCount;
+
+        QuadraticProposal storage proposal = quadraticProposals[proposalId];
+        proposal.proposalId = proposalId;
+        proposal.proposer = msg.sender;
+        proposal.description = description;
+        proposal.targets = targets;
+        proposal.values = values;
+        proposal.calldatas = calldatas;
+        proposal.startTime = block.timestamp;
+        proposal.endTime = block.timestamp + votingPeriod;
+
+        emit QuadraticProposalCreated(proposalId, msg.sender, description);
+        return proposalId;
+    }
+
+    /**
+     * @dev Casts a quadratic vote
+     */
+    function castQuadraticVote(uint256 proposalId, uint256 votes) external {
+        QuadraticProposal storage proposal = quadraticProposals[proposalId];
+        require(block.timestamp >= proposal.startTime, "Voting not started");
+        require(block.timestamp <= proposal.endTime, "Voting ended");
+        require(!proposal.executed && !proposal.canceled, "Proposal not active");
+
+        QuadraticVote storage existingVote = proposal.votes[msg.sender];
+        require(!existingVote.hasVoted || existingVote.linearVotes != votes, "Same vote already cast");
+
+        uint256 voterBalance = getVotes(msg.sender);
+        require(votes <= voterBalance, "Insufficient voting power");
+
+        // Remove previous vote if exists
+        if (existingVote.hasVoted) {
+            proposal.totalQuadraticVotes -= existingVote.quadraticVotes;
+            proposal.totalLinearVotes -= existingVote.linearVotes;
+        }
+
+        // Calculate quadratic votes (square root of linear votes)
+        uint256 quadraticVotes = Math.sqrt(votes * 1e18) / 1e9; // Scale appropriately
+
+        // Update vote
+        existingVote.linearVotes = votes;
+        existingVote.quadraticVotes = quadraticVotes;
+        existingVote.hasVoted = true;
+        existingVote.timestamp = block.timestamp;
+
+        // Update totals
+        proposal.totalQuadraticVotes += quadraticVotes;
+        proposal.totalLinearVotes += votes;
+
+        emit QuadraticVoteCast(proposalId, msg.sender, votes, quadraticVotes);
+    }
+
+    /**
+     * @dev Executes a quadratic proposal
+     */
+    function executeQuadraticProposal(uint256 proposalId) external {
+        QuadraticProposal storage proposal = quadraticProposals[proposalId];
+        require(block.timestamp > proposal.endTime, "Voting not ended");
+        require(!proposal.executed && !proposal.canceled, "Proposal already executed or canceled");
+        require(proposal.totalQuadraticVotes >= quorumThreshold, "Insufficient quadratic votes");
+
+        proposal.executed = true;
+
+        // Execute the proposal
+        for (uint256 i = 0; i < proposal.targets.length; i++) {
+            (bool success,) = proposal.targets[i].call{value: proposal.values[i]}(proposal.calldatas[i]);
+            require(success, "Proposal execution failed");
+        }
+
+        emit QuadraticProposalExecuted(proposalId);
+    }
+
+    // ============ CONVICTION VOTING FUNCTIONS ============
+
+    /**
+     * @dev Creates a conviction voting proposal
+     */
+    function createConvictionProposal(
+        string memory description,
+        uint256 requestedAmount,
+        address beneficiary
+    ) external returns (uint256) {
+        require(getVotes(msg.sender) >= proposalThreshold, "Insufficient voting power");
+
+        convictionProposalCount++;
+        uint256 proposalId = convictionProposalCount;
+
+        ConvictionProposal storage proposal = convictionProposals[proposalId];
+        proposal.proposalId = proposalId;
+        proposal.proposer = msg.sender;
+        proposal.description = description;
+        proposal.requestedAmount = requestedAmount;
+        proposal.beneficiary = beneficiary;
+        proposal.active = true;
+        proposal.lastUpdate = block.timestamp;
+
+        emit ConvictionProposalCreated(proposalId, msg.sender, description, requestedAmount);
+        return proposalId;
+    }
+
+    /**
+     * @dev Stakes tokens on a conviction proposal
+     */
+    function stakeOnConvictionProposal(uint256 proposalId, uint256 amount) external {
+        ConvictionProposal storage proposal = convictionProposals[proposalId];
+        require(proposal.active, "Proposal not active");
+        require(amount > 0, "Amount must be greater than 0");
+
+        uint256 voterBalance = balanceOf(msg.sender);
+        require(voterBalance >= amount, "Insufficient balance");
+
+        // Transfer tokens to this contract
+        _transfer(msg.sender, address(this), amount);
+
+        // Update staking
+        proposal.stakedTokens[msg.sender] += amount;
+        proposal.totalStaked += amount;
+
+        // Update conviction score
+        _updateConvictionScore(proposalId);
+
+        emit TokensStakedOnProposal(proposalId, msg.sender, amount);
+    }
+
+    /**
+     * @dev Unstakes tokens from a conviction proposal
+     */
+    function unstakeFromConvictionProposal(uint256 proposalId, uint256 amount) external {
+        ConvictionProposal storage proposal = convictionProposals[proposalId];
+        require(proposal.stakedTokens[msg.sender] >= amount, "Insufficient staked amount");
+
+        // Update staking
+        proposal.stakedTokens[msg.sender] -= amount;
+        proposal.totalStaked -= amount;
+
+        // Transfer tokens back
+        _transfer(address(this), msg.sender, amount);
+
+        // Update conviction score
+        _updateConvictionScore(proposalId);
+
+        emit TokensUnstakedFromProposal(proposalId, msg.sender, amount);
+    }
+
+    /**
+     * @dev Executes a conviction proposal if threshold is met
+     */
+    function executeConvictionProposal(uint256 proposalId) external {
+        ConvictionProposal storage proposal = convictionProposals[proposalId];
+        require(proposal.active, "Proposal not active");
+
+        uint256 convictionThreshold = _calculateConvictionThreshold(proposal.requestedAmount);
+        require(proposal.convictionScore >= convictionThreshold, "Conviction threshold not met");
+
+        proposal.active = false;
+
+        // Transfer requested amount to beneficiary
+        _transfer(address(this), proposal.beneficiary, proposal.requestedAmount);
+
+        emit ConvictionProposalExecuted(proposalId, proposal.beneficiary, proposal.requestedAmount);
+    }
+
+    // ============ ADVANCED DELEGATION FUNCTIONS ============
+
+    /**
+     * @dev Delegates voting power with time-weighted decay
+     */
+    function delegateWithDecay(address delegatee, uint256 duration) external {
+        require(delegatee != address(0), "Cannot delegate to zero address");
+        require(delegatee != msg.sender, "Cannot delegate to self");
+
+        uint256 votingPower = getVotes(msg.sender);
+        require(votingPower > 0, "No voting power to delegate");
+
+        delegates[msg.sender] = delegatee;
+        delegatedPower[delegatee] += votingPower;
+
+        // In a real implementation, you'd track delegation duration and decay
+        // For now, this is a simplified version
+
+        emit Delegated(msg.sender, delegatee, votingPower, duration);
+    }
+
+    /**
+     * @dev Undelegates voting power
+     */
+    function undelegate() external {
+        address currentDelegate = delegates[msg.sender];
+        require(currentDelegate != address(0), "Not delegated");
+
+        uint256 votingPower = getVotes(msg.sender);
+        delegatedPower[currentDelegate] -= votingPower;
+        delegates[msg.sender] = address(0);
+
+        emit Undelegated(msg.sender, currentDelegate, votingPower);
+    }
+
+    // ============ INTERNAL FUNCTIONS ============
+
+    function _updateConvictionScore(uint256 proposalId) internal {
+        ConvictionProposal storage proposal = convictionProposals[proposalId];
+
+        uint256 timeSinceLastUpdate = block.timestamp - proposal.lastUpdate;
+        if (timeSinceLastUpdate == 0) return;
+
+        // Conviction grows with sqrt(time) * sqrt(staked tokens)
+        uint256 timeFactor = Math.sqrt(timeSinceLastUpdate * convictionGrowthRate);
+        uint256 stakeFactor = Math.sqrt(proposal.totalStaked);
+
+        proposal.convictionScore = (proposal.convictionScore + timeFactor * stakeFactor) / 1e18;
+        proposal.lastUpdate = block.timestamp;
+    }
+
+    function _calculateConvictionThreshold(uint256 amount) internal view returns (uint256) {
+        // Threshold increases with requested amount
+        // Simplified formula: threshold = amount / 1000 (minimum 1000)
+        return Math.max(amount / 1000, 1000 * 1e18);
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
