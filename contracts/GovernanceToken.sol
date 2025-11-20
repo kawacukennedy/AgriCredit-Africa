@@ -1,0 +1,344 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.28;
+
+import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20VotesUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts/utils/math/Math.sol";
+
+contract GovernanceToken is Initializable, ERC20Upgradeable, ERC20VotesUpgradeable, OwnableUpgradeable, UUPSUpgradeable {
+
+    // Token parameters
+    uint256 public constant MAX_SUPPLY = 1000000000 * 10**18; // 1 billion tokens
+    uint256 public constant INITIAL_SUPPLY = 100000000 * 10**18; // 100 million initial supply
+
+    // Distribution parameters
+    uint256 public constant TEAM_ALLOCATION = 20000000 * 10**18; // 20 million for team
+    uint256 public constant COMMUNITY_ALLOCATION = 30000000 * 10**18; // 30 million for community
+    uint256 public constant LIQUIDITY_ALLOCATION = 20000000 * 10**18; // 20 million for liquidity
+    uint256 public constant REWARDS_ALLOCATION = 30000000 * 10**18; // 30 million for rewards
+
+    // Vesting parameters
+    struct VestingSchedule {
+        address beneficiary;
+        uint256 totalAmount;
+        uint256 releasedAmount;
+        uint256 startTime;
+        uint256 duration;
+        uint256 cliffDuration;
+        bool revocable;
+    }
+
+    mapping(address => VestingSchedule) public vestingSchedules;
+    address[] public vestees;
+
+    // Governance parameters
+    uint256 public proposalThreshold = 100000 * 10**18; // 100k tokens to propose
+    uint256 public quorumThreshold = 1000000 * 10**18; // 1M tokens for quorum
+    uint256 public votingPeriod = 7 days;
+    uint256 public executionDelay = 2 days;
+
+    // Delegation tracking
+    mapping(address => address) public delegates;
+    mapping(address => uint256) public delegatedPower;
+
+    // Fee collection for treasury
+    uint256 public collectedFees;
+    address public treasury;
+
+    // Emergency controls
+    bool public mintingPaused;
+    bool public transfersPaused;
+
+    // Events
+    event TokensMinted(address indexed to, uint256 amount);
+    event TokensBurned(address indexed from, uint256 amount);
+    event VestingScheduleCreated(address indexed beneficiary, uint256 amount, uint256 duration);
+    event TokensReleased(address indexed beneficiary, uint256 amount);
+    event DelegationSet(address indexed delegator, address indexed delegatee);
+    event TreasuryFeesCollected(uint256 amount);
+
+    function initialize(address _treasury) public initializer {
+        __ERC20_init("AgriCredit Governance Token", "AGC");
+        __ERC20Votes_init();
+        __Ownable_init(msg.sender);
+        __UUPSUpgradeable_init();
+
+        treasury = _treasury;
+
+        // Mint initial supply
+        _mint(address(this), INITIAL_SUPPLY);
+
+        // Create vesting schedules
+        _createVestingSchedule(owner(), TEAM_ALLOCATION, 2 * 365 days, 180 days, true);
+        _createVestingSchedule(treasury, COMMUNITY_ALLOCATION, 365 days, 0, false);
+    }
+
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
+
+    // ============ TOKEN MINTING & BURNING ============
+
+    function mint(address _to, uint256 _amount) external onlyOwner {
+        require(!mintingPaused, "Minting paused");
+        require(totalSupply() + _amount <= MAX_SUPPLY, "Exceeds max supply");
+        _mint(_to, _amount);
+        emit TokensMinted(_to, _amount);
+    }
+
+    function burn(uint256 _amount) external {
+        _burn(msg.sender, _amount);
+        emit TokensBurned(msg.sender, _amount);
+    }
+
+    function burnFrom(address _account, uint256 _amount) external onlyOwner {
+        _burn(_account, _amount);
+        emit TokensBurned(_account, _amount);
+    }
+
+    // ============ VESTING SYSTEM ============
+
+    function _createVestingSchedule(
+        address _beneficiary,
+        uint256 _amount,
+        uint256 _duration,
+        uint256 _cliffDuration,
+        bool _revocable
+    ) internal {
+        require(_beneficiary != address(0), "Invalid beneficiary");
+        require(_amount > 0, "Invalid amount");
+        require(vestingSchedules[_beneficiary].totalAmount == 0, "Vesting already exists");
+
+        vestingSchedules[_beneficiary] = VestingSchedule({
+            beneficiary: _beneficiary,
+            totalAmount: _amount,
+            releasedAmount: 0,
+            startTime: block.timestamp,
+            duration: _duration,
+            cliffDuration: _cliffDuration,
+            revocable: _revocable
+        });
+
+        vestees.push(_beneficiary);
+        emit VestingScheduleCreated(_beneficiary, _amount, _duration);
+    }
+
+    function releaseVestedTokens() external {
+        VestingSchedule storage vesting = vestingSchedules[msg.sender];
+        require(vesting.totalAmount > 0, "No vesting schedule");
+
+        uint256 releasable = _calculateReleasableAmount(vesting);
+        require(releasable > 0, "No tokens to release");
+
+        vesting.releasedAmount += releasable;
+        _transfer(address(this), msg.sender, releasable);
+
+        emit TokensReleased(msg.sender, releasable);
+    }
+
+    function _calculateReleasableAmount(VestingSchedule memory _vesting) internal view returns (uint256) {
+        if (block.timestamp < _vesting.startTime + _vesting.cliffDuration) {
+            return 0;
+        }
+
+        uint256 timeFromStart = block.timestamp - _vesting.startTime;
+        uint256 vestedAmount;
+
+        if (timeFromStart >= _vesting.duration) {
+            vestedAmount = _vesting.totalAmount;
+        } else {
+            vestedAmount = (_vesting.totalAmount * timeFromStart) / _vesting.duration;
+        }
+
+        return vestedAmount - _vesting.releasedAmount;
+    }
+
+    function revokeVesting(address _beneficiary) external onlyOwner {
+        VestingSchedule storage vesting = vestingSchedules[_beneficiary];
+        require(vesting.revocable, "Vesting not revocable");
+
+        uint256 unreleased = vesting.totalAmount - vesting.releasedAmount;
+        vesting.totalAmount = vesting.releasedAmount; // Effectively revoke remaining
+
+        // Return unreleased tokens to treasury
+        _transfer(address(this), treasury, unreleased);
+    }
+
+    // ============ DELEGATION SYSTEM ============
+
+    function delegate(address _delegatee) external {
+        require(_delegatee != address(0), "Cannot delegate to zero address");
+        require(_delegatee != msg.sender, "Cannot delegate to self");
+
+        address previousDelegate = delegates[msg.sender];
+        delegates[msg.sender] = _delegatee;
+
+        _moveDelegatedPower(previousDelegate, _delegatee, balanceOf(msg.sender));
+
+        emit DelegationSet(msg.sender, _delegatee);
+    }
+
+    function _moveDelegatedPower(address _from, address _to, uint256 _amount) internal {
+        if (_from != address(0)) {
+            delegatedPower[_from] -= _amount;
+        }
+        if (_to != address(0)) {
+            delegatedPower[_to] += _amount;
+        }
+    }
+
+    function getVotingPower(address _account) external view returns (uint256) {
+        return balanceOf(_account) + delegatedPower[_account];
+    }
+
+    function getTotalVotingPower() external view returns (uint256) {
+        return totalSupply();
+    }
+
+    // ============ GOVERNANCE FUNCTIONS ============
+
+    function canPropose(address _account) external view returns (bool) {
+        return getVotingPower(_account) >= proposalThreshold;
+    }
+
+    function getQuorum() external view returns (uint256) {
+        return quorumThreshold;
+    }
+
+    function getVotingPeriod() external view returns (uint256) {
+        return votingPeriod;
+    }
+
+    function getExecutionDelay() external view returns (uint256) {
+        return executionDelay;
+    }
+
+    // ============ TRANSFER HOOKS ============
+
+    function _update(address _from, address _to, uint256 _value) internal override(ERC20Upgradeable, ERC20VotesUpgradeable) {
+        require(!transfersPaused || msg.sender == owner(), "Transfers paused");
+
+        super._update(_from, _to, _value);
+
+        // Update delegation power
+        if (_from != address(0)) {
+            address fromDelegate = delegates[_from];
+            if (fromDelegate != address(0)) {
+                delegatedPower[fromDelegate] -= _value;
+            }
+        }
+
+        if (_to != address(0)) {
+            address toDelegate = delegates[_to];
+            if (toDelegate != address(0)) {
+                delegatedPower[toDelegate] += _value;
+            }
+        }
+    }
+
+    // ============ FEE COLLECTION ============
+
+    function collectFees(uint256 _amount) external onlyOwner {
+        require(collectedFees >= _amount, "Insufficient collected fees");
+
+        collectedFees -= _amount;
+        _transfer(address(this), treasury, _amount);
+
+        emit TreasuryFeesCollected(_amount);
+    }
+
+    function addCollectedFees(uint256 _amount) external {
+        // This would be called by other contracts to add fees
+        collectedFees += _amount;
+        _transfer(msg.sender, address(this), _amount);
+    }
+
+    // ============ VIEW FUNCTIONS ============
+
+    function getVestingSchedule(address _beneficiary) external view returns (
+        uint256 totalAmount,
+        uint256 releasedAmount,
+        uint256 startTime,
+        uint256 duration,
+        uint256 cliffDuration,
+        bool revocable
+    ) {
+        VestingSchedule memory vesting = vestingSchedules[_beneficiary];
+        return (
+            vesting.totalAmount,
+            vesting.releasedAmount,
+            vesting.startTime,
+            vesting.duration,
+            vesting.cliffDuration,
+            vesting.revocable
+        );
+    }
+
+    function getReleasableAmount(address _beneficiary) external view returns (uint256) {
+        VestingSchedule memory vesting = vestingSchedules[_beneficiary];
+        return _calculateReleasableAmount(vesting);
+    }
+
+    function getVestees() external view returns (address[] memory) {
+        return vestees;
+    }
+
+    function getDelegate(address _account) external view returns (address) {
+        return delegates[_account];
+    }
+
+    function getDelegatedPower(address _account) external view returns (uint256) {
+        return delegatedPower[_account];
+    }
+
+    // ============ ADMIN FUNCTIONS ============
+
+    function setGovernanceParameters(
+        uint256 _proposalThreshold,
+        uint256 _quorumThreshold,
+        uint256 _votingPeriod,
+        uint256 _executionDelay
+    ) external onlyOwner {
+        proposalThreshold = _proposalThreshold;
+        quorumThreshold = _quorumThreshold;
+        votingPeriod = _votingPeriod;
+        executionDelay = _executionDelay;
+    }
+
+    function setTreasury(address _treasury) external onlyOwner {
+        treasury = _treasury;
+    }
+
+    function pauseMinting(bool _paused) external onlyOwner {
+        mintingPaused = _paused;
+    }
+
+    function pauseTransfers(bool _paused) external onlyOwner {
+        transfersPaused = _paused;
+    }
+
+    function createVestingSchedule(
+        address _beneficiary,
+        uint256 _amount,
+        uint256 _duration,
+        uint256 _cliffDuration,
+        bool _revocable
+    ) external onlyOwner {
+        require(balanceOf(address(this)) >= _amount, "Insufficient contract balance");
+        _createVestingSchedule(_beneficiary, _amount, _duration, _cliffDuration, _revocable);
+    }
+
+    // ============ CLOCK MODE (for testing) ============
+
+    function clock() public view override returns (uint48) {
+        return uint48(block.timestamp);
+    }
+
+    function CLOCK_MODE() public pure override returns (string memory) {
+        return "mode=timestamp";
+    }
+}</content>
+</xai:function_call
+</xai:function_call name="todowrite">
+<parameter name="todos">[{"content":"Implement proper governance token with delegation and voting","status":"completed","priority":"medium","id":"add_governance_token"},{"content":"Create Bridge contract for cross-chain asset transfers","status":"in_progress","priority":"medium","id":"create_bridge_contract"}]
