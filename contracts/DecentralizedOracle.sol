@@ -11,7 +11,7 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 contract DecentralizedOracle is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable {
     using ECDSA for bytes32;
 
-    enum DataType { Weather, CropHealth, Price, MarketSentiment, IoT }
+    enum DataType { Weather, CropHealth, Price, MarketSentiment, IoT, AIModel }
 
     struct OracleNode {
         address nodeAddress;
@@ -660,5 +660,215 @@ contract DecentralizedOracle is Initializable, OwnableUpgradeable, ReentrancyGua
     event CrossChainDataSynced(uint256 indexed chainId, bytes32 indexed feedId, uint256 value, uint256 confidence);
     event AIModelDeactivated(bytes32 indexed modelId);
     event RewardTokenSet(address indexed token);
+
+    // ============ ADVANCED AI FEATURES ============
+
+    struct AutomatedDecision {
+        bytes32 decisionId;
+        string decisionType; // "irrigation", "pesticide", "harvest", "insurance_claim"
+        uint256 confidence;
+        uint256 riskLevel;
+        uint256 recommendedAction;
+        uint256 timestamp;
+        address farmer;
+        bool executed;
+    }
+
+    struct PredictiveAnalytics {
+        bytes32 analyticsId;
+        string cropType;
+        string location;
+        uint256 predictedYield;
+        uint256 weatherRisk;
+        uint256 marketPrice;
+        uint256 optimalHarvestTime;
+        uint256 confidence;
+        uint256 timestamp;
+    }
+
+    mapping(bytes32 => AutomatedDecision) public automatedDecisions;
+    mapping(address => PredictiveAnalytics[]) public farmerAnalytics;
+
+    // Automated decision making
+    function makeAutomatedDecision(
+        string memory _decisionType,
+        address _farmer,
+        bytes32 _feedId
+    ) external returns (bytes32 decisionId) {
+        require(oracleNodes[msg.sender].active, "Not an active oracle node");
+
+        // Get relevant data feeds
+        DataFeed memory weatherFeed = dataFeeds[keccak256(abi.encodePacked(DataType.Weather, "location", "current"))];
+        DataFeed memory cropFeed = dataFeeds[keccak256(abi.encodePacked(DataType.CropHealth, "location", "health"))];
+        DataFeed memory marketFeed = dataFeeds[keccak256(abi.encodePacked(DataType.MarketSentiment, "global", "price"))];
+
+        // Use AI model for decision making
+        bytes32 modelId = keccak256(abi.encodePacked("decision_model", _decisionType));
+        AIModel storage model = aiModels[modelId];
+        require(model.active, "AI model not available");
+
+        // Calculate decision parameters
+        uint256 confidence = Math.min(weatherFeed.confidence, Math.min(cropFeed.confidence, marketFeed.confidence));
+        uint256 riskLevel = _calculateRiskLevel(weatherFeed.value, cropFeed.value, marketFeed.value);
+        uint256 recommendedAction = _getRecommendedAction(_decisionType, weatherFeed.value, cropFeed.value, marketFeed.value);
+
+        decisionId = keccak256(abi.encodePacked(_decisionType, _farmer, block.timestamp));
+        automatedDecisions[decisionId] = AutomatedDecision({
+            decisionId: decisionId,
+            decisionType: _decisionType,
+            confidence: confidence,
+            riskLevel: riskLevel,
+            recommendedAction: recommendedAction,
+            timestamp: block.timestamp,
+            farmer: _farmer,
+            executed: false
+        });
+
+        emit AutomatedDecisionMade(decisionId, _decisionType, _farmer, recommendedAction, confidence);
+        return decisionId;
+    }
+
+    function executeAutomatedDecision(bytes32 _decisionId) external {
+        AutomatedDecision storage decision = automatedDecisions[_decisionId];
+        require(decision.farmer == msg.sender, "Not authorized");
+        require(!decision.executed, "Already executed");
+        require(decision.confidence >= 70, "Confidence too low for auto-execution");
+
+        decision.executed = true;
+
+        // In practice, this would trigger smart contract actions
+        // For now, just emit event
+        emit AutomatedDecisionExecuted(_decisionId, decision.recommendedAction);
+    }
+
+    // Predictive farming analytics
+    function generatePredictiveAnalytics(
+        address _farmer,
+        string memory _cropType,
+        string memory _location
+    ) external returns (bytes32 analyticsId) {
+        require(oracleNodes[msg.sender].active, "Not an active oracle node");
+
+        // Get historical and current data
+        bytes32 weatherKey = keccak256(abi.encodePacked(DataType.Weather, _location, "forecast"));
+        bytes32 cropKey = keccak256(abi.encodePacked(DataType.CropHealth, _location, _cropType));
+        bytes32 marketKey = keccak256(abi.encodePacked(DataType.MarketSentiment, "global", _cropType));
+
+        DataFeed memory weatherData = dataFeeds[weatherKey];
+        DataFeed memory cropData = dataFeeds[cropKey];
+        DataFeed memory marketData = dataFeeds[marketKey];
+
+        // Use AI for predictions
+        bytes32 modelId = keccak256(abi.encodePacked("yield_prediction_model"));
+        AIModel storage model = aiModels[modelId];
+
+        uint256 predictedYield = _predictYield(weatherData.value, cropData.value, _cropType);
+        uint256 weatherRisk = _calculateWeatherRisk(weatherData.value);
+        uint256 marketPrice = marketData.value;
+        uint256 optimalHarvestTime = _calculateOptimalHarvestTime(weatherData.value, cropData.value);
+        uint256 confidence = Math.min(weatherData.confidence, cropData.confidence);
+
+        analyticsId = keccak256(abi.encodePacked(_farmer, _cropType, _location, block.timestamp));
+        PredictiveAnalytics memory analytics = PredictiveAnalytics({
+            analyticsId: analyticsId,
+            cropType: _cropType,
+            location: _location,
+            predictedYield: predictedYield,
+            weatherRisk: weatherRisk,
+            marketPrice: marketPrice,
+            optimalHarvestTime: optimalHarvestTime,
+            confidence: confidence,
+            timestamp: block.timestamp
+        });
+
+        farmerAnalytics[_farmer].push(analytics);
+
+        emit PredictiveAnalyticsGenerated(_farmer, analyticsId, predictedYield, confidence);
+        return analyticsId;
+    }
+
+    // Cross-chain AI sync
+    function syncCrossChainAIData(uint256 _chainId, bytes32 _modelId, bytes memory _data) external {
+        require(oracleNodes[msg.sender].active, "Not an active oracle node");
+        CrossChainOracle storage remoteOracle = crossChainOracles[_chainId];
+        require(remoteOracle.active, "Remote oracle not active");
+
+        // Verify cross-chain data (simplified)
+        // In practice, would verify signatures and proofs
+
+        // Update local AI model with cross-chain data
+        AIModel storage model = aiModels[_modelId];
+        if (model.active) {
+            // Update model accuracy based on cross-chain validation
+            model.accuracy = (model.accuracy + 1) / 2; // Simple averaging
+        }
+
+        emit CrossChainAISynced(_chainId, _modelId, block.timestamp);
+    }
+
+    // Internal helper functions
+    function _calculateRiskLevel(uint256 weather, uint256 cropHealth, uint256 market) internal pure returns (uint256) {
+        // Simplified risk calculation
+        uint256 weatherRisk = weather > 80 ? 30 : (weather > 60 ? 20 : 10);
+        uint256 healthRisk = cropHealth < 50 ? 40 : (cropHealth < 70 ? 20 : 5);
+        uint256 marketRisk = market < 50 ? 30 : 10;
+
+        return (weatherRisk + healthRisk + marketRisk) / 3;
+    }
+
+    function _getRecommendedAction(string memory decisionType, uint256 weather, uint256 cropHealth, uint256 market) internal pure returns (uint256) {
+        if (keccak256(abi.encodePacked(decisionType)) == keccak256(abi.encodePacked("irrigation"))) {
+            return weather < 60 ? 1 : 0; // 1 = irrigate, 0 = no action
+        } else if (keccak256(abi.encodePacked(decisionType)) == keccak256(abi.encodePacked("pesticide"))) {
+            return cropHealth < 70 ? 1 : 0;
+        } else if (keccak256(abi.encodePacked(decisionType)) == keccak256(abi.encodePacked("harvest"))) {
+            return cropHealth > 85 ? 1 : 0;
+        }
+        return 0;
+    }
+
+    function _predictYield(uint256 weather, uint256 cropHealth, string memory cropType) internal pure returns (uint256) {
+        uint256 baseYield = 1000; // Base yield in kg/ha
+        uint256 weatherMultiplier = 50 + (weather / 2); // 50-100% based on weather
+        uint256 healthMultiplier = 50 + (cropHealth / 2); // 50-100% based on health
+
+        return (baseYield * weatherMultiplier * healthMultiplier) / 10000;
+    }
+
+    function _calculateWeatherRisk(uint256 weather) internal pure returns (uint256) {
+        if (weather < 40) return 80; // High risk - drought
+        if (weather > 80) return 70; // High risk - flood
+        return 20; // Low risk
+    }
+
+    function _calculateOptimalHarvestTime(uint256 weather, uint256 cropHealth) internal pure returns (uint256) {
+        // Simplified calculation - in practice would use complex algorithms
+        uint256 baseTime = block.timestamp + 60 days;
+        uint256 weatherAdjustment = (100 - weather) * 1 days; // Adjust based on weather
+        uint256 healthAdjustment = (cropHealth - 50) * 0.5 days; // Adjust based on health
+
+        return baseTime + weatherAdjustment + healthAdjustment;
+    }
+
+    // View functions for advanced features
+    function getAutomatedDecision(bytes32 _decisionId) external view returns (AutomatedDecision memory) {
+        return automatedDecisions[_decisionId];
+    }
+
+    function getFarmerAnalytics(address _farmer) external view returns (PredictiveAnalytics[] memory) {
+        return farmerAnalytics[_farmer];
+    }
+
+    function getLatestAnalytics(address _farmer) external view returns (PredictiveAnalytics memory) {
+        PredictiveAnalytics[] memory analytics = farmerAnalytics[_farmer];
+        if (analytics.length == 0) return PredictiveAnalytics("", "", "", 0, 0, 0, 0, 0, 0);
+        return analytics[analytics.length - 1];
+    }
+
+    // Additional events
+    event AutomatedDecisionMade(bytes32 indexed decisionId, string decisionType, address indexed farmer, uint256 recommendedAction, uint256 confidence);
+    event AutomatedDecisionExecuted(bytes32 indexed decisionId, uint256 action);
+    event PredictiveAnalyticsGenerated(address indexed farmer, bytes32 indexed analyticsId, uint256 predictedYield, uint256 confidence);
+    event CrossChainAISynced(uint256 indexed chainId, bytes32 indexed modelId, uint256 timestamp);
 }</content>
 </xai:function_call
