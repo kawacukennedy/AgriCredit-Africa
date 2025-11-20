@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/security/Pausable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "./IdentityRegistry.sol";
 
@@ -19,7 +21,7 @@ interface IQualityOracle {
     function assessQuality(uint256 listingId, bytes memory data) external returns (uint256);
 }
 
-contract MarketplaceEscrow is Ownable, ReentrancyGuard, Pausable {
+contract MarketplaceEscrow is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable, PausableUpgradeable, UUPSUpgradeable {
     using SafeERC20 for IERC20;
 
     enum EscrowStatus { Created, Funded, Shipped, Delivered, Completed, Disputed, Cancelled }
@@ -109,17 +111,67 @@ contract MarketplaceEscrow is Ownable, ReentrancyGuard, Pausable {
     event DisputeEvidenceSubmitted(uint256 indexed disputeId, address indexed submitter, uint256 evidenceIndex, string evidence);
     event FormalDisputeResolved(uint256 indexed disputeId, address indexed winner, string resolutionNotes);
 
-    constructor(
+    // Cross-chain marketplace structures
+    struct CrossChainListing {
+        uint256 id;
+        uint256 sourceChainId;
+        address sourceContract;
+        uint256 sourceListingId;
+        address seller;
+        string cropType;
+        uint256 quantity;
+        uint256 pricePerUnit;
+        address paymentToken;
+        bool active;
+        uint256 createdAt;
+    }
+
+    struct CrossChainEscrow {
+        uint256 id;
+        uint256 sourceChainId;
+        uint256 targetChainId;
+        address buyer;
+        address seller;
+        uint256 amount;
+        address token;
+        uint256 listingId;
+        EscrowStatus status;
+        bytes32 bridgeTxHash;
+    }
+
+    mapping(uint256 => CrossChainListing) public crossChainListings;
+    mapping(uint256 => CrossChainEscrow) public crossChainEscrows;
+    uint256 public nextCrossChainListingId = 1;
+    uint256 public nextCrossChainEscrowId = 1;
+
+    // Cross-chain bridge interface
+    interface ICrossChainBridge {
+        function initiateCrossChainTrade(uint256 targetChainId, address targetContract, bytes calldata tradeData) external returns (uint256);
+        function completeCrossChainTrade(bytes calldata tradeData) external;
+    }
+
+    ICrossChainBridge public crossChainBridge;
+
+    function initialize(
         address _identityRegistry,
         address _deliveryOracle,
         address _qualityOracle,
-        address _feeCollector
-    ) Ownable(msg.sender) {
+        address _feeCollector,
+        address _crossChainBridge
+    ) public initializer {
+        __Ownable_init(msg.sender);
+        __ReentrancyGuard_init();
+        __Pausable_init();
+        __UUPSUpgradeable_init();
+
         identityRegistry = IdentityRegistry(_identityRegistry);
         deliveryOracle = IDeliveryOracle(_deliveryOracle);
         qualityOracle = IQualityOracle(_qualityOracle);
         feeCollector = _feeCollector;
+        crossChainBridge = ICrossChainBridge(_crossChainBridge);
     }
+
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
     // Listing Management
     function createListing(
@@ -493,4 +545,182 @@ contract MarketplaceEscrow is Ownable, ReentrancyGuard, Pausable {
     function setDisputePeriod(uint256 _period) external onlyOwner {
         disputePeriod = _period;
     }
+
+    // ============ CROSS-CHAIN MARKETPLACE FUNCTIONS ============
+
+    function createCrossChainListing(
+        uint256 targetChainId,
+        string memory _cropType,
+        uint256 _quantity,
+        uint256 _pricePerUnit,
+        address _paymentToken
+    ) external returns (uint256) {
+        require(identityRegistry.isIdentityVerified(msg.sender), "Identity not verified");
+
+        uint256 listingId = nextCrossChainListingId++;
+        crossChainListings[listingId] = CrossChainListing({
+            id: listingId,
+            sourceChainId: block.chainid,
+            sourceContract: address(this),
+            sourceListingId: 0, // Will be set when bridged
+            seller: msg.sender,
+            cropType: _cropType,
+            quantity: _quantity,
+            pricePerUnit: _pricePerUnit,
+            paymentToken: _paymentToken,
+            active: true,
+            createdAt: block.timestamp
+        });
+
+        // Bridge listing to target chain
+        bytes memory listingData = abi.encode(
+            listingId,
+            msg.sender,
+            _cropType,
+            _quantity,
+            _pricePerUnit,
+            _paymentToken
+        );
+
+        crossChainBridge.initiateCrossChainTrade(targetChainId, address(this), listingData);
+
+        emit CrossChainListingCreated(listingId, targetChainId, msg.sender);
+        return listingId;
+    }
+
+    function initiateCrossChainEscrow(
+        uint256 crossChainListingId,
+        uint256 targetChainId,
+        uint256 amount
+    ) external payable returns (uint256) {
+        CrossChainListing storage listing = crossChainListings[crossChainListingId];
+        require(listing.active, "Listing not active");
+        require(listing.quantity >= amount, "Insufficient quantity");
+
+        // Create escrow
+        uint256 escrowId = nextCrossChainEscrowId++;
+        crossChainEscrows[escrowId] = CrossChainEscrow({
+            id: escrowId,
+            sourceChainId: block.chainid,
+            targetChainId: targetChainId,
+            buyer: msg.sender,
+            seller: listing.seller,
+            amount: amount,
+            token: listing.paymentToken,
+            listingId: crossChainListingId,
+            status: EscrowStatus.Created,
+            bridgeTxHash: bytes32(0)
+        });
+
+        // Lock payment
+        if (listing.paymentToken == address(0)) {
+            require(msg.value >= amount * listing.pricePerUnit, "Insufficient payment");
+        } else {
+            IERC20(listing.paymentToken).transferFrom(msg.sender, address(this), amount * listing.pricePerUnit);
+        }
+
+        // Bridge escrow initiation
+        bytes memory escrowData = abi.encode(
+            escrowId,
+            msg.sender,
+            listing.seller,
+            amount * listing.pricePerUnit,
+            listing.paymentToken,
+            crossChainListingId
+        );
+
+        uint256 bridgeTxId = crossChainBridge.initiateCrossChainTrade(targetChainId, address(this), escrowData);
+        crossChainEscrows[escrowId].bridgeTxHash = bytes32(bridgeTxId);
+
+        emit CrossChainEscrowInitiated(escrowId, crossChainListingId, targetChainId);
+        return escrowId;
+    }
+
+    function completeCrossChainTrade(bytes calldata tradeData) external {
+        require(msg.sender == address(crossChainBridge), "Only bridge can call");
+
+        (
+            uint256 tradeType,
+            uint256 tradeId,
+            address buyer,
+            address seller,
+            uint256 amount,
+            address token,
+            uint256 listingId
+        ) = abi.decode(tradeData, (uint256, uint256, address, address, uint256, address, uint256));
+
+        if (tradeType == 1) { // Listing bridged
+            _handleBridgedListing(tradeId, buyer, seller, amount, token, listingId);
+        } else if (tradeType == 2) { // Escrow bridged
+            _handleBridgedEscrow(tradeId, buyer, seller, amount, token, listingId);
+        }
+    }
+
+    function _handleBridgedListing(
+        uint256 listingId,
+        address seller,
+        string memory cropType,
+        uint256 quantity,
+        uint256 pricePerUnit,
+        address paymentToken
+    ) internal {
+        // Create local listing from bridged data
+        uint256 localListingId = nextListingId++;
+        listings[localListingId] = Listing({
+            id: localListingId,
+            seller: seller,
+            cropType: cropType,
+            quantity: quantity,
+            pricePerUnit: pricePerUnit,
+            paymentToken: paymentToken,
+            active: true,
+            createdAt: block.timestamp,
+            aiRecommendationScore: 0,
+            geoLocation: "",
+            qualityCertifications: new string[](0)
+        });
+
+        emit ListingCreated(localListingId, seller, cropType, quantity, pricePerUnit);
+    }
+
+    function _handleBridgedEscrow(
+        uint256 escrowId,
+        address buyer,
+        address seller,
+        uint256 amount,
+        address token,
+        uint256 listingId
+    ) internal {
+        // Create local escrow from bridged data
+        uint256 localEscrowId = nextEscrowId++;
+        escrows[localEscrowId] = Escrow({
+            id: localEscrowId,
+            buyer: buyer,
+            seller: seller,
+            amount: amount,
+            token: token,
+            status: EscrowStatus.Funded,
+            createdAt: block.timestamp,
+            shippedAt: 0,
+            deliveredAt: 0,
+            deliveryProof: "",
+            geoLocation: "",
+            qualityScore: 0,
+            buyerConfirmed: false,
+            sellerConfirmed: false,
+            disputeDeadline: 0
+        });
+
+        emit EscrowCreated(localEscrowId, buyer, seller, amount, token);
+    }
+
+    function setCrossChainBridge(address _bridge) external onlyOwner {
+        crossChainBridge = ICrossChainBridge(_bridge);
+        emit CrossChainBridgeSet(_bridge);
+    }
+
+    // Additional events
+    event CrossChainListingCreated(uint256 indexed listingId, uint256 indexed targetChainId, address indexed seller);
+    event CrossChainEscrowInitiated(uint256 indexed escrowId, uint256 indexed listingId, uint256 indexed targetChainId);
+    event CrossChainBridgeSet(address indexed bridge);
 }

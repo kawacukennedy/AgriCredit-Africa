@@ -1,13 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "./CarbonToken.sol";
 
-contract LiquidityPool is Ownable, ReentrancyGuard {
+contract LiquidityPool is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable {
     struct Pool {
         IERC20 token;
         uint256 totalLiquidity;
@@ -100,10 +102,42 @@ contract LiquidityPool is Ownable, ReentrancyGuard {
     event ILProtectionPurchased(address indexed user, bytes32 indexed poolHash, uint256 protectionAmount);
     event CrossChainLiquidityBridged(uint256 indexed chainId, address indexed token, uint256 amount);
     event DynamicFeeUpdated(bytes32 indexed poolHash, uint256 newFee);
+    event CrossChainMessageSent(uint256 indexed messageId, uint256 indexed targetChainId, address indexed targetContract);
+    event CrossChainMessageReceived(uint256 indexed messageId, uint256 indexed sourceChainId, address indexed sender);
+    event CrossChainBridgeSet(address indexed bridge);
+    event LoanRepaid(uint256 indexed loanId, uint256 amount);
 
-    constructor(address _carbonToken) Ownable(msg.sender) {
-        carbonToken = CarbonToken(_carbonToken);
+    // Cross-chain bridge interface
+    interface ICrossChainBridge {
+        function sendMessage(uint256 targetChainId, address targetContract, bytes calldata message) external;
+        function receiveMessage(bytes calldata message) external;
     }
+
+    struct CrossChainMessage {
+        uint256 messageId;
+        uint256 sourceChainId;
+        uint256 targetChainId;
+        address sender;
+        bytes data;
+        uint256 timestamp;
+        bool executed;
+    }
+
+    mapping(uint256 => CrossChainMessage) public crossChainMessages;
+    uint256 public nextMessageId = 1;
+
+    ICrossChainBridge public crossChainBridge;
+
+    function initialize(address _carbonToken, address _crossChainBridge) public initializer {
+        __Ownable_init(msg.sender);
+        __ReentrancyGuard_init();
+        __UUPSUpgradeable_init();
+
+        carbonToken = CarbonToken(_carbonToken);
+        crossChainBridge = ICrossChainBridge(_crossChainBridge);
+    }
+
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
     /**
      * @dev Create a new liquidity pool for a token
@@ -268,6 +302,94 @@ contract LiquidityPool is Ownable, ReentrancyGuard {
 
         crossChain.lockedLiquidity -= amount;
         totalCrossChainLiquidity -= amount;
+        pools[token].totalLiquidity += amount;
+
+        emit CrossChainLiquidityBridged(chainId, token, amount); // Reusing event for unlock
+    }
+
+    // Advanced Cross-Chain Messaging
+    function sendCrossChainMessage(uint256 targetChainId, address targetContract, bytes calldata message) external onlyOwner {
+        require(address(crossChainBridge) != address(0), "Bridge not set");
+
+        uint256 messageId = nextMessageId++;
+        crossChainMessages[messageId] = CrossChainMessage({
+            messageId: messageId,
+            sourceChainId: block.chainid,
+            targetChainId: targetChainId,
+            sender: msg.sender,
+            data: message,
+            timestamp: block.timestamp,
+            executed: false
+        });
+
+        crossChainBridge.sendMessage(targetChainId, targetContract, message);
+
+        emit CrossChainMessageSent(messageId, targetChainId, targetContract);
+    }
+
+    function receiveCrossChainMessage(bytes calldata message) external {
+        require(msg.sender == address(crossChainBridge), "Only bridge can call");
+
+        // Decode message and execute
+        (uint256 messageId, uint256 sourceChainId, address sender, bytes memory data) = abi.decode(message, (uint256, uint256, address, bytes));
+
+        require(!crossChainMessages[messageId].executed, "Message already executed");
+
+        crossChainMessages[messageId] = CrossChainMessage({
+            messageId: messageId,
+            sourceChainId: sourceChainId,
+            targetChainId: block.chainid,
+            sender: sender,
+            data: data,
+            timestamp: block.timestamp,
+            executed: true
+        });
+
+        // Execute the cross-chain action
+        _executeCrossChainAction(data);
+
+        emit CrossChainMessageReceived(messageId, sourceChainId, sender);
+    }
+
+    function _executeCrossChainAction(bytes memory data) internal {
+        // Decode action type and parameters
+        (uint256 actionType, bytes memory actionData) = abi.decode(data, (uint256, bytes));
+
+        if (actionType == 1) {
+            // Cross-chain liquidity provision
+            (address token, uint256 amount, address user) = abi.decode(actionData, (address, uint256, address));
+            _provideCrossChainLiquidity(token, amount, user);
+        } else if (actionType == 2) {
+            // Cross-chain loan repayment
+            (uint256 loanId, uint256 amount) = abi.decode(actionData, (uint256, uint256));
+            _processCrossChainRepayment(loanId, amount);
+        }
+    }
+
+    function _provideCrossChainLiquidity(address token, uint256 amount, address user) internal {
+        require(pools[token].active, "Pool not active");
+
+        Pool storage pool = pools[token];
+        pool.totalLiquidity += amount;
+        userLiquidity[user][token] += amount;
+
+        emit LiquidityAdded(user, token, amount);
+    }
+
+    function _processCrossChainRepayment(uint256 loanId, uint256 amount) internal {
+        // Simplified cross-chain repayment processing
+        // In practice, would interact with LoanManager
+        emit LoanRepaid(loanId, amount);
+    }
+
+    function setCrossChainBridge(address _bridge) external onlyOwner {
+        crossChainBridge = ICrossChainBridge(_bridge);
+        emit CrossChainBridgeSet(_bridge);
+    }
+
+    function getCrossChainLiquidity(uint256 chainId) external view returns (uint256) {
+        return crossChainPools[chainId].lockedLiquidity;
+    }
         pools[token].totalLiquidity += amount;
     }
 
