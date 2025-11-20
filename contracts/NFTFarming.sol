@@ -1,16 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/Counters.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./IdentityRegistry.sol";
 
 // Fractional ownership token for farm NFTs
-contract FarmShareToken is IERC20 {
+contract FarmShareToken is Initializable, IERC20 {
     using SafeERC20 for IERC20;
 
     string public name;
@@ -23,7 +25,7 @@ contract FarmShareToken is IERC20 {
     address public farmNFT;
     uint256 public nftId;
 
-    constructor(string memory _name, string memory _symbol, address _farmNFT, uint256 _nftId) {
+    function initialize(string memory _name, string memory _symbol, address _farmNFT, uint256 _nftId) public initializer {
         name = _name;
         symbol = _symbol;
         farmNFT = _farmNFT;
@@ -58,7 +60,7 @@ contract FarmShareToken is IERC20 {
     event Approval(address indexed owner, address indexed spender, uint256 value);
 }
 
-contract NFTFarming is ERC721, Ownable, ReentrancyGuard {
+contract NFTFarming is Initializable, ERC721Upgradeable, OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable {
     using Counters for Counters.Counter;
 
     struct FarmNFT {
@@ -87,7 +89,7 @@ contract NFTFarming is ERC721, Ownable, ReentrancyGuard {
         address recordedBy;
     }
 
-    Counters.Counter private _tokenIdCounter;
+    CountersUpgradeable.Counter private _tokenIdCounter;
     mapping(uint256 => FarmNFT) public farmNFTs;
     mapping(address => uint256[]) public farmerNFTs;
     mapping(uint256 => SupplyChainEvent[]) public supplyChainHistory;
@@ -105,6 +107,44 @@ contract NFTFarming is ERC721, Ownable, ReentrancyGuard {
         uint256 accumulatedRewards;
         bool isActive;
     }
+
+    // Cross-chain NFT farming
+    struct CrossChainFarm {
+        uint256 sourceChainId;
+        uint256 sourceTokenId;
+        address sourceContract;
+        uint256 bridgedTokenId;
+        bool isBridged;
+        uint256 bridgeTimestamp;
+    }
+
+    struct YieldPrediction {
+        uint256 predictedYield;
+        uint256 confidence;
+        uint256 predictionTime;
+        string modelVersion;
+        bytes32 predictionHash;
+    }
+
+    mapping(uint256 => StakeInfo) public nftStakes;
+    mapping(uint256 => CrossChainFarm) public crossChainFarms;
+    mapping(uint256 => YieldPrediction) public yieldPredictions;
+
+    // Cross-chain bridge interface
+    interface ICrossChainBridge {
+        function bridgeNFT(uint256 tokenId, uint256 targetChainId, address targetContract) external;
+        function receiveBridgedNFT(bytes calldata nftData) external;
+    }
+
+    ICrossChainBridge public crossChainBridge;
+
+    // Enhanced reward system
+    uint256 public stakingRewardRate = 500; // 5% APY
+    uint256 public fractionalRewardBonus = 200; // 2% bonus for fractional holders
+    address public rewardToken;
+
+    // AI Oracle for yield predictions
+    address public yieldOracle;
 
     mapping(uint256 => mapping(address => StakeInfo)) public nftStakeInfo; // NFT ID => staker => stake info
     mapping(uint256 => uint256) public totalNftStakes;
@@ -133,11 +173,25 @@ contract NFTFarming is ERC721, Ownable, ReentrancyGuard {
     event QualityScoreUpdated(uint256 indexed tokenId, uint256 score);
     event BatchAssociated(uint256 indexed tokenId, uint256 batchId);
 
-    constructor(address _identityRegistry, address _rewardToken) ERC721("AgriCredit Farm NFT", "FARM") Ownable(msg.sender) {
+    function initialize(
+        address _identityRegistry,
+        address _rewardToken,
+        address _yieldOracle,
+        address _crossChainBridge
+    ) public initializer {
+        __ERC721_init("AgriCredit Farm NFT", "FARM");
+        __Ownable_init(msg.sender);
+        __ReentrancyGuard_init();
+        __UUPSUpgradeable_init();
+
         identityRegistry = IdentityRegistry(_identityRegistry);
         rewardToken = IERC20(_rewardToken);
+        yieldOracle = _yieldOracle;
+        crossChainBridge = ICrossChainBridge(_crossChainBridge);
         lastRewardUpdate = block.timestamp;
     }
+
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
     /**
      * @dev Mint a new Farm NFT representing future yield
@@ -632,4 +686,164 @@ contract NFTFarming is ERC721, Ownable, ReentrancyGuard {
     event BridgeValidatorRemoved(address indexed validator);
     event CrossChainTransferInitiated(uint256 indexed tokenId, address indexed from, address indexed to, string destinationChain);
     event CrossChainTransferApproved(uint256 indexed tokenId, address indexed validator);
+
+    // ============ CROSS-CHAIN NFT FARMING FUNCTIONS ============
+
+    function bridgeNFT(uint256 tokenId, uint256 targetChainId, address targetContract) external {
+        require(ownerOf(tokenId) == msg.sender, "Not the owner");
+        require(address(crossChainBridge) != address(0), "Bridge not set");
+
+        // Mark as bridged
+        crossChainFarms[tokenId] = CrossChainFarm({
+            sourceChainId: block.chainid,
+            sourceTokenId: tokenId,
+            sourceContract: address(this),
+            bridgedTokenId: 0, // Will be set when received
+            isBridged: true,
+            bridgeTimestamp: block.timestamp
+        });
+
+        // Call bridge
+        crossChainBridge.bridgeNFT(tokenId, targetChainId, targetContract);
+
+        emit NFTBridged(tokenId, targetChainId, targetContract);
+    }
+
+    function receiveBridgedNFT(bytes calldata nftData) external {
+        require(msg.sender == address(crossChainBridge), "Only bridge can call");
+
+        (
+            uint256 sourceChainId,
+            uint256 sourceTokenId,
+            address sourceContract,
+            address owner,
+            FarmNFT memory farmData
+        ) = abi.decode(nftData, (uint256, uint256, address, address, FarmNFT));
+
+        // Mint bridged NFT
+        uint256 newTokenId = _tokenIdCounter.current();
+        _tokenIdCounter.increment();
+
+        farmNFTs[newTokenId] = farmData;
+        farmerNFTs[owner].push(newTokenId);
+
+        _safeMint(owner, newTokenId);
+
+        // Record cross-chain info
+        crossChainFarms[newTokenId] = CrossChainFarm({
+            sourceChainId: sourceChainId,
+            sourceTokenId: sourceTokenId,
+            sourceContract: sourceContract,
+            bridgedTokenId: newTokenId,
+            isBridged: true,
+            bridgeTimestamp: block.timestamp
+        });
+
+        emit BridgedNFTReceived(newTokenId, sourceChainId, owner);
+    }
+
+    // ============ AI YIELD PREDICTION FUNCTIONS ============
+
+    function updateYieldPrediction(uint256 tokenId, uint256 predictedYield, uint256 confidence, string memory modelVersion) external {
+        require(msg.sender == yieldOracle || msg.sender == owner(), "Not authorized");
+        require(_exists(tokenId), "NFT does not exist");
+
+        bytes32 predictionHash = keccak256(abi.encodePacked(tokenId, predictedYield, confidence, modelVersion, block.timestamp));
+
+        yieldPredictions[tokenId] = YieldPrediction({
+            predictedYield: predictedYield,
+            confidence: confidence,
+            predictionTime: block.timestamp,
+            modelVersion: modelVersion,
+            predictionHash: predictionHash
+        });
+
+        emit YieldPredicted(tokenId, predictedYield, confidence, modelVersion);
+    }
+
+    function getYieldPrediction(uint256 tokenId) external view returns (YieldPrediction memory) {
+        return yieldPredictions[tokenId];
+    }
+
+    function validateYieldPrediction(uint256 tokenId, uint256 actualYield) external onlyOwner {
+        YieldPrediction memory prediction = yieldPredictions[tokenId];
+        require(prediction.predictionTime > 0, "No prediction available");
+
+        uint256 accuracy = actualYield >= prediction.predictedYield ?
+            (prediction.predictedYield * 100) / actualYield :
+            (actualYield * 100) / prediction.predictedYield;
+
+        emit YieldPredictionValidated(tokenId, actualYield, accuracy);
+    }
+
+    // ============ ENHANCED REWARD SYSTEM ============
+
+    function distributeFractionalRewards(uint256 tokenId) external onlyOwner {
+        require(isFractionalized[tokenId], "NFT not fractionalized");
+
+        FarmShareToken shareToken = fractionalTokens[tokenId];
+        uint256 totalShares = fractionalSupply[tokenId];
+
+        // Calculate rewards based on NFT performance
+        uint256 totalRewards = _calculateNFTRewards(tokenId);
+
+        if (totalRewards > 0) {
+            // Distribute proportionally to fractional holders
+            // This is simplified - in practice, would track holder balances
+            uint256 rewardPerShare = totalRewards / totalShares;
+
+            emit FractionalRewardsDistributed(tokenId, totalRewards, rewardPerShare);
+        }
+    }
+
+    function _calculateNFTRewards(uint256 tokenId) internal view returns (uint256) {
+        FarmNFT memory farm = farmNFTs[tokenId];
+        uint256 baseRewards = (farm.expectedYield * stakingRewardRate * 1 days) / (365 * 10000);
+
+        // Quality bonus
+        uint256 qualityMultiplier = 10000 + (farm.qualityScore * 50); // 0.5% per quality point
+        baseRewards = (baseRewards * qualityMultiplier) / 10000;
+
+        // Fractional bonus
+        if (isFractionalized[tokenId]) {
+            baseRewards = (baseRewards * (10000 + fractionalRewardBonus)) / 10000;
+        }
+
+        return baseRewards;
+    }
+
+    // ============ ADMIN FUNCTIONS ============
+
+    function setCrossChainBridge(address _bridge) external onlyOwner {
+        crossChainBridge = ICrossChainBridge(_bridge);
+        emit CrossChainBridgeSet(_bridge);
+    }
+
+    function setYieldOracle(address _oracle) external onlyOwner {
+        yieldOracle = _oracle;
+        emit YieldOracleSet(_oracle);
+    }
+
+    function setRewardToken(address _token) external onlyOwner {
+        rewardToken = IERC20(_token);
+        emit RewardTokenSet(_token);
+    }
+
+    function updateRewardRates(uint256 _stakingRate, uint256 _fractionalBonus) external onlyOwner {
+        stakingRewardRate = _stakingRate;
+        fractionalRewardBonus = _fractionalBonus;
+        emit RewardRatesUpdated(_stakingRate, _fractionalBonus);
+    }
+
+    // ============ ADDITIONAL EVENTS ============
+
+    event NFTBridged(uint256 indexed tokenId, uint256 indexed targetChainId, address indexed targetContract);
+    event BridgedNFTReceived(uint256 indexed newTokenId, uint256 indexed sourceChainId, address indexed owner);
+    event YieldPredicted(uint256 indexed tokenId, uint256 predictedYield, uint256 confidence, string modelVersion);
+    event YieldPredictionValidated(uint256 indexed tokenId, uint256 actualYield, uint256 accuracy);
+    event FractionalRewardsDistributed(uint256 indexed tokenId, uint256 totalRewards, uint256 rewardPerShare);
+    event CrossChainBridgeSet(address indexed bridge);
+    event YieldOracleSet(address indexed oracle);
+    event RewardTokenSet(address indexed token);
+    event RewardRatesUpdated(uint256 stakingRate, uint256 fractionalBonus);
 }

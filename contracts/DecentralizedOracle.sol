@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
-contract DecentralizedOracle is Ownable, ReentrancyGuard {
+contract DecentralizedOracle is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable {
     using ECDSA for bytes32;
 
     enum DataType { Weather, CropHealth, Price, MarketSentiment, IoT }
@@ -49,6 +51,58 @@ contract DecentralizedOracle is Ownable, ReentrancyGuard {
     mapping(bytes32 => DataFeed) public dataFeeds;
     mapping(bytes32 => Validation[]) public feedValidations;
 
+    // Advanced AI Oracle features
+    struct AIModel {
+        string name;
+        string version;
+        bytes32 modelHash;
+        uint256 accuracy;
+        uint256 lastUpdated;
+        address maintainer;
+        bool active;
+        uint256 totalPredictions;
+        uint256 successfulPredictions;
+    }
+
+    struct Prediction {
+        bytes32 feedId;
+        uint256 predictedValue;
+        uint256 confidence;
+        uint256 timestamp;
+        address modelUsed;
+        bool validated;
+        uint256 actualValue;
+    }
+
+    struct CrossChainOracle {
+        uint256 chainId;
+        address remoteOracle;
+        uint256 trustScore;
+        bool active;
+        uint256 lastSyncTime;
+    }
+
+    // AI Models
+    mapping(bytes32 => AIModel) public aiModels;
+    bytes32[] public activeModels;
+
+    // Predictions
+    mapping(bytes32 => Prediction[]) public modelPredictions;
+
+    // Cross-chain oracles
+    mapping(uint256 => CrossChainOracle) public crossChainOracles;
+    uint256[] public supportedChains;
+
+    // Enhanced reputation system
+    uint256 public minStakeAmount = 1000 * 10**18; // 1000 tokens
+    uint256 public slashingPenalty = 100; // 1% penalty
+    uint256 public reputationThreshold = 50; // Minimum reputation to participate
+
+    // AI Oracle parameters
+    uint256 public predictionReward = 10 * 10**18; // 10 tokens per prediction
+    uint256 public validationReward = 5 * 10**18; // 5 tokens per validation
+    address public rewardToken;
+
     // Staking
     mapping(address => uint256) public nodeStakes;
     uint256 public totalStaked;
@@ -72,7 +126,15 @@ contract DecentralizedOracle is Ownable, ReentrancyGuard {
     event DataFinalized(bytes32 indexed feedId, uint256 finalValue, uint256 confidence);
     event NodeSlashed(address indexed node, uint256 amount);
 
-    constructor() Ownable(msg.sender) {}
+    function initialize(address _rewardToken) public initializer {
+        __Ownable_init(msg.sender);
+        __ReentrancyGuard_init();
+        __UUPSUpgradeable_init();
+
+        rewardToken = _rewardToken;
+    }
+
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
     // ============ ORACLE NODE MANAGEMENT ============
 
@@ -388,5 +450,215 @@ contract DecentralizedOracle is Ownable, ReentrancyGuard {
     function emergencyUnpause() external onlyOwner {
         // Implementation for emergency unpause
     }
+
+    // ============ ADVANCED AI ORACLE FUNCTIONS ============
+
+    function registerAIModel(
+        string memory name,
+        string memory version,
+        bytes32 modelHash,
+        uint256 initialAccuracy
+    ) external returns (bytes32) {
+        require(oracleNodes[msg.sender].active, "Not an active oracle node");
+
+        bytes32 modelId = keccak256(abi.encodePacked(name, version, msg.sender));
+
+        aiModels[modelId] = AIModel({
+            name: name,
+            version: version,
+            modelHash: modelHash,
+            accuracy: initialAccuracy,
+            lastUpdated: block.timestamp,
+            maintainer: msg.sender,
+            active: true,
+            totalPredictions: 0,
+            successfulPredictions: 0
+        });
+
+        activeModels.push(modelId);
+
+        emit AIModelRegistered(modelId, name, version, msg.sender);
+        return modelId;
+    }
+
+    function submitAIPrediction(
+        bytes32 modelId,
+        DataType dataType,
+        string memory location,
+        string memory parameters,
+        uint256 predictedValue,
+        uint256 confidence
+    ) external nonReentrant {
+        require(aiModels[modelId].active, "Model not active");
+        require(aiModels[modelId].maintainer == msg.sender, "Not model maintainer");
+        require(oracleNodes[msg.sender].active, "Not an active oracle node");
+
+        bytes32 feedId = keccak256(abi.encodePacked(
+            dataType,
+            location,
+            parameters,
+            block.timestamp / 1 hours
+        ));
+
+        Prediction memory prediction = Prediction({
+            feedId: feedId,
+            predictedValue: predictedValue,
+            confidence: confidence,
+            timestamp: block.timestamp,
+            modelUsed: msg.sender,
+            validated: false,
+            actualValue: 0
+        });
+
+        modelPredictions[modelId].push(prediction);
+        aiModels[modelId].totalPredictions++;
+
+        // Reward for prediction
+        _mintReward(msg.sender, predictionReward);
+
+        emit AIPredictionSubmitted(modelId, feedId, predictedValue, confidence);
+    }
+
+    function validateAIPrediction(bytes32 modelId, uint256 predictionIndex, uint256 actualValue) external {
+        require(oracleNodes[msg.sender].active, "Not an active validator");
+
+        Prediction storage prediction = modelPredictions[modelId][predictionIndex];
+        require(!prediction.validated, "Already validated");
+
+        prediction.validated = true;
+        prediction.actualValue = actualValue;
+
+        // Calculate accuracy
+        uint256 accuracy = _calculatePredictionAccuracy(prediction.predictedValue, actualValue);
+        AIModel storage model = aiModels[modelId];
+
+        // Update model accuracy
+        model.accuracy = (model.accuracy * model.totalPredictions + accuracy) / (model.totalPredictions + 1);
+
+        if (accuracy >= 80) { // 80% accuracy threshold
+            model.successfulPredictions++;
+        }
+
+        // Reward validator
+        _mintReward(msg.sender, validationReward);
+
+        emit AIPredictionValidated(modelId, predictionIndex, accuracy);
+    }
+
+    function _calculatePredictionAccuracy(uint256 predicted, uint256 actual) internal pure returns (uint256) {
+        if (predicted == 0 && actual == 0) return 100;
+
+        uint256 diff = predicted > actual ? predicted - actual : actual - predicted;
+        uint256 maxVal = predicted > actual ? predicted : actual;
+
+        return 100 - (diff * 100 / maxVal);
+    }
+
+    function _mintReward(address recipient, uint256 amount) internal {
+        // Simplified reward minting - in practice, would check reward token balance
+        // IERC20(rewardToken).transfer(recipient, amount);
+        emit RewardMinted(recipient, amount);
+    }
+
+    // Cross-chain oracle functions
+    function addCrossChainOracle(uint256 chainId, address remoteOracle) external onlyOwner {
+        crossChainOracles[chainId] = CrossChainOracle({
+            chainId: chainId,
+            remoteOracle: remoteOracle,
+            trustScore: 100, // Start with full trust
+            active: true,
+            lastSyncTime: block.timestamp
+        });
+
+        supportedChains.push(chainId);
+
+        emit CrossChainOracleAdded(chainId, remoteOracle);
+    }
+
+    function syncCrossChainData(uint256 chainId, bytes32 feedId, uint256 value, uint256 confidence) external {
+        require(crossChainOracles[chainId].active, "Chain not supported");
+        require(oracleNodes[msg.sender].active, "Not authorized");
+
+        CrossChainOracle storage remoteOracle = crossChainOracles[chainId];
+
+        // Update trust score based on data consistency
+        DataFeed storage localFeed = dataFeeds[feedId];
+        if (localFeed.finalized) {
+            uint256 consistency = _calculateDataConsistency(localFeed.value, value);
+            remoteOracle.trustScore = (remoteOracle.trustScore * 9 + consistency) / 10; // Weighted average
+        }
+
+        remoteOracle.lastSyncTime = block.timestamp;
+
+        emit CrossChainDataSynced(chainId, feedId, value, confidence);
+    }
+
+    function _calculateDataConsistency(uint256 localValue, uint256 remoteValue) internal pure returns (uint256) {
+        if (localValue == remoteValue) return 100;
+
+        uint256 diff = localValue > remoteValue ? localValue - remoteValue : remoteValue - localValue;
+        uint256 avg = (localValue + remoteValue) / 2;
+
+        return 100 - (diff * 100 / avg);
+    }
+
+    function getAIModel(bytes32 modelId) external view returns (AIModel memory) {
+        return aiModels[modelId];
+    }
+
+    function getModelPredictions(bytes32 modelId) external view returns (Prediction[] memory) {
+        return modelPredictions[modelId];
+    }
+
+    function getCrossChainOracle(uint256 chainId) external view returns (CrossChainOracle memory) {
+        return crossChainOracles[chainId];
+    }
+
+    function getSupportedChains() external view returns (uint256[] memory) {
+        return supportedChains;
+    }
+
+    // Enhanced reputation calculation
+    function calculateNodeReputation(address node) external view returns (uint256) {
+        OracleNode memory oracleNode = oracleNodes[node];
+
+        if (oracleNode.totalSubmissions == 0) return minReputation;
+
+        uint256 successRate = (oracleNode.successfulSubmissions * 100) / oracleNode.totalSubmissions;
+        uint256 stakeMultiplier = oracleNode.stakeAmount / minStakeAmount;
+
+        uint256 reputation = (successRate * stakeMultiplier) / 100;
+
+        return Math.min(reputation, maxReputation);
+    }
+
+    // Admin functions for AI features
+    function updateAIParameters(uint256 _predictionReward, uint256 _validationReward) external onlyOwner {
+        predictionReward = _predictionReward;
+        validationReward = _validationReward;
+    }
+
+    function deactivateAIModel(bytes32 modelId) external {
+        require(aiModels[modelId].maintainer == msg.sender || msg.sender == owner(), "Not authorized");
+
+        aiModels[modelId].active = false;
+
+        emit AIModelDeactivated(modelId);
+    }
+
+    function setRewardToken(address _token) external onlyOwner {
+        rewardToken = _token;
+        emit RewardTokenSet(_token);
+    }
+
+    // Additional events
+    event AIModelRegistered(bytes32 indexed modelId, string name, string version, address maintainer);
+    event AIPredictionSubmitted(bytes32 indexed modelId, bytes32 indexed feedId, uint256 predictedValue, uint256 confidence);
+    event AIPredictionValidated(bytes32 indexed modelId, uint256 predictionIndex, uint256 accuracy);
+    event RewardMinted(address indexed recipient, uint256 amount);
+    event CrossChainOracleAdded(uint256 indexed chainId, address indexed remoteOracle);
+    event CrossChainDataSynced(uint256 indexed chainId, bytes32 indexed feedId, uint256 value, uint256 confidence);
+    event AIModelDeactivated(bytes32 indexed modelId);
+    event RewardTokenSet(address indexed token);
 }</content>
 </xai:function_call
