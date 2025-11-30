@@ -1,167 +1,789 @@
 {
-  "projectOverview": {
-    "name": "AgriCredit Africa",
-    "description": "AI-Blockchain platform for decentralized microcredit and sustainable agriculture in Africa",
-    "version": "1.0.0",
-    "targetAudience": "African smallholder farmers, agricultural cooperatives, and sustainable farming communities",
-    "keyFeatures": [
-      "Decentralized microcredit system",
-      "AI-powered marketplace for agricultural products",
-      "IoT-enabled farm monitoring and insights",
-      "Tokenized carbon credits for climate-positive farming",
-      "Community governance through DAO"
-    ]
-  },
-  "ecosystemComponents": [
-    {
-      "name": "Smart Contracts",
-      "description": "9 Solidity contracts for core functionality",
-      "components": [
-        "IdentityRegistry: KYC and identity management",
-        "LoanManager: Decentralized lending protocol",
-        "CarbonToken: ERC-20 token for carbon credits",
-        "LiquidityPool: Automated market maker for liquidity",
-        "YieldToken: Staking rewards token",
-        "MarketplaceEscrow: Secure marketplace transactions",
-        "GovernanceDAO: Community voting and proposals",
-        "NFTFarming: Non-fungible tokens for farm assets",
-        "AgriCredit: Native utility token"
-      ]
-    },
-    {
-      "name": "AI Backend",
-      "description": "Machine learning models for agricultural insights",
-      "components": [
-        "Credit Scoring Model: Risk assessment using TensorFlow",
-        "Yield Prediction: Crop yield forecasting with scikit-learn",
-        "Climate Analysis: Weather pattern analysis for farming decisions",
-        "Market Price Prediction: Commodity pricing models"
-      ]
-    },
-    {
-      "name": "Frontend Application",
-      "description": "User interface for farmers and stakeholders",
-      "technologies": ["Next.js 14", "TypeScript", "TailwindCSS", "Framer Motion"],
-      "features": [
-        "Wallet integration with MetaMask/WalletConnect",
-        "Multi-language support (English, French, Swahili, Hausa)",
-        "Accessibility features (text-to-speech, color blind modes, font scaling)",
-        "Responsive design for mobile and desktop"
-      ]
-    },
-    {
-      "name": "Infrastructure",
-      "description": "Deployment and monitoring systems",
-      "components": [
-        "CI/CD Pipeline: GitHub Actions for automated testing and deployment",
-        "Testing Suite: Hardhat for smart contracts, Jest for frontend",
-        "Monitoring: Prometheus/Grafana for system health",
-        "Security: OpenZeppelin contracts, audit-ready code"
-      ]
-    }
-  ],
-  "uiSpecs": {
-    "designSystem": {
-      "colors": {
-        "primary": "#22c55e",
-        "secondary": "#16a34a",
-        "accent": "#15803d",
-        "neutral": "#f5f5f4"
-      },
-      "typography": {
-        "fontFamily": "Inter, sans-serif",
-        "fontSizes": ["0.875rem", "1rem", "1.125rem", "1.25rem", "1.5rem", "2rem"],
-        "fontWeights": ["400", "500", "600", "700"]
-      }
-    },
-    "components": [
-      "Dashboard: Farm overview with key metrics",
-      "Loan Application: Step-by-step credit application",
-      "Marketplace: Product listings with AI recommendations",
-      "Carbon Credits: Portfolio and trading interface",
-      "Governance: Proposal voting and discussion"
-    ]
-  },
-  "uxFlows": [
-    {
-      "flow": "Farmer Onboarding",
-      "steps": [
-        "Register with identity verification",
-        "Connect wallet and complete KYC",
-        "Set up farm profile with IoT sensors",
-        "Apply for initial microcredit"
-      ]
-    },
-    {
-      "flow": "Marketplace Transaction",
-      "steps": [
-        "Browse products with AI filters",
-        "Add items to cart",
-        "Secure escrow payment",
-        "Rate and review transaction"
-      ]
-    },
-    {
-      "flow": "Carbon Credit Trading",
-      "steps": [
-        "View carbon credit portfolio",
-        "List credits for sale",
-        "Execute trade on DEX",
-        "Track environmental impact"
-      ]
-    }
-  ],
-  "backendArchitecture": {
-    "apiLayer": {
-      "framework": "FastAPI",
-      "endpoints": [
-        "/api/credit-score",
-        "/api/yield-predict",
-        "/api/climate-data",
-        "/api/market-prices"
-      ]
-    },
-    "dataLayer": {
-      "database": "PostgreSQL with TimescaleDB for time-series data",
-      "cache": "Redis for session and API caching",
-      "storage": "IPFS for decentralized file storage"
-    },
-    "aiModels": {
-      "deployment": "TensorFlow Serving",
-      "monitoring": "Model performance tracking and retraining pipelines"
-    }
-  },
-  "securityCompliance": {
-    "standards": [
-      "GDPR compliance for data protection",
-      "KYC/AML regulations for financial services",
-      "ISO 27001 for information security",
-      "Web3 security best practices"
-    ],
-    "audits": [
-      "Smart contract security audit",
-      "Penetration testing",
-      "Code review and static analysis"
-    ]
-  },
-  "deploymentPipeline": {
-    "environments": ["development", "staging", "production"],
-    "platforms": ["Polygon", "Celo", "Ethereum"],
-    "tools": ["Hardhat", "Infura", "Alchemy"],
-    "monitoring": ["Grafana dashboards", "Alert manager", "Log aggregation"]
-  },
-  "futureRoadmap": [
-    {
-      "phase": "Q1 2024",
-      "features": ["IoT sensor integration", "Mobile PWA", "Voice assistant"]
-    },
-    {
-      "phase": "Q2 2024",
-      "features": ["Cross-chain interoperability", "Advanced AI models", "Insurance products"]
-    },
-    {
-      "phase": "Q3 2024",
-      "features": ["Global expansion", "Partnership integrations", "Sustainability certifications"]
-    }
-  ]
+"project_overview": {
+"app_name": "AgriCredit Africa",
+"app_description": "A full-stack AI + Blockchain platform that provides smallholder farmers in Africa with instant, transparent microloans, tokenized carbon incentives, and a marketplace. Combines satellite/IoT/mobile data, explainable AI credit scoring, smart-contract lending, DID identity, and investor-facing analytics.",
+"target_audience": [
+"Smallholder farmers (low-to-medium digital literacy)",
+"Cooperatives and local aggregators",
+"Impact investors & DeFi liquidity providers",
+"Microfinance institutions (MFIs)",
+"NGOs and climate funds",
+"Government agricultural agencies"
+],
+"core_objectives": [
+"Enable rapid, fair microcredit issuance to farmers using alternative data and explainable AI.",
+"Provide an immutable, auditable loan lifecycle via smart contracts.",
+"Tokenize verified carbon credits from sustainable farming and enable marketplace trading.",
+"Create farmer DIDs and on-chain reputations to reduce future lending friction.",
+"Offer investors transparent performance dashboards and secondary markets for loan NFTs.",
+"Ensure privacy, fairness, and regulatory compliance across jurisdictions."
+],
+"key_features": [
+"Farmer onboarding with DID creation and optional AI-KYC (OCR + liveness)",
+"AI credit scoring engine (NDVI time-series + mobile + IoT)",
+"LoanFactory & Loan Solidity contracts deployed to testnet/mainnet",
+"Oracle layer to publish AI scores and satellite-derived features on-chain",
+"Tokenized carbon credit minting (CARBT ERC-20) and marketplace",
+"Mobile-first PWA + USSD fallback for low-connectivity regions",
+"Investor portal with portfolio analytics and loan NFT marketplace",
+"Reputation contract tracking borrower repayment behavior",
+"Admin governance dashboard and DAO voting integration"
+],
+"success_metrics": [
+"MVP: 100 farmers onboarded & 50 funded loans on testnet within 6 months",
+"AI accuracy: AUROC >= 0.78 on default prediction for pilot dataset",
+"Average time-to-disbursement under 24 hours from request",
+"Repayment rate target >= 85% for pilot cohort",
+"Onboard 3 impact investors and secure pilot funding",
+"Carbon credits minted and sold in pilot: >= 500 CARBT"
+]
+},
+"system_architecture": {
+"overall_architecture_diagram_description": "Hybrid architecture with web/mobile clients (PWA and USSD) connecting to a Node.js API gateway. The gateway orchestrates AI microservices (Python FastAPI), handles DID and KYC flows, and relays AI scores to a blockchain oracle service. Smart contracts (Solidity) are deployed on a Layer-1/L2 combo (primary: Celo Alfajores testnet for demo, production: Polygon zk-rollup). Off-chain storage (MongoDB + S3) stores non-sensitive data; IPFS stores AI reports and attachments. The investor portal reads indexed on-chain data via The Graph. CI/CD pipelines deploy frontend, backend, and contracts. Monitoring and security layers are applied across services.",
+"client_side": {
+"architecture_type": "Progressive Web App (PWA) + lightweight native wrappers (optional) + USSD service for feature phone support",
+"state_management": "Redux Toolkit @ 1.9.x with RTK Query for server state and caching. Local persistent store using redux-persist with IndexedDB (idb-keyval) fallback. UI ephemeral state via React context (useContext) for theme, localization, and modals.",
+"routing_strategy": "React Router v6 with nested routes; route-based code-splitting via React.lazy and Suspense. Use hash fallback for older devices. Route structure: '/', '/dashboard', '/loan/:id', '/apply', '/marketplace', '/profile', '/admin'. Client-side route guards check for wallet connection and DID verification status.",
+"caching_strategy": "RTK Query for API caching with normalized entities; SWR-style stale-while-revalidate for frequently updated resources (loan listings). Service Worker (Workbox v6) caches static assets (CSS/JS) and runtime API responses for offline PWA usage. Cache invalidation policies: short TTL (30s) for scores, longer (5min) for marketplace listings."
+},
+"server_side": {
+"architecture_pattern": "Microservices-oriented with API Gateway pattern; core microservices include Auth Service, AI Inference Service, Oracle Relayer, Loan Orchestration Service, Marketplace Service, Reputation Service, and Admin Service. Services communicate via REST/gRPC and asynchronous message queue (RabbitMQ).",
+"service_dependencies": [
+{
+"service": "API Gateway / Orchestrator",
+"description": "Node.js (Express/NestJS) handles authentication, request validation, rate-limiting, and routing to internal microservices. Centralized logging and request tracing. Exposes public REST and GraphQL endpoints."
+},
+{
+"service": "Auth & DID Service",
+"description": "Manages user accounts, DID creation (ERC-725 style), key recovery, and verifiable credentials. Integrates with third-party KYC providers and stores minimal encrypted KYC artifacts off-chain."
+},
+{
+"service": "AI Inference Service",
+"description": "Python FastAPI service hosting ML models for credit scoring, yield prediction, and explainability. Produces AI reports and pins them to IPFS via web3.storage or Pinata."
+},
+{
+"service": "Oracle Relayer",
+"description": "Secure Node.js service that signs and submits on-chain transactions with AI scores and IPFS CIDs. Uses an HSM or secure env for private keys. Supports retry/backoff."
+},
+{
+"service": "Blockchain Service",
+"description": "Manages smart contract interactions, monitors events, and syncs on-chain data to the off-chain database via The Graph / custom indexer."
+},
+{
+"service": "Loan Orchestration Service",
+"description": "Business logic for loan lifecycle, disbursement triggers, repayment reconciliation, and penalty assessment. Integrates with payment rails and mobile money APIs."
+},
+{
+"service": "Marketplace Service",
+"description": "Manages listings, escrow logic, and NFT minting for crop futures and carbon credits."
+},
+{
+"service": "Reputation Service",
+"description": "Aggregates repayment events and other on-chain signals to compute an on-chain/off-chain reputation score."
+},
+{
+"service": "Data Pipeline / ETL",
+"description": "Ingests satellite (Sentinel-2) features, weather APIs, and IoT feeds. Stores time-series NDVI and derived features for model training."
+}
+],
+"data_flow_diagram": "Farmer (client) -> API Gateway -> Auth Service -> Onboarding -> triggers AI Inference (AI Service) -> AI report pinned to IPFS -> Oracle Relayer pushes AI CID + score to LoanFactory contract -> LoanFactory emits event -> Blockchain Service detects event -> Loan Orchestration creates internal loan record and offers to lenders -> Lenders fund on-chain -> Loan contract disburses -> Loan Orchestration updates status -> Reputational Service updates DID reputation on repayment.",
+"scalability_approach": "Microservices containerized with Docker and orchestrated via Kubernetes (EKS). Horizontal autoscaling based on CPU/requests (HPA). AI inference autoscaling with GPU-enabled nodes for heavy batch jobs and scaled-down CPU for realtime scoring. Use of message queue (RabbitMQ) for asynchronous tasks and Celery for Python background jobs. Cache layer: Redis cluster. DB read-replicas for scaling reads. Use CDNs for static assets and IPFS pinning with multiple providers for redundancy."
+},
+"data_architecture": {
+"database_design": "Hybrid storage model:\n- Primary relational store: PostgreSQL 15 for transactional data (users, loans, funding records, contracts metadata). Schema includes normalized tables with indices.\n- Time-series store: TimescaleDB (extension on PostgreSQL) for NDVI and IoT sensor timeseries.\n- Document store: MongoDB 6.x for flexible AI reports, activity logs, and marketplace metadata.\n- On-chain references: store contract addresses, tx hashes, and CIDs in PostgreSQL.\n- Object storage: AWS S3 (or Backblaze) for images and attachments, IPFS for immutable AI reports.\n\nDetailed schema (selected tables):\n1. users (id UUID PK, wallet_address varchar(66) UNIQUE, did varchar, name, phone_e164, email, role ENUM('farmer','lender','admin','coop'), created_at, profile_cid)\n2. farms (id UUID, user_id FK, geojson location, land_size_m2, crop_types JSONB, region_code, created_at)\n3. ndvi_timeseries (id, farm_id FK, date DATE, ndvi FLOAT, source ENUM('sentinel','planet','mock'), created_at)\n4. loan_requests (id UUID, borrower_id FK, farm_id FK, principal_int_cents BIGINT, term_days INT, ai_score FLOAT, ai_cid TEXT, status ENUM('requested','funded','disbursed','repaid','defaulted'), created_at, updated_at)\n5. loan_funders (id, loan_id FK, funder_id FK, amount BIGINT, funded_at, tx_hash)\n6. contracts (id, name, address, abi_cid, network, deployed_at)\n7. reputation (id, user_id FK, score FLOAT, on_chain_score FLOAT, updated_at)\n8. carbon_credits (id UUID, farm_id FK, period_start, period_end, tonnes FLOAT, token_id, minted_tx)\n9. marketplace_listings (id, seller_id FK, type ENUM('produce','equipment','carbon'), metadata_cid, price_cents, status)\n10. audit_logs (id, user_id FK NULL, action, resource_type, resource_id, details JSONB, created_at)\n\nAll tables include created_at, updated_at timestamps. Foreign key constraints and cascading deletion rules defined where appropriate.",
+"data_flow": "Raw data ingestion from satellite (Sentinel) and weather APIs flows into ETL Worker -> TimescaleDB for timeseries. Mobile & USSD interactions captured by Gateway and stored in MongoDB and PostgreSQL. AI training pipeline pulls labeled historical loan outcomes from PostgreSQL and TimescaleDB, trains models, stores weights in model registry (MLflow), and serves models via FastAPI endpoints. Inference results are saved as ai_report JSONs, pinned to IPFS, and the AI score + CID are sent to the Oracle Relayer for on-chain anchoring.",
+"storage_strategy": "Cold data (historical L1 images) in object storage (S3 Glacier) and archived to Arweave for long-term immutability when needed. AI model artifacts stored in S3 and registered in MLflow. IPFS used for immutable AI reports and legal/contract documents. PostgreSQL for active transaction data with point-in-time recovery enabled. MongoDB uses sharded clusters for horizontal scale.",
+"backup_recovery_strategy": "Daily logical backups (pg_dump) with incremental WAL shipping for PostgreSQL retained 30 days. TimescaleDB continuous backups with snapshotting. MongoDB using Ops Manager or Atlas automated backups (7–30 days retention). S3 lifecycle rules and cross-region replication. Disaster recovery runbook supports RTO <2 hours and RPO <1 hour for critical services; routine DR drills quarterly; restore tests in staging monthly."
+}
+},
+"technology_stack": {
+"frontend": {
+"framework": "React 18.3.0 (with Next.js 14 for SSR/SSG/PWA features)",
+"state_management": "Redux Toolkit 1.9.x with RTK Query",
+"styling_framework": "Tailwind CSS 4.x (utility-first) with CSS variables for theme",
+"ui_component_library": "Radix UI + Headless UI components for accessibility; shadcn/ui primitives",
+"build_tools": [
+"Vite 5.x (dev), Next.js built-in build for production",
+"ESBuild for faster bundling where applicable",
+"PostCSS 8.x"
+],
+"testing_framework": "Jest 29.x + React Testing Library 14.x for unit and component tests",
+"additional_libraries": [
+{"name": "ethers.js", "version": "6.x", "purpose": "Blockchain interactions and wallet integration"},
+{"name": "web3.storage", "version": "latest", "purpose": "IPFS pinning and file upload"},
+{"name": "maplibre-gl", "version": "2.x", "purpose": "Interactive maps for farm geo-views"},
+{"name": "chart.js", "version": "4.x", "purpose": "Dashboards and charts"},
+{"name": "i18next", "version": "22.x", "purpose": "Localization"}
+]
+},
+"backend": {
+"runtime_environment": "Node.js 20.x (API Gateway & microservices) and Python 3.11 (AI microservices)",
+"framework": "NestJS 10.x for Node microservices; FastAPI 0.99.x for Python inference",
+"authentication_library": "Auth: JWTs with oauth2, wallet-signed message-based authentication (EIP-4361 Sign-In With Ethereum) and WebAuthn for recovery. Use OpenID Connect for third-party integrations.",
+"api_specification": "Mixed approach: REST for public endpoints (OpenAPI 3.1) and GraphQL (Apollo Server 4.x) for investor analytics and complex queries. RTK Query clients target REST for simplicity.",
+"database": "PostgreSQL 15 with TimescaleDB 2.x extension; MongoDB 6.x for document storage",
+"orm_odm": "TypeORM 0.4.x / Prisma 5.x for Node (prefer Prisma for type-safety), PyMongo for Python services",
+"caching_solution": "Redis 7.x cluster for caching tokens, short-lived AI results, and rate limiting",
+"queue_system": "RabbitMQ 3.11.x for event-driven design; Celery 5.x for Python background jobs",
+"additional_services": [
+{"service": "The Graph", "version": "Hosted orgraph-node", "purpose": "Index on-chain events for fast analytics"},
+{"service": "Chainlink / API3", "version": "latest", "purpose": "Decentralized oracle services for off-chain data feeds"},
+{"service": "Pinata / web3.storage", "version": "latest", "purpose": "IPFS pinning"}
+]
+},
+"devops_infrastructure": {
+"hosting_platform": "AWS (recommended) — EKS for Kubernetes, RDS for PostgreSQL, ElastiCache for Redis, S3 for storage; Arweave/IPFS for permanence",
+"ci_cd_pipeline": "GitHub Actions for CI: workflow runs unit tests, linting, container build, and security scans (Snyk). CD: ArgoCD for continuous delivery to Kubernetes namespaces (dev/staging/prod) with image tagging. Contracts deployed via Hardhat scripts triggered by CI. ML models deployed via GitHub Actions to model registry (MLflow) and containerized inference services.",
+"containerization": "Docker Engine 24.x; multi-stage builds; Kubernetes 1.30.x (EKS) with Helm charts for deployment",
+"monitoring_tools": ["Prometheus", "Grafana", "OpenTelemetry tracing", "Tenderly for contract monitoring"],
+"logging_solution": "ELK stack (Elasticsearch 8.x + Logstash + Kibana) or hosted Datadog/Logz.io",
+"performance_monitoring": "New Relic or Datadog APM for request tracing and SLAs"
+}
+},
+"ui_ux_specifications": {
+"design_system": {
+"color_palette": {
+"primary_colors": [
+{"name": "Agri Green", "hex": "#2E7D32", "rgb": "46,125,50", "usage": "Primary CTAs, headers, active states"},
+{"name": "Harvest Gold", "hex": "#FFD700", "rgb": "255,215,0", "usage": "Accents, highlights, currency/credit markers"}
+],
+"secondary_colors": [
+{"name": "Earth Brown", "hex": "#6D4C41", "rgb": "109,76,65", "usage": "Footer, secondary text"},
+{"name": "Sky Teal", "hex": "#00C853", "rgb": "0,200,83", "usage": "Success states and badges"}
+],
+"neutral_colors": [
+{"name": "Paper White", "hex": "#FDFCF9", "rgb": "253,252,249", "usage": "Background"},
+{"name": "Slate Gray", "hex": "#1E1E1E", "rgb": "30,30,30", "usage": "Primary text"}
+],
+"semantic_colors": [
+{"name": "Success", "hex": "#00C853", "rgb": "0,200,83", "usage": "Positive statuses"},
+{"name": "Warning", "hex": "#FFB300", "rgb": "255,179,0", "usage": "Warnings"},
+{"name": "Error", "hex": "#D32F2F", "rgb": "211,47,47", "usage": "Errors"},
+{"name": "Info", "hex": "#1976D2", "rgb": "25,118,210", "usage": "Informational badges"}
+]
+},
+"typography_scale": {
+"font_family": "Poppins (headlines) + Inter (body)",
+"font_weights": {"light": 300, "normal": 400, "medium": 500, "bold": 700, "black": 900},
+"type_scale": {
+"h1": {"font_size": "48px", "line_height": "56px", "letter_spacing": "-0.02em"},
+"h2": {"font_size": "36px", "line_height": "44px"},
+"h3": {"font_size": "28px", "line_height": "36px"},
+"h4": {"font_size": "20px", "line_height": "28px"},
+"h5": {"font_size": "16px", "line_height": "24px"},
+"body": {"font_size": "14px", "line_height": "20px"},
+"caption": {"font_size": "12px", "line_height": "16px"}
+}
+},
+"spacing_system": {
+"base_unit": 8,
+"spacing_scale": {"xs": 4, "sm": 8, "md": 16, "lg": 24, "xl": 32, "xxl": 48}
+},
+"border_radius": {"scale": {"sm": "4px", "md": "8px", "lg": "12px", "xl": "24px", "full": "9999px"}},
+"shadows": {"elevation_levels": {"level1": "0 1px 2px rgba(0,0,0,0.05)", "level2": "0 4px 8px rgba(0,0,0,0.08)", "level3": "0 8px 24px rgba(0,0,0,0.12)"}},
+"iconography": {"icon_library": "Lucide / Heroicons", "custom_icons": ["farm", "satellite", "leaf-token", "loan-contract", "wallet", "reputation-badge"]}
+},
+"component_library": {
+"atoms": [
+{"name": "Button", "spec": "Variants: primary, secondary, outline; sizes: sm, md, lg; disabled state; accessibility: aria-labels; loading spinner support"},
+{"name": "Input", "spec": "Text, number, masked phone input, file upload; validation states; helper text; label placement"},
+{"name": "Badge", "spec": "Used for status and scores; color variants for semantic colors"},
+{"name": "Avatar", "spec": "Circular, fallback initials, optional DID badge overlay"}
+],
+"molecules": [
+{"name": "LoanCard", "spec": "Thumbnail (farm), amount, aiScore badge, status tag, short explainability snippet, fund button; hover state expands details"},
+{"name": "FarmSummary", "spec": "Map thumbnail, NDVI sparkline, last activity, primary crop, quick action buttons"},
+{"name": "Navbar", "spec": "Logo left, search, wallet connect button right, responsive collapse"}
+],
+"organisms": [
+{"name": "LoanMarketplace", "spec": "Filter panel, paginated list/grid display, map overlay toggle, sort by score/amount/region"},
+{"name": "FarmerDashboard", "spec": "Credit score widget, active loans table, carbon credits balance, recent alerts, quick apply CTA"},
+{"name": "InvestorPortfolio", "spec": "Portfolio value, active loans, risk heatmap, expected APY, transaction history"}
+],
+"templates": [
+{"name": "AuthLayout", "spec": "Centered card with company logo, sign-in form or wallet connect, footer links"},
+{"name": "DashboardLayout", "spec": "Left navigation, topbar with notifications and wallet, main content grid responsive to breakpoints"}
+]
+},
+"page_specifications": {
+"total_pages": 14,
+"pages": [
+{
+"page_id": "home",
+"page_name": "Landing / Home",
+"page_description": "Intro to AgriCredit, CTA for farmers and lenders, featured impact metrics",
+"page_route": "/",
+"required_authentication": false,
+"layout_type": "Hero + feature columns + footer",
+"components": [
+{"component": "Hero", "position": {"x": 0, "y": 0, "width": "100%", "height": "480px"}, "props": {"title": "AgriCredit Africa", "subtitle": "AI + Blockchain for farmer finance", "primary_cta": "Apply as Farmer", "secondary_cta": "Invest now"}},
+{"component": "ImpactStrip", "position": {"x": 0, "y": 480, "width": "100%", "height": "120px"}, "props": {"metrics": [{"label": "Farmers reached", "value": "—"}]}}
+],
+"responsive_behavior": "Breakpoints: 1280px, 1024px, 768px, 480px. Hero collapses to stacked layout under 768px.",
+"loading_states": "Skeleton loader for hero and metrics, shimmer for cards",
+"error_states": "Global error banner with retry actions",
+"empty_states": "CTA to apply or learn more with illustrative graphic"
+},
+{
+"page_id": "farmer_dashboard",
+"page_name": "Farmer Dashboard",
+"page_description": "Farmer's main view of loans, score, carbon balance, and actions",
+"page_route": "/dashboard",
+"required_authentication": true,
+"layout_type": "Two-column grid with summary widgets",
+"components": [
+{"component": "CreditScoreWidget", "position": {"column": 1, "row": 1}, "props": {"score_display": true, "confidence_meter": true}},
+{"component": "LoanList", "position": {"column": 1, "row": 2}, "props": {"show_actions": true}},
+{"component": "FarmMap", "position": {"column": 2, "row": 1}, "props": {"map_zoom": 12, "sparklines": true}},
+{"component": "CarbonWidget", "position": {"column": 2, "row": 2}, "props": {"token_balance": true}}
+],
+"responsive_behavior": "Stack to single column under 768px; bottom nav with quick actions",
+"loading_states": "Card skeletons for lists; spinner for map",
+"error_states": "Inline error per widget with 'retry' button",
+"empty_states": "Friendly walkthrough UI to apply for first loan"
+},
+{
+"page_id": "apply_loan",
+"page_name": "Loan Request",
+"page_description": "Multi-step wizard for loan application with consent and AI preview",
+"page_route": "/apply",
+"required_authentication": true,
+"layout_type": "Stepper",
+"components": [
+{"component": "Step1-FarmDetails", "props": {"fields": ["farm_location","land_size","crops"]}},
+{"component": "Step2-Documents", "props": {"upload_types": ["ID","offtake_agreement"]}},
+{"component": "Step3-Consent", "props": {"consent_text": "Use satellite and mobile data"}},
+{"component": "Step4-AIResult", "props": {"ai_preview": true, "explainability": "top3_factors"}}
+],
+"responsive_behavior": "Stepper becomes vertical under 600px",
+"loading_states": "Progress indicator and disabled next button while AI inference pending",
+"error_states": "Detailed explainable error with human support contact",
+"empty_states": "N/A"
+},
+{
+"page_id": "lender_marketplace",
+"page_name": "Lender Marketplace",
+"page_description": "Investor view to browse loan requests, filter, and fund",
+"page_route": "/marketplace",
+"required_authentication": true,
+"layout_type": "Filter + cards + map",
+"components": [
+{"component": "FilterPanel", "props": {"filters":["region","crop","scoreRange","amount"]}},
+{"component": "LoanCardGrid", "props": {"sort":["score","amount"]}}
+],
+"responsive_behavior": "Filters collapse to dropdown on mobile",
+"loading_states": "Placeholder cards",
+"error_states": "Filter-level error with retry",
+"empty_states": "Call to action to seed a pool"
+},
+{
+"page_id": "loan_detail",
+"page_name": "Loan Detail",
+"page_description": "Full AI report, contract details, fund action and tx links",
+"page_route": "/loan/:id",
+"required_authentication": true,
+"layout_type": "Detail view with right rail",
+"components": [
+{"component": "AIReportPanel", "props": {"score","explainability","cid_link"}},
+{"component": "ContractActions", "props": {"fundButton": true, "viewOnExplorer": true}}
+],
+"responsive_behavior": "Stacked layout on small screens",
+"loading_states": "Loading ai report spinner",
+"error_states": "Show 'Report unavailable' with fallback data",
+"empty_states": "If not funded, show 'Be the first funder' CTA"
+},
+{
+"page_id": "investor_portfolio",
+"page_name": "Investor Portfolio",
+"page_description": "Overview of investments, APY, risk heatmap, and exit options",
+"page_route": "/portfolio",
+"required_authentication": true,
+"layout_type": "Dashboard",
+"components": [
+{"component": "PortfolioSummary", "props": {}},
+{"component": "RiskHeatmap", "props": {}},
+{"component": "LoanNFTs", "props": {"secondaryMarket": true}}
+],
+"responsive_behavior": "Cards stack vertically on mobile",
+"loading_states": "Placeholder charts",
+"error_states": "Inline error with contact support",
+"empty_states": "CTA to browse marketplace"
+},
+{
+"page_id": "admin_dashboard",
+"page_name": "Admin Dashboard",
+"page_description": "Monitoring, dispute resolution, and oracle control",
+"page_route": "/admin",
+"required_authentication": true,
+"layout_type": "Multi-panel admin view",
+"components": [
+{"component": "OracleConsole", "props": {"health": true}},
+{"component": "LoanTable", "props": {"filters":"all"}}
+],
+"responsive_behavior": "Admin primarily for desktop; mobile shows compact list",
+"loading_states": "Table skeletons",
+"error_states": "Alert banner and log link",
+"empty_states": "N/A"
+},
+{
+"page_id": "profile",
+"page_name": "Profile & Settings",
+"page_description": "User settings, DID management, KYC status",
+"page_route": "/profile",
+"required_authentication": true,
+"layout_type": "Single column form",
+"components": [
+{"component": "ProfileForm", "props": {"editable": true}},
+{"component": "SecuritySettings", "props": {"2fa": true}}
+],
+"responsive_behavior": "Single column across all breakpoints",
+"loading_states": "Form skeleton",
+"error_states": "Show field-level validations",
+"empty_states": "Show 'complete profile' CTA"
+},
+{
+"page_id": "help",
+"page_name": "Help Center",
+"page_description": "Guides, FAQ, and contact support",
+"page_route": "/help",
+"required_authentication": false,
+"layout_type": "Searchable knowledge base",
+"components": [
+{"component": "SearchBar", "props": {}},
+{"component": "FAQList", "props": {}}
+],
+"responsive_behavior": "Responsive grid with single column on mobile",
+"loading_states": "Search skeleton",
+"error_states": "Show support contact",
+"empty_states": "Show 'Ask a question' CTA"
+}
+]
+},
+"user_flows": {
+"onboarding_flow": "1) User lands on app, selects role (Farmer/Lender). 2) Wallet connect using Valora/MetaMask or phone-based registration (USSD). 3) Create DID: generate keypair + register DID on IdentityContract. 4) Optional AI-KYC: capture ID photo, run OCR, liveness check, store encrypted KYC off-chain and verifiable claim on-chain. 5) Farmer creates Farm profile: geo-locate field, add crops, optional IoT sensor pairing. 6) Receive 'Welcome' and quick tour.",
+"authentication_flow": "1) Wallet-based login: sign-in-with-ethereum (EIP-4361) for web wallets; mobile wallets via WalletConnect. 2) For phone users: OTP + phone wallet bridge (custodial test account or secure key generation). 3) Session issued as JWT with short expiration and refresh tokens stored in HttpOnly Secure cookies. 4) MFA optional via WebAuthn or SMS OTP.",
+"main_workflow": "Apply Loan: User opens Apply wizard -> submit farm data & consent -> system triggers AI inference -> AI report returned (score + explainability) -> report pinned to IPFS -> Oracle publishes score on-chain -> LoanFactory creates loan contract -> Lenders browse and fund -> On funding threshold, contract disburses -> Repayment events processed via mobile money or wallet -> Reputation service updates profile.",
+"error_handling_flow": "If AI inference fails: show retry option and fall back to manual verification with coop agent. If Oracle transaction fails: record in audit log, retry with exponential backoff, and notify admin. If payment reconciliation mismatches: create dispute ticket and pause reputation updates pending resolution."
+},
+"interaction_design": {
+"animations": {
+"micro_animations": [
+{"name": "AI Score Pulse", "spec": "Scale 0.98->1.02 over 600ms ease-in-out on score update"},
+{"name": "Button Press", "spec": "TranslateY 2px with shadow change over 100ms"}
+],
+"page_transitions": [
+{"name": "FadeSlide", "spec": "fade + translateY(8px) over 300ms"},
+{"name": "HoloSwap", "spec": "holographic ripple for loan state transitions over 600ms"}
+],
+"loading_animations": [
+{"name": "DataShimmer", "spec": "skeleton shimmer for card placeholders 1400ms loop"},
+{"name": "MapPulse", "spec": "subtle ping on geo-marker when new activity arrives"}
+]
+},
+"gestures_interactions": {
+"mobile_gestures": [
+{"gesture": "swipe-left", "action": "dismiss notification"},
+{"gesture": "long-press", "action": "open quick action on loan card"}
+],
+"desktop_interactions": [
+{"interaction": "hover", "action": "show loan quick actions"},
+{"interaction": "right-click", "action": "open contextual menu on marketplace listings"}
+]
+},
+"feedback_mechanisms": {
+"toasts_notifications": "Non-blocking toasts top-right for success/info (auto-dismiss 4s); errors sticky requiring user dismissal.",
+"loading_indicators": "Global top progress bar (NProgress style) for route changes; spinner for API calls with precise labels.",
+"error_messages": "Human-friendly messages with error codes for support. Provide retry and contact support CTA."
+}
+},
+"accessibility": {
+"wcag_compliance": "WCAG 2.1 AA",
+"keyboard_navigation": "All interactive elements reachable by Tab; visible focus states; ARIA roles present for interactive widgets; skip-to-content link",
+"screen_reader_support": "Proper semantic HTML, aria-live regions for async updates (loan status), and alt text for all images. Accessible charts with data tables available.",
+"color_contrast_requirements": "All text contrasts meet >=4.5:1 for normal text and 3:1 for large text. Color-blind safe palette options and toggle.",
+"focus_management": "Manage focus on modal open/close, on navigation route change, and provide descriptive focus outlines."
+}
+},
+"backend_specifications": {
+"api_specification": {
+"api_type": "REST (primary) + GraphQL (secondary for complex investor analytics)",
+"base_url": "[https://api.agricredit.africa/v1](https://api.agricredit.africa/v1)",
+"versioning_strategy": "Semantic versioning in URL: /v1/, /v2/; Deprecation policy 90 days with warning headers",
+"authentication_mechanism": "JWT access tokens (short lived 15m) with refresh tokens (7d). Wallet-based login via EIP-4361 (SIWE). Role-based access control (RBAC) + optional OIDC for partners.",
+"rate_limiting": "Per-IP and per-user rate limits using Redis token bucket: default 150 requests/min for authenticated users, 30 req/min for anonymous; burst handling and 429 responses with Retry-After header.",
+"endpoints": [
+{
+"endpoint_id": "CreateLoanRequest",
+"endpoint_path": "/v1/loans",
+"http_method": "POST",
+"description": "Create a loan request; triggers AI inference job",
+"authentication_required": true,
+"authorization_requirements": ["role:farmer OR role:coop_agent"],
+"request_parameters": [],
+"request_body_schema": {
+"type": "object",
+"required": ["borrower_wallet","principal_cents","term_days","farm_id","consent"],
+"properties": {
+"borrower_wallet": {"type":"string","format":"ethereum-address","example":"0x..."},
+"principal_cents": {"type":"integer","example":100000},
+"term_days": {"type":"integer","example":90},
+"farm_id": {"type":"string","format":"uuid"},
+"purpose": {"type":"string"},
+"consent": {"type":"boolean"}
+}
+},
+"response_schema": {
+"type":"object",
+"properties": {
+"loan_id":{"type":"string"},
+"status":{"type":"string","enum":["requested"]},
+"ai_status":{"type":"string"},
+"ai_report_cid":{"type":"string"}
+}
+},
+"error_responses": [
+{"code":400,"message":"Bad Request - validation failed"},
+{"code":401,"message":"Unauthorized"},
+{"code":429,"message":"Rate limit exceeded"}
+],
+"caching_strategy": "No caching (writes)",
+"timeout_settings": 30000
+},
+{
+"endpoint_id": "GetLoansList",
+"endpoint_path": "/v1/loans",
+"http_method": "GET",
+"description": "List loans for marketplace or user",
+"authentication_required": false,
+"authorization_requirements": ["if authenticated: return personalized data"],
+"request_parameters": [
+{"name":"page","in":"query","required":false,"schema":{"type":"integer","default":1}},
+{"name":"per_page","in":"query","required":false,"schema":{"type":"integer","default":20}},
+{"name":"filter","in":"query","schema":{"type":"string"}}
+],
+"request_body_schema": null,
+"response_schema": {"type":"object","properties":{"total":"integer","items":{"type":"array","items":{"$ref":"#/components/schemas/LoanCard"}}}},
+"error_responses": [{"code":500,"message":"Internal Server Error"}],
+"caching_strategy": "Short caching (30s) via CDN for public marketplace",
+"timeout_settings": 15000
+},
+{
+"endpoint_id": "GetLoanDetail",
+"endpoint_path": "/v1/loans/{loan_id}",
+"http_method": "GET",
+"description": "Get detailed loan info and AI report CID",
+"authentication_required": false,
+"authorization_requirements": [],
+"request_parameters": [{"name":"loan_id","in":"path","required":true,"schema":{"type":"string"}}],
+"request_body_schema": null,
+"response_schema": {"type":"object","properties":{"loan":{"$ref":"#/components/schemas/LoanDetail"}}},
+"error_responses": [{"code":404,"message":"Loan not found"}],
+"caching_strategy": "Cache with short TTL (10s) for public access",
+"timeout_settings": 15000
+},
+{
+"endpoint_id": "PublishAIScore",
+"endpoint_path": "/v1/oracle/publish",
+"http_method": "POST",
+"description": "Internal endpoint for AI service to request oracle publish; secured by mutual TLS and API key",
+"authentication_required": true,
+"authorization_requirements": ["service:ai_inference"],
+"request_parameters": [],
+"request_body_schema": {"type":"object","required":["loan_id","ai_score","ai_report_cid"],"properties":{"loan_id":{"type":"string"},"ai_score":{"type":"number"},"ai_report_cid":{"type":"string"}}},
+"response_schema": {"type":"object","properties":{"tx_hash":{"type":"string"}}},
+"error_responses": [{"code":403,"message":"Forbidden - invalid service key"}],
+"caching_strategy": "No caching",
+"timeout_settings": 60000
+},
+{
+"endpoint_id": "FundLoan",
+"endpoint_path": "/v1/loans/{loan_id}/fund",
+"http_method": "POST",
+"description": "Initiate fund action (instruction for oracle/contract call). Actual funds transfer occurs on-chain; this endpoint prepares metadata and returns tx payload for user wallet",
+"authentication_required": true,
+"authorization_requirements": ["role:lender"],
+"request_parameters": [{"name":"loan_id","in":"path","required":true}],
+"request_body_schema": {"type":"object","properties":{"amount_cents":{"type":"integer"}}},
+"response_schema": {"type":"object","properties":{"tx_payload":"object","estimated_gas":"string"}},
+"error_responses": [{"code":400,"message":"Insufficient funds"}],
+"caching_strategy": "No caching",
+"timeout_settings": 45000
+}
+]
+},
+"database_design": {
+"database_type": "Relational (PostgreSQL + TimescaleDB) + Document (MongoDB) + On-chain references",
+"database_schema": "See 'data_architecture.database_design' for detailed tables. Additional referential tables: transactions (id, user_id, type, amount_cents, currency, tx_hash, status), settings (key,value), audit_trail (details), model_versions (id, model_name, version, path, performance_metrics).",
+"indexes": [
+{"table":"users","columns":["wallet_address"],"type":"btree","unique":true},
+{"table":"loans","columns":["status","ai_score"],"type":"btree"},
+{"table":"ndvi_timeseries","columns":["farm_id","date"],"type":"btree"},
+{"table":"carbon_credits","columns":["farm_id","period_start"],"type":"btree"}
+],
+"relationships": [
+{"from":"loans.borrower_id","to":"users.id","type":"many-to-one"},
+{"from":"farms.user_id","to":"users.id","type":"many-to-one"},
+{"from":"loan_funders.loan_id","to":"loans.id","type":"many-to-one"}
+],
+"migrations_strategy": "Use Prisma Migrate or Flyway for schema migrations; all migrations tested in staging. Maintain migration scripts in repo and run as CI step before deployment."
+},
+"business_logic": {
+"core_algorithms": [
+{"name":"CreditScoringModel","description":"Gradient Boosted Trees (LightGBM 3.x) blending NDVI trend features, rainfall variance, mobile tx frequency, and historical repayment proxies. Outputs probability of default and SHAP explainability."},
+{"name":"YieldEstimator","description":"LSTM-based time-series model (PyTorch 2.x) for predicting seasonal yield for crop/country combinations."},
+{"name":"InterestRateCalculator","description":"Dynamic interest formula: base_rate + risk_premium (function of ai_score) + term_adjuster + governance_adjuster (DAO voted discounts)."}
+],
+"validation_rules": [
+{"name":"LoanAmountLimits","rule":"Max principal = min(land_size_m2 * crop_unit_value * 0.25, preset_max_by_region)"},
+{"name":"KYCConsent","rule":"Loans cannot be requested without explicit consent flag; store consent record with timestamp"}
+],
+"workflow_engines": [
+{"engine":"Temporal.io (or Cadence)","use":"For orchestrating long-running processes such as loan funding, disbursement, repayment reconciliation, and dispute resolution"}
+],
+"scheduled_tasks": [
+{"cron":"0 0 * * *","task":"Daily job to fetch latest satellite tiles for monitored farms and update NDVI timeseries"},
+{"cron":"*/5 * * * *","task":"Process queued oracle transactions and monitor confirmations"},
+{"cron":"0 2 * * SUN","task":"Retrain models weekly with new labeled loan outcome data (if dataset threshold met)"}
+]
+},
+"authentication_authorization": {
+"authentication_flow": "1) Wallet sign-in (SIWE) for crypto-native users; 2) Phone registration with OTP fallback for non-wallet users; 3) After initial sign-in, system issues short-lived JWT with refresh token. Sensitive operations require transaction signing via wallet. For service-to-service auth use mTLS and API keys.",
+"user_roles": [
+{"role":"farmer","permissions":["create_loan_request","view_own_loans","repay"]},
+{"role":"lender","permissions":["browse_loans","fund_loan","view_funded_loans"]},
+{"role":"coop_agent","permissions":["verify_farmer","assist_onboarding","manual_override"]},
+{"role":"admin","permissions":["view_all","manage_oracle","resolve_disputes"]},
+{"role":"auditor","permissions":["read_only_all_on_chain"]}
+],
+"permissions_matrix": "RBAC mapped to API endpoints; use attribute-based access control for fine-grained policies (e.g., region-limited coop agents). Implement middleware in NestJS to check claims; GraphQL resolvers enforce per-field authorization.",
+"session_management": "HttpOnly, Secure cookies for refresh token, access tokens in Authorization header. Token revocation list in Redis. Idle session timeout 30 minutes; persistent sessions opt-in for farmers with explicit consent.",
+"password_policies": "For non-wallet users: minimum 12 characters, one uppercase, one number, one symbol. Enforce bcrypt hashing with cost factor 12. Encourage wallet use to avoid password storage."
+},
+"third_party_integrations": {
+"external_apis": [
+{"name":"Sentinel Hub / Copernicus", "purpose":"Satellite NDVI imagery ingestion and tile requests", "notes":"Use authenticated downloads and cache tiles"},
+{"name":"OpenWeatherMap or Meteomatics", "purpose":"Historical and forecast weather features"},
+{"name":"Mobile Money APIs (M-Pesa, MTN MoMo)", "purpose":"Disbursement and repayment on fiat rails; implement provider-specific adapters"},
+{"name":"Identity/KYC Provider (Onfido/IdNow)", "purpose":"Optional KYC verification and OCR"},
+{"name":"Chainlink / API3", "purpose":"Decentralized oracle for pricing and off-chain triggers"},
+{"name":"web3.storage / Pinata", "purpose":"IPFS pinning for AI reports and documents"}
+],
+"payment_gateways": [
+{"provider":"Celo / cUSD stablecoin","purpose":"On-chain stablecoin for disbursement"},
+{"provider":"Payment aggregator for fiat (Stripe or Flutterwave)","purpose":"Fiat on/off ramps for investors and farmers"}
+],
+"social_media_integrations": [
+{"provider":"Twitter/X API","purpose":"Auto-post important milestones"},
+{"provider":"WhatsApp Business API","purpose":"Notify farmers of repayments and loan offers via WhatsApp templates"}
+],
+"analytics_services": [
+{"provider":"Google Analytics 4","purpose":"Product analytics"},
+{"provider":"Mixpanel","purpose":"Behavioral analytics for onboarding funnel"},
+{"provider":"Amplitude (optional)","purpose":"Product experimentation"}
+]
+}
+},
+"performance_requirements": {
+"core_web_vitals": {
+"lcp_threshold": 2000,
+"fid_threshold": 100,
+"cls_threshold": 0.1
+},
+"load_time_requirements": {
+"first_contentful_paint": 1000,
+"time_to_interactive": 2500,
+"largest_contentful_paint": 2000
+},
+"optimization_strategies": {
+"code_splitting": "Route-based code splitting using dynamic imports; vendor chunking; server-side rendering (SSR) for initial page to improve LCP.",
+"lazy_loading": "Images and map tiles lazy-loaded; intersection-observer-based loading for components out of viewport.",
+"caching_strategies": "CDN (CloudFront) with cache-control headers for public assets; stale-while-revalidate for dynamic resources.",
+"compression_techniques": "Brotli compression for text assets, gzip fallback; image optimization with WebP/AVIF; HTTP/2 or HTTP/3 support."
+}
+},
+"security_specifications": {
+"data_protection": {
+"encryption_strategies": [
+"At-rest: AES-256 for S3 objects, PostgreSQL Transparent Data Encryption (if available), MongoDB encryption-at-rest",
+"In-transit: TLS 1.3 for all services and APIs",
+"Secrets: Use AWS Secrets Manager or HashiCorp Vault for keys and API secrets"
+],
+"data_masking": [
+"PII fields masked in logs and developer environments",
+"On UI, display partial identifiers for privacy (e.g., 0x12...F3 for wallets)",
+"Aggregate data for analytics; remove individual identifiers unless explicit consent"
+],
+"secure_data_transmission": "Use mTLS between internal services; enable strict transport security headers; enforce CSP and X-Frame-Options"
+},
+"vulnerability_prevention": {
+"owasp_top_10_mitigation": [
+{"A1":"Implement input validation, parameterized queries, and prepared statements"},
+{"A2":"Authentication hardened with 2FA and strong session policies"},
+{"A3":"Use least-privilege for components and proper config management"},
+{"A4":"CSRF tokens for state-changing forms; SameSite cookie policies"},
+{"A5":"Ensure errors do not leak sensitive data; maintain proper logging"},
+{"A6":"Rate limiting and WAF (CloudFront + AWS WAF) to protect endpoints"},
+{"A7":"Monitor for insecure deserialization and sanitize user uploads"},
+{"A8":"Implement secure file handling and scanning for malware"},
+{"A9":"Use signed package registries and SCA (Software Composition Analysis) in CI"},
+{"A10":"Continuous security testing and third-party audits"}
+],
+"input_validation": "Centralized validation layer using zod schemas (TypeScript) in API Gateway and explicit validation in Python microservices.",
+"sql_injection_prevention": "Use Prisma/ORM parameterized queries and never build SQL with string concatenation; use DB privileges and prepared statements.",
+"xss_prevention": "Escape all user-generated content, use a strict Content Security Policy, and sanitize HTML inputs in server-side rendering paths."
+},
+"compliance_requirements": {
+"gdpr_compliance": "Implement data subject rights (export, delete), data processing agreements with processors, data mapping, DPIA for sensitive processing. Maintain a data protection officer (DPO) and breach notification procedures (72 hours).",
+"data_retention_policies": "Define retention: KYC artifacts 7 years (encrypted), transaction logs 10 years, temporary inference caches 7 days. Provide automated purge jobs and archival policies.",
+"privacy_policy_requirements": "Clear privacy policy describing purpose, lawful basis, third-party processors, data subject rights, contact DPO, cookie policy, and cross-border data transfer mechanisms"
+}
+},
+"testing_strategy": {
+"unit_testing": {
+"coverage_requirements": 80,
+"testing_frameworks": ["Jest 29.x (Node)", "PyTest 8.x (Python)", "React Testing Library 14.x (Frontend)"],
+"test_cases": [
+{"id":"UT-API-001","description":"Loan creation validation", "expected":"400 returned when required fields missing"},
+{"id":"UT-AI-001","description":"AI inference input normalization","expected":"Normalized features in expected ranges"}
+]
+},
+"integration_testing": {
+"testing_strategy": "Contract tests integrating API Gateway, Database, and Blockchain mock (Hardhat local node). Use Docker Compose to spin dependent services. Tests run in CI with ephemeral test DB.",
+"test_scenarios": [
+{"scenario":"End-to-end loan request to disbursement (mock chain)"},
+{"scenario":"AI pipeline returns score and oracle publishes"},
+{"scenario":"Repayment flow and reputation update"}
+]
+},
+"end_to_end_testing": {
+"testing_framework": "Cypress 12.x for E2E flows (or Playwright as alternative)",
+"critical_user_journeys": [
+"Farmer onboarding + loan application",
+"Lender funding a loan and view transaction",
+"Admin oracle publish and dispute resolution"
+]
+},
+"performance_testing": {
+"load_testing_requirements": "Simulate 10k concurrent users in staging; target 99th percentile API latency under 500ms for read endpoints",
+"stress_testing_requirements": "Gradually increase load to find breaking points; ensure graceful degradation and autoscaling triggers"
+},
+"security_testing": {
+"penetration_testing": "Annual 3rd-party pentest (OWASP top 10 focus) and pre-prod pentest before major release",
+"vulnerability_scanning": "Automated SCA with Dependabot or Snyk; infrastructure scanning with Prisma Cloud or equivalent"
+}
+},
+"deployment_operations": {
+"environment_configurations": {
+"development": {
+"specs":"Local Docker Compose with mock blockchain (Hardhat), local Postgres, Mongo. ENV variables: DB_CONNECTION, IPFS_KEY (dev), ORACLE_KEY (test-only), AI_MOCK=true",
+"secrets":"Use dotenv.local; no production secrets"
+},
+"staging": {
+"specs":"Kubernetes dev namespace with isolated resources, connects to testnet blockchain (Celo Alfajores or Polygon Mumbai), RDS (staging), S3 staging bucket.",
+"secrets":"Use HashiCorp Vault for staged secrets; mTLS enabled between services"
+},
+"production": {
+"specs":"Kubernetes production cluster (EKS) with autoscaling groups, RDS multi-AZ PostgreSQL, Redis cluster, S3, CloudFront CDN, and monitoring stacks; integrate with mainnet or chosen L2",
+"secrets":"Use AWS Secrets Manager/Vault with rotation enabled"
+}
+},
+"deployment_pipeline": {
+"build_process": "CI builds Docker images with multi-stage builds, runs unit/integration tests, generates artifacts, tags images with commit SHA, publishes to container registry. Model artifacts uploaded to MLflow registry. Contracts compiled and verified. ArgoCD pulls manifests to apply to clusters.",
+"deployment_strategy": "Blue-Green for frontend and backend microservices; Canary deployments for critical services using feature flags (LaunchDarkly) for progressive rollouts.",
+"rollback_procedure": "ArgoCD triggers rollback to previous stable image; database schema changes must be backward compatible; migrations are guarded and have canary toggles; documented rollback runbook with quick hotfix steps"
+},
+"monitoring_alerting": {
+"application_monitoring": "Prometheus metrics scraped from all services, Grafana dashboards (latency, error rates, queue length), synthetic checks for critical flows",
+"error_tracking": "Sentry integrated for front-end and back-end exceptions; attach user context and breadcrumbs",
+"performance_monitoring": "APM (Datadog/New Relic) with traces to identify slow endpoints and hot paths",
+"alerting_rules": [
+{"name":"High Error Rate","condition":"5xx rate > 1% for 5m","notify":["#oncall","pager duty escalation"]},
+{"name":"Oracle Failure","condition":"consecutive oracle tx failures > 3","notify":["devops team","admin channel"]},
+{"name":"Queue Backlog","condition":"RabbitMQ queue length > threshold (1000)","notify":["platform team"]}
+]
+}
+},
+"documentation_requirements": {
+"technical_documentation": {
+"api_documentation": "OpenAPI 3.1 auto-generated for REST endpoints (Swagger UI). Include example requests/responses, authentication flows, and rate limits.",
+"architecture_documentation": "System architecture docs with diagrams (C4), sequence diagrams for core flows (loan lifecycle), and data flow diagrams. Stored in repo /docs and published as static site with MkDocs.",
+"deployment_documentation": "Step-by-step runbook for CI/CD, environment setup, secrets rotation, and contract deployment scripts. Include rollback runbook and DR procedures."
+},
+"user_documentation": {
+"user_guides": [
+{"title":"Farmer Quickstart","content":"How to onboard, apply for a loan, and check repayments (step-by-step with screenshots)"},
+{"title":"Investor Guide","content":"How to fund loans, view portfolios, and exit via loan NFTs"},
+{"title":"Admin Guide","content":"How to monitor oracles, resolve disputes, and manage governance"}
+],
+"faq_section": [
+{"q":"How do I apply?","a":"Connect wallet or register with phone -> create farm profile -> apply via 'Request loan' wizard"},
+{"q":"What data is required?","a":"Minimum: farm location and consent to use satellite data. Optional: mobile transactions and KYC docs"},
+{"q":"How is repayment processed?","a":"Via wallet stablecoin or mobile money integration depending on user preference"}
+],
+"help_center": "Searchable knowledge base with categories, contact form for support, and escalation paths for disputes. Provide multi-language support (English, French, Swahili, Hausa)."
+}
+},
+"project_timeline_milestones": {
+"development_phases": [
+{
+"phase_name": "Phase 0 - Discovery & Data Collection",
+"duration_weeks": 4,
+"deliverables": [
+"Detailed requirements, stakeholder interviews, data agreements with cooperatives",
+"Acquire sample satellite and mobile synthetic datasets",
+"Design system architecture and initial UI mockups"
+],
+"success_criteria": [
+"Signed data use MOU with at least one cooperative",
+"Wireframes and architecture approved"
+]
+},
+{
+"phase_name": "Phase 1 - MVP Development",
+"duration_weeks": 8,
+"deliverables": [
+"Frontend PWA with farmer onboarding and apply flow",
+"Backend Auth & Loan Orchestration services",
+"AI prototype producing deterministic scores",
+"LoanFactory & Loan contracts deployed to testnet",
+"Oracle Relayer and IPFS integration"
+],
+"success_criteria": [
+"E2E demo: create loan request -> AI score published on-chain -> loan funded -> disbursed on testnet"
+]
+},
+{
+"phase_name": "Phase 2 - Pilot & Validation",
+"duration_weeks": 12,
+"deliverables": [
+"Pilot launch with 200 farmers in one region",
+"Integrate mobile money disbursements (M-Pesa/MoMo)",
+"Gather labeled outcomes and retrain AI models"
+],
+"success_criteria": [
+"Pilot repayment rate >= 80%",
+"Model AUROC >= 0.75 after retraining"
+]
+},
+{
+"phase_name": "Phase 3 - Scale & Partnerships",
+"duration_weeks": 24,
+"deliverables": [
+"Expand to 2 additional countries",
+"Implement DAO governance and carbon marketplace",
+"Integrate more data partners and L2 scaling"
+],
+"success_criteria": [
+"5,000 farmers onboarded",
+"Secure at least 2 impact investors"
+]
+}
+],
+"quality_gates": [
+{"gate":"Security Review","criteria":"Pass external pentest and remediate critical/major issues"},
+{"gate":"Compliance Review","criteria":"Data protection and KYC flows approved by legal counsel"},
+{"gate":"Performance Gate","criteria":"Staging must handle 1k concurrent users with target latency"}
+],
+"release_schedule": "Weekly sprints with a release to staging every 2 weeks and production releases monthly after passing all quality gates. Feature flags used for incremental rollout."
+}
 }

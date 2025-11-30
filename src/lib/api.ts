@@ -1377,6 +1377,76 @@ export function subscribeToSensorAlerts(userId: number, callback: (alert: any) =
   onWebSocketMessage('sensor_alert', callback);
 }
 
+// DID and Identity Management APIs
+export interface Identity {
+  did: string;
+  wallet: string;
+  reputationScore: number;
+  isVerified: boolean;
+  createdAt: number;
+  publicKey: string;
+}
+
+export interface Credential {
+  credentialType: string;
+  issuer: string;
+  subject: string;
+  issuanceDate: number;
+  expirationDate: number;
+  isValid: boolean;
+  credentialHash: string;
+  metadataURI: string;
+}
+
+export async function getIdentity(walletAddress: string): Promise<Identity> {
+  return apiRequest(`/identity/${walletAddress}`);
+}
+
+export async function createDID(walletAddress: string): Promise<{ success: boolean; did?: string; error?: string }> {
+  try {
+    const response = await apiRequest('/identity/create', {
+      method: 'POST',
+      body: JSON.stringify({ wallet_address: walletAddress })
+    });
+    return { success: true, did: response.did };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+}
+
+export async function getDIDCredentials(walletAddress: string): Promise<Credential[]> {
+  return apiRequest(`/identity/${walletAddress}/credentials`);
+}
+
+export async function getReputationScore(walletAddress: string): Promise<number> {
+  const identity = await getIdentity(walletAddress);
+  return identity.reputationScore;
+}
+
+export async function getBorrowerReputation(walletAddress: string): Promise<{
+  borrower: string;
+  totalLoans: number;
+  repaidLoans: number;
+  defaultedLoans: number;
+  reputationScore: number;
+  repaymentRate: number;
+  creditScore: number;
+}> {
+  return apiRequest(`/reputation/${walletAddress}`);
+}
+
+export async function getAIKYCStatus(walletAddress: string): Promise<{ isVerified: boolean; confidenceScore?: number }> {
+  try {
+    const identity = await getIdentity(walletAddress);
+    return {
+      isVerified: identity.isVerified,
+      confidenceScore: 85 // Mock confidence score
+    };
+  } catch (error) {
+    return { isVerified: false };
+  }
+}
+
 // Helper function to generate mock sensor data
 function generateMockSensorData(hours: number): IoTSensorReading[] {
   const data: IoTSensorReading[] = [];

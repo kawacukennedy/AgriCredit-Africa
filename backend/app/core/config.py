@@ -83,6 +83,7 @@ class Settings:
     CONTRACT_ADDRESSES: dict = {
         "IdentityRegistry": config("IDENTITY_REGISTRY_ADDRESS", default=""),
         "LoanManager": config("LOAN_MANAGER_ADDRESS", default=""),
+        "Reputation": config("REPUTATION_ADDRESS", default=""),
         "CarbonToken": config("CARBON_TOKEN_ADDRESS", default=""),
         "GovernanceDAO": config("GOVERNANCE_DAO_ADDRESS", default=""),
         "LiquidityPool": config("LIQUIDITY_POOL_ADDRESS", default=""),

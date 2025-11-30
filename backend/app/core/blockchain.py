@@ -69,6 +69,7 @@ class BlockchainService:
         self.contract_addresses = {
             'IdentityRegistry': getattr(settings, 'IDENTITY_REGISTRY_ADDRESS', '0x0000000000000000000000000000000000000000'),
             'LoanManager': getattr(settings, 'LOAN_MANAGER_ADDRESS', '0x0000000000000000000000000000000000000000'),
+            'Reputation': getattr(settings, 'REPUTATION_ADDRESS', '0x0000000000000000000000000000000000000000'),
             'MarketplaceEscrow': getattr(settings, 'MARKETPLACE_ESCROW_ADDRESS', '0x0000000000000000000000000000000000000000'),
             'GovernanceDAO': getattr(settings, 'GOVERNANCE_DAO_ADDRESS', '0x0000000000000000000000000000000000000000'),
             'CarbonToken': getattr(settings, 'CARBON_TOKEN_ADDRESS', '0x0000000000000000000000000000000000000000'),
@@ -76,6 +77,13 @@ class BlockchainService:
             'YieldToken': getattr(settings, 'YIELD_TOKEN_ADDRESS', '0x0000000000000000000000000000000000000000'),
             'NFTFarming': getattr(settings, 'NFT_FARMING_ADDRESS', '0x0000000000000000000000000000000000000000'),
             'AgriCredit': getattr(settings, 'AGRI_CREDIT_ADDRESS', '0x0000000000000000000000000000000000000000'),
+            # New enhanced contracts
+            'StakingRewards': getattr(settings, 'STAKING_REWARDS_ADDRESS', '0x0000000000000000000000000000000000000000'),
+            'PredictionMarket': getattr(settings, 'PREDICTION_MARKET_ADDRESS', '0x0000000000000000000000000000000000000000'),
+            'LendingProtocol': getattr(settings, 'LENDING_PROTOCOL_ADDRESS', '0x0000000000000000000000000000000000000000'),
+            'YieldAggregator': getattr(settings, 'YIELD_AGGREGATOR_ADDRESS', '0x0000000000000000000000000000000000000000'),
+            'GovernanceToken': getattr(settings, 'GOVERNANCE_TOKEN_ADDRESS', '0x0000000000000000000000000000000000000000'),
+            'Bridge': getattr(settings, 'BRIDGE_ADDRESS', '0x0000000000000000000000000000000000000000'),
         }
 
         # Load ABIs from contracts directory
@@ -83,6 +91,7 @@ class BlockchainService:
         abi_files = {
             'IdentityRegistry': 'IdentityRegistry.json',
             'LoanManager': 'LoanManager.json',
+            'Reputation': 'Reputation.json',
             'MarketplaceEscrow': 'MarketplaceEscrow.json',
             'GovernanceDAO': 'GovernanceDAO.json',
             'CarbonToken': 'CarbonToken.json',
@@ -90,6 +99,13 @@ class BlockchainService:
             'YieldToken': 'YieldToken.json',
             'NFTFarming': 'NFTFarming.json',
             'AgriCredit': 'AgriCredit.json',
+            # New enhanced contracts
+            'StakingRewards': 'StakingRewards.json',
+            'PredictionMarket': 'PredictionMarket.json',
+            'LendingProtocol': 'LendingProtocol.json',
+            'YieldAggregator': 'YieldAggregator.json',
+            'GovernanceToken': 'GovernanceToken.json',
+            'Bridge': 'Bridge.json',
         }
 
         for contract_name, abi_file in abi_files.items():
@@ -235,6 +251,15 @@ class BlockchainService:
     async def get_user_loans(self, user_address: str) -> List[Dict[str, Any]]:
         """Get user's loans from blockchain"""
         return await self.call_contract('LoanManager', 'getUserLoans', user_address)
+
+    # Reputation Functions
+    async def get_borrower_reputation(self, borrower_address: str) -> Dict[str, Any]:
+        """Get borrower reputation from blockchain"""
+        return await self.call_contract('Reputation', 'getBorrowerReputation', borrower_address)
+
+    async def calculate_credit_score(self, borrower_address: str) -> int:
+        """Calculate credit score from reputation"""
+        return await self.call_contract('Reputation', 'calculateCreditScore', borrower_address)
 
     # Carbon Token Functions
     async def mint_carbon_tokens(self, to: str, amount: float, verification_proof: str) -> Dict[str, Any]:
@@ -417,6 +442,137 @@ class BlockchainService:
         except Exception as e:
             logger.error(f"Release escrow funds failed: {e}")
             return {"error": str(e)}
+
+    # New Enhanced Contract Functions
+
+    # StakingRewards Functions
+    async def stake_tokens(self, amount: float, lock_period: int) -> Dict[str, Any]:
+        """Stake tokens for rewards"""
+        amount_wei = self.w3.to_wei(amount, 'ether')
+        return await self.send_transaction('StakingRewards', 'stake', amount_wei, lock_period)
+
+    async def unstake_tokens(self, amount: float) -> Dict[str, Any]:
+        """Unstake tokens"""
+        amount_wei = self.w3.to_wei(amount, 'ether')
+        return await self.send_transaction('StakingRewards', 'unstake', amount_wei)
+
+    async def claim_staking_rewards(self) -> Dict[str, Any]:
+        """Claim staking rewards"""
+        return await self.send_transaction('StakingRewards', 'claimRewards')
+
+    async def get_staking_info(self, user_address: str) -> Dict[str, Any]:
+        """Get staking information"""
+        return await self.call_contract('StakingRewards', 'getStakingInfo', user_address)
+
+    # PredictionMarket Functions
+    async def create_market(self, question: str, outcomes: List[str], end_time: int, fee: float) -> Dict[str, Any]:
+        """Create prediction market"""
+        fee_wei = self.w3.to_wei(fee, 'ether')
+        return await self.send_transaction('PredictionMarket', 'createMarket', question, outcomes, end_time, fee_wei)
+
+    async def buy_shares(self, market_id: int, outcome: int, amount: float) -> Dict[str, Any]:
+        """Buy prediction market shares"""
+        amount_wei = self.w3.to_wei(amount, 'ether')
+        return await self.send_transaction('PredictionMarket', 'buyShares', market_id, outcome, amount_wei)
+
+    async def sell_shares(self, market_id: int, outcome: int, amount: float) -> Dict[str, Any]:
+        """Sell prediction market shares"""
+        amount_wei = self.w3.to_wei(amount, 'ether')
+        return await self.send_transaction('PredictionMarket', 'sellShares', market_id, outcome, amount_wei)
+
+    async def resolve_market(self, market_id: int, winning_outcome: int) -> Dict[str, Any]:
+        """Resolve prediction market"""
+        return await self.send_transaction('PredictionMarket', 'resolveMarket', market_id, winning_outcome)
+
+    async def claim_market_payout(self, market_id: int) -> Dict[str, Any]:
+        """Claim market payout"""
+        return await self.send_transaction('PredictionMarket', 'claimPayout', market_id)
+
+    async def get_market_info(self, market_id: int) -> Dict[str, Any]:
+        """Get market information"""
+        return await self.call_contract('PredictionMarket', 'getMarket', market_id)
+
+    # LendingProtocol Functions
+    async def lend_tokens(self, amount: float, interest_rate: float) -> Dict[str, Any]:
+        """Lend tokens in lending protocol"""
+        amount_wei = self.w3.to_wei(amount, 'ether')
+        rate_basis = int(interest_rate * 100)
+        return await self.send_transaction('LendingProtocol', 'lend', amount_wei, rate_basis)
+
+    async def borrow_tokens(self, amount: float, collateral_token: str, collateral_amount: float) -> Dict[str, Any]:
+        """Borrow tokens with collateral"""
+        amount_wei = self.w3.to_wei(amount, 'ether')
+        collateral_wei = self.w3.to_wei(collateral_amount, 'ether')
+        return await self.send_transaction('LendingProtocol', 'borrow', amount_wei, collateral_token, collateral_wei)
+
+    async def repay_loan(self, loan_id: int, amount: float) -> Dict[str, Any]:
+        """Repay loan in lending protocol"""
+        amount_wei = self.w3.to_wei(amount, 'ether')
+        return await self.send_transaction('LendingProtocol', 'repay', loan_id, amount_wei)
+
+    async def liquidate_loan(self, loan_id: int) -> Dict[str, Any]:
+        """Liquidate loan"""
+        return await self.send_transaction('LendingProtocol', 'liquidate', loan_id)
+
+    async def get_loan_info(self, loan_id: int) -> Dict[str, Any]:
+        """Get loan information"""
+        return await self.call_contract('LendingProtocol', 'getLoan', loan_id)
+
+    # YieldAggregator Functions
+    async def create_strategy(self, name: str, description: str, protocols: List[str], allocations: List[int]) -> Dict[str, Any]:
+        """Create yield aggregation strategy"""
+        return await self.send_transaction('YieldAggregator', 'createStrategy', name, description, protocols, allocations)
+
+    async def deposit_to_strategy(self, strategy_id: int, amount: float) -> Dict[str, Any]:
+        """Deposit to yield strategy"""
+        amount_wei = self.w3.to_wei(amount, 'ether')
+        return await self.send_transaction('YieldAggregator', 'deposit', strategy_id, amount_wei)
+
+    async def withdraw_from_strategy(self, strategy_id: int, amount: float) -> Dict[str, Any]:
+        """Withdraw from yield strategy"""
+        amount_wei = self.w3.to_wei(amount, 'ether')
+        return await self.send_transaction('YieldAggregator', 'withdraw', strategy_id, amount_wei)
+
+    async def rebalance_strategy(self, strategy_id: int) -> Dict[str, Any]:
+        """Rebalance yield strategy"""
+        return await self.send_transaction('YieldAggregator', 'rebalance', strategy_id)
+
+    async def get_strategy_info(self, strategy_id: int) -> Dict[str, Any]:
+        """Get strategy information"""
+        return await self.call_contract('YieldAggregator', 'getStrategy', strategy_id)
+
+    # GovernanceToken Functions
+    async def delegate_votes(self, delegate_address: str) -> Dict[str, Any]:
+        """Delegate voting power"""
+        return await self.send_transaction('GovernanceToken', 'delegate', delegate_address)
+
+    async def lock_tokens(self, amount: float, duration: int) -> Dict[str, Any]:
+        """Lock tokens for voting power boost"""
+        amount_wei = self.w3.to_wei(amount, 'ether')
+        return await self.send_transaction('GovernanceToken', 'lockTokens', amount_wei, duration)
+
+    async def unlock_tokens(self, amount: float) -> Dict[str, Any]:
+        """Unlock tokens"""
+        amount_wei = self.w3.to_wei(amount, 'ether')
+        return await self.send_transaction('GovernanceToken', 'unlockTokens', amount_wei)
+
+    async def get_voting_power(self, address: str) -> int:
+        """Get voting power"""
+        return await self.call_contract('GovernanceToken', 'getVotes', address)
+
+    # Bridge Functions
+    async def initiate_bridge_transfer(self, amount: float, target_chain: int, recipient: str) -> Dict[str, Any]:
+        """Initiate cross-chain bridge transfer"""
+        amount_wei = self.w3.to_wei(amount, 'ether')
+        return await self.send_transaction('Bridge', 'initiateTransfer', amount_wei, target_chain, recipient)
+
+    async def complete_bridge_transfer(self, transfer_id: int, proof: bytes) -> Dict[str, Any]:
+        """Complete cross-chain bridge transfer"""
+        return await self.send_transaction('Bridge', 'completeTransfer', transfer_id, proof)
+
+    async def get_bridge_transfer_status(self, transfer_id: int) -> Dict[str, Any]:
+        """Get bridge transfer status"""
+        return await self.call_contract('Bridge', 'getTransferStatus', transfer_id)
 
     # Utility Functions
     def is_connected(self) -> bool:

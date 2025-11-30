@@ -43,6 +43,13 @@ interface IPredictionMarket {
     function claimWinnings(uint256 marketId) external returns (uint256);
 }
 
+interface IReputation {
+    function recordLoan(address borrower, bytes32 loanId, uint256 amount, uint256 dueDate) external;
+    function recordRepayment(bytes32 loanId, uint256 repaidAmount, bool onTime) external;
+    function recordDefault(bytes32 loanId) external;
+    function getBorrowerReputation(address borrower) external view returns (uint256, uint256, uint256, uint256, uint256);
+}
+
 interface IFlashLoanReceiver {
     function executeOperation(
         address asset,
@@ -133,6 +140,7 @@ contract LoanManager is Initializable, OwnableUpgradeable, ReentrancyGuardUpgrad
     IInsurancePool public insurancePool;
     IYieldFarm public yieldFarm;
     IPredictionMarket public predictionMarket;
+    IReputation public reputation;
 
     mapping(uint256 => Loan) public loans;
     mapping(address => uint256[]) public userLoans;
@@ -182,6 +190,7 @@ contract LoanManager is Initializable, OwnableUpgradeable, ReentrancyGuardUpgrad
         address _insurancePool,
         address _yieldFarm,
         address _predictionMarket,
+        address _reputation,
         address trustedForwarder
     ) public initializer {
         __Ownable_init(msg.sender);
@@ -198,6 +207,7 @@ contract LoanManager is Initializable, OwnableUpgradeable, ReentrancyGuardUpgrad
         insurancePool = IInsurancePool(_insurancePool);
         yieldFarm = IYieldFarm(_yieldFarm);
         predictionMarket = IPredictionMarket(_predictionMarket);
+        reputation = IReputation(_reputation);
 
         // Initialize default loan terms
         _setDefaultLoanTerms();
@@ -286,6 +296,11 @@ contract LoanManager is Initializable, OwnableUpgradeable, ReentrancyGuardUpgrad
 
         totalLoansFunded += _amount;
 
+        // Record loan in reputation system
+        bytes32 loanIdBytes32 = bytes32(loanId);
+        uint256 dueDate = loan.startTime + loan.duration;
+        reputation.recordLoan(_borrower, loanIdBytes32, _amount, dueDate);
+
         emit LoanCreated(loanId, _borrower, _amount, _creditScore);
         return loanId;
     }
@@ -331,6 +346,11 @@ contract LoanManager is Initializable, OwnableUpgradeable, ReentrancyGuardUpgrad
 
         totalRepaid += _amount;
 
+        // Record repayment in reputation system
+        bool onTime = block.timestamp <= loan.startTime + loan.duration;
+        bytes32 loanIdBytes32 = bytes32(_loanId);
+        reputation.recordRepayment(loanIdBytes32, _amount, onTime);
+
         if (loan.repaidAmount >= totalOwed) {
             loan.isRepaid = true;
             loan.isActive = false;
@@ -374,6 +394,10 @@ contract LoanManager is Initializable, OwnableUpgradeable, ReentrancyGuardUpgrad
         IERC20(loan.collateralToken).safeTransfer(address(liquidityPool), loan.collateralAmount);
 
         totalLoansFunded -= loan.amount;
+
+        // Record default in reputation system
+        bytes32 loanIdBytes32 = bytes32(_loanId);
+        reputation.recordDefault(loanIdBytes32);
 
         emit LoanDefaulted(_loanId);
         emit CollateralLiquidated(_loanId, loan.collateralAmount);

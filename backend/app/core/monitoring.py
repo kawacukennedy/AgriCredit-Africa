@@ -59,6 +59,55 @@ BLOCKCHAIN_TRANSACTIONS = Counter(
     ['contract_type', 'transaction_type']
 )
 
+# New contract monitoring metrics
+STAKING_TRANSACTIONS = Counter(
+    'staking_transactions_total',
+    'Total staking transactions',
+    ['action_type', 'status']
+)
+
+PREDICTION_MARKET_TRANSACTIONS = Counter(
+    'prediction_market_transactions_total',
+    'Total prediction market transactions',
+    ['market_id', 'action_type']
+)
+
+LENDING_TRANSACTIONS = Counter(
+    'lending_transactions_total',
+    'Total lending protocol transactions',
+    ['action_type', 'risk_level']
+)
+
+YIELD_STRATEGY_DEPLOYMENTS = Counter(
+    'yield_strategy_deployments_total',
+    'Total yield strategy deployments',
+    ['risk_tolerance', 'protocol_count']
+)
+
+BRIDGE_TRANSFERS = Counter(
+    'bridge_transfers_total',
+    'Total cross-chain bridge transfers',
+    ['source_chain', 'target_chain', 'status']
+)
+
+GOVERNANCE_VOTES = Counter(
+    'governance_votes_total',
+    'Total governance votes',
+    ['proposal_type', 'vote_choice']
+)
+
+AI_PREDICTIONS_MADE = Counter(
+    'ai_predictions_made_total',
+    'Total AI predictions made',
+    ['prediction_type', 'confidence_level']
+)
+
+SECURITY_EVENTS = Counter(
+    'security_events_total',
+    'Total security events',
+    ['event_type', 'severity']
+)
+
 SYSTEM_CPU_USAGE = Gauge(
     'system_cpu_usage_percent',
     'System CPU usage percentage'
@@ -163,6 +212,52 @@ def record_blockchain_transaction(contract_type: str, transaction_type: str):
         contract_type=contract_type,
         transaction_type=transaction_type
     ).inc()
+
+# New monitoring functions for enhanced features
+def record_staking_transaction(action_type: str, success: bool = True):
+    """Record staking transaction"""
+    status = "success" if success else "failure"
+    STAKING_TRANSACTIONS.labels(action_type=action_type, status=status).inc()
+
+def record_prediction_market_transaction(market_id: str, action_type: str):
+    """Record prediction market transaction"""
+    PREDICTION_MARKET_TRANSACTIONS.labels(market_id=market_id, action_type=action_type).inc()
+
+def record_lending_transaction(action_type: str, risk_level: str = "medium"):
+    """Record lending transaction"""
+    LENDING_TRANSACTIONS.labels(action_type=action_type, risk_level=risk_level).inc()
+
+def record_yield_strategy_deployment(risk_tolerance: str, protocol_count: int):
+    """Record yield strategy deployment"""
+    YIELD_STRATEGY_DEPLOYMENTS.labels(
+        risk_tolerance=risk_tolerance,
+        protocol_count=str(protocol_count)
+    ).inc()
+
+def record_bridge_transfer(source_chain: str, target_chain: str, success: bool = True):
+    """Record bridge transfer"""
+    status = "success" if success else "failure"
+    BRIDGE_TRANSFERS.labels(
+        source_chain=source_chain,
+        target_chain=target_chain,
+        status=status
+    ).inc()
+
+def record_governance_vote(proposal_type: str, vote_choice: str):
+    """Record governance vote"""
+    GOVERNANCE_VOTES.labels(proposal_type=proposal_type, vote_choice=vote_choice).inc()
+
+def record_ai_prediction(prediction_type: str, confidence: float):
+    """Record AI prediction"""
+    confidence_level = "high" if confidence > 0.8 else "medium" if confidence > 0.6 else "low"
+    AI_PREDICTIONS_MADE.labels(
+        prediction_type=prediction_type,
+        confidence_level=confidence_level
+    ).inc()
+
+def record_security_event(event_type: str, severity: str = "medium"):
+    """Record security event"""
+    SECURITY_EVENTS.labels(event_type=event_type, severity=severity).inc()
 
 async def metrics_endpoint():
     """Prometheus metrics endpoint"""

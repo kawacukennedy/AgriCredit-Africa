@@ -290,6 +290,214 @@ class Query:
         logger.info("GraphQL query: dashboard_stats", stats=stats)
         return stats
 
+    # New Enhanced Contract Queries
+    @strawberry.field
+    async def staking_positions(
+        self,
+        info: Info,
+        user_address: Optional[str] = None,
+        limit: int = 50
+    ) -> List[StakingPositionType]:
+        """Get staking positions"""
+        # This would query the database or blockchain
+        # For now, return mock data
+        return [
+            StakingPositionType(
+                id="stake_1",
+                user_address=user_address or "0x123...",
+                amount=1000.0,
+                lock_period=365,
+                apy=0.12,
+                rewards_earned=120.0,
+                start_time=datetime.now(),
+                end_time=datetime.now(),
+                status="active"
+            )
+        ]
+
+    @strawberry.field
+    async def prediction_markets(
+        self,
+        info: Info,
+        resolved: Optional[bool] = None,
+        limit: int = 50
+    ) -> List[PredictionMarketType]:
+        """Get prediction markets"""
+        # Mock data
+        return [
+            PredictionMarketType(
+                id="market_1",
+                question="Will corn prices exceed $200/bushel in Q4 2024?",
+                outcomes=["Yes", "No"],
+                end_time=int(datetime.now().timestamp()) + 86400,
+                total_liquidity=5000.0,
+                resolved=False,
+                winning_outcome=None,
+                created_at=datetime.now()
+            )
+        ]
+
+    @strawberry.field
+    async def lending_positions(
+        self,
+        info: Info,
+        user_address: Optional[str] = None,
+        status: Optional[str] = None
+    ) -> List[LendingPositionType]:
+        """Get lending positions"""
+        # Mock data
+        return [
+            LendingPositionType(
+                id="loan_1",
+                user_address=user_address or "0x123...",
+                amount=5000.0,
+                interest_rate=0.08,
+                collateral_amount=6000.0,
+                collateral_token="USDC",
+                liquidation_price=0.83,
+                status="active",
+                created_at=datetime.now()
+            )
+        ]
+
+    @strawberry.field
+    async def yield_strategies(
+        self,
+        info: Info,
+        user_address: Optional[str] = None,
+        limit: int = 50
+    ) -> List[YieldStrategyType]:
+        """Get yield strategies"""
+        # Mock data
+        return [
+            YieldStrategyType(
+                id="strategy_1",
+                name="Conservative Yield",
+                description="Low-risk yield farming strategy",
+                protocols=["aave", "compound"],
+                allocations=[60.0, 40.0],
+                expected_apy=0.08,
+                total_deposited=10000.0,
+                performance=0.075,
+                created_at=datetime.now()
+            )
+        ]
+
+    @strawberry.field
+    async def bridge_transfers(
+        self,
+        info: Info,
+        user_address: Optional[str] = None,
+        status: Optional[str] = None
+    ) -> List[BridgeTransferType]:
+        """Get bridge transfers"""
+        # Mock data
+        return [
+            BridgeTransferType(
+                id="transfer_1",
+                user_address=user_address or "0x123...",
+                amount=1000.0,
+                source_chain="ethereum",
+                target_chain="polygon",
+                recipient="0x456...",
+                status="completed",
+                tx_hash="0x789...",
+                created_at=datetime.now()
+            )
+        ]
+
+# New GraphQL Types for Enhanced Contracts
+@strawberry.type
+class StakingPositionType:
+    id: str
+    user_address: str
+    amount: float
+    lock_period: int
+    apy: float
+    rewards_earned: float
+    start_time: datetime
+    end_time: datetime
+    status: str
+
+@strawberry.type
+class PredictionMarketType:
+    id: str
+    question: str
+    outcomes: List[str]
+    end_time: int
+    total_liquidity: float
+    resolved: bool
+    winning_outcome: Optional[int]
+    created_at: datetime
+
+@strawberry.type
+class LendingPositionType:
+    id: str
+    user_address: str
+    amount: float
+    interest_rate: float
+    collateral_amount: float
+    collateral_token: str
+    liquidation_price: float
+    status: str
+    created_at: datetime
+
+@strawberry.type
+class YieldStrategyType:
+    id: str
+    name: str
+    description: str
+    protocols: List[str]
+    allocations: List[float]
+    expected_apy: float
+    total_deposited: float
+    performance: float
+    created_at: datetime
+
+@strawberry.type
+class BridgeTransferType:
+    id: str
+    user_address: str
+    amount: float
+    source_chain: str
+    target_chain: str
+    recipient: str
+    status: str
+    tx_hash: Optional[str]
+    created_at: datetime
+
+# Input Types for New Mutations
+@strawberry.input
+class StakingInput:
+    amount: float
+    lock_period: int
+
+@strawberry.input
+class PredictionMarketInput:
+    question: str
+    outcomes: List[str]
+    end_time: int
+    fee: float = 0.01
+
+@strawberry.input
+class LendingInput:
+    amount: float
+    collateral_token: str
+    collateral_amount: float
+
+@strawberry.input
+class YieldStrategyInput:
+    name: str
+    description: str
+    protocols: List[str]
+    allocations: List[int]
+
+@strawberry.input
+class BridgeTransferInput:
+    amount: float
+    target_chain: int
+    recipient: str
+
 # Mutations
 @strawberry.type
 class Mutation:
@@ -365,6 +573,131 @@ class Mutation:
             "success": True,
             "message": f"Repayment of {amount} processed",
             "remaining_balance": 0.0
+        }
+
+    # New Enhanced Contract Mutations
+    @strawberry.mutation
+    async def stake_tokens(
+        self,
+        info: Info,
+        input: StakingInput
+    ) -> dict:
+        """Stake tokens for rewards"""
+        from ..core.blockchain import blockchain_service
+        from ..core.advanced_ai import advanced_ai_service
+
+        # Get AI predictions
+        ai_prediction = await advanced_ai_service.predict_staking_rewards(
+            input.amount, input.lock_period, []
+        )
+
+        # Execute staking
+        result = await blockchain_service.stake_tokens(input.amount, input.lock_period)
+
+        return {
+            "success": result.get("success", False),
+            "tx_hash": result.get("tx_hash"),
+            "ai_prediction": ai_prediction
+        }
+
+    @strawberry.mutation
+    async def create_prediction_market(
+        self,
+        info: Info,
+        input: PredictionMarketInput
+    ) -> dict:
+        """Create a prediction market"""
+        from ..core.blockchain import blockchain_service
+        from ..core.advanced_ai import advanced_ai_service
+
+        # Get AI analysis
+        ai_analysis = await advanced_ai_service.predict_market_outcomes(
+            input.question, input.outcomes, []
+        )
+
+        # Create market
+        result = await blockchain_service.create_market(
+            input.question, input.outcomes, input.end_time, input.fee
+        )
+
+        return {
+            "success": result.get("success", False),
+            "market_id": result.get("market_id"),
+            "ai_analysis": ai_analysis
+        }
+
+    @strawberry.mutation
+    async def lend_tokens(
+        self,
+        info: Info,
+        input: LendingInput
+    ) -> dict:
+        """Lend tokens in lending protocol"""
+        from ..core.blockchain import blockchain_service
+        from ..core.advanced_ai import advanced_ai_service
+
+        # Get AI risk assessment
+        risk_assessment = await advanced_ai_service.assess_lending_risk(
+            {}, input.amount, input.collateral_amount  # TODO: Add borrower data
+        )
+
+        # Execute lending
+        result = await blockchain_service.lend_tokens(input.amount, 0.08)  # Default rate
+
+        return {
+            "success": result.get("success", False),
+            "loan_id": result.get("loan_id"),
+            "risk_assessment": risk_assessment
+        }
+
+    @strawberry.mutation
+    async def create_yield_strategy(
+        self,
+        info: Info,
+        input: YieldStrategyInput
+    ) -> dict:
+        """Create yield aggregation strategy"""
+        from ..core.blockchain import blockchain_service
+        from ..core.advanced_ai import advanced_ai_service
+
+        # Get AI optimization
+        ai_optimization = await advanced_ai_service.optimize_yield_strategy(
+            input.protocols, "medium", 1000, 90  # Default values
+        )
+
+        # Use AI-optimized allocations
+        allocations = [int(ai_optimization["optimal_allocations"].get(p, 0))
+                      for p in input.protocols]
+
+        # Create strategy
+        result = await blockchain_service.create_strategy(
+            input.name, input.description, input.protocols, allocations
+        )
+
+        return {
+            "success": result.get("success", False),
+            "strategy_id": result.get("strategy_id"),
+            "ai_optimization": ai_optimization
+        }
+
+    @strawberry.mutation
+    async def initiate_bridge_transfer(
+        self,
+        info: Info,
+        input: BridgeTransferInput
+    ) -> dict:
+        """Initiate cross-chain bridge transfer"""
+        from ..core.blockchain import blockchain_service
+
+        # Execute bridge transfer
+        result = await blockchain_service.initiate_bridge_transfer(
+            input.amount, input.target_chain, input.recipient
+        )
+
+        return {
+            "success": result.get("success", False),
+            "transfer_id": result.get("transfer_id"),
+            "tx_hash": result.get("tx_hash")
         }
 
 # Create GraphQL schema

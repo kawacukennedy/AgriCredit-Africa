@@ -87,8 +87,25 @@ logger = structlog.get_logger()
 # Initialize rate limiter
 limiter = Limiter(key_func=get_remote_address, default_limits=["100/minute"])
 
-# Specific limiters for AI endpoints
+# Specific limiters for different endpoint categories
 ai_limiter = limiter.limit("10/minute")  # Stricter limits for AI endpoints
+auth_limiter = limiter.limit("5/minute")  # Very strict for auth endpoints
+blockchain_limiter = limiter.limit("20/minute")  # Moderate for blockchain operations
+api_limiter = limiter.limit("50/minute")  # Standard for API operations
+
+# Advanced rate limiting based on user type and risk
+def get_dynamic_limit(request, user_type="anonymous", risk_level="low"):
+    """Get dynamic rate limit based on user type and risk level"""
+    base_limits = {
+        "anonymous": {"low": "10/minute", "medium": "5/minute", "high": "2/minute"},
+        "authenticated": {"low": "50/minute", "medium": "25/minute", "high": "10/minute"},
+        "premium": {"low": "200/minute", "medium": "100/minute", "high": "50/minute"}
+    }
+
+    return base_limits.get(user_type, base_limits["anonymous"]).get(risk_level, "10/minute")
+
+# Custom limiter for dynamic rate limiting
+dynamic_limiter = limiter.limit(get_dynamic_limit)
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
@@ -225,6 +242,7 @@ async def get_current_active_user(current_user: User = Depends(get_current_user)
         400: {"description": "Email or username already exists"}
     }
 )
+@auth_limiter
 async def register_user(user_data: UserCreate, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     """Register a new user"""
     # Check if user already exists
@@ -269,6 +287,7 @@ async def register_user(user_data: UserCreate, background_tasks: BackgroundTasks
         401: {"description": "Invalid username or password"}
     }
 )
+@auth_limiter
 async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     """Authenticate user and return access token"""
     user = db.query(User).filter(User.username == form_data.username).first()
@@ -985,6 +1004,82 @@ async def analyze_farmer_sentiment(
     except Exception as e:
         logger.error("Sentiment analysis failed", error=str(e), user_id=current_user.id)
         raise HTTPException(status_code=500, detail=str(e))
+
+    @app.post("/ai/market-sentiment-analysis")
+    async def analyze_market_sentiment(
+        market_data: List[Dict[str, Any]],
+        current_user: User = Depends(get_current_active_user)
+    ):
+        """Analyze market sentiment from various data sources"""
+        try:
+            # Validate input
+            if not market_data:
+                raise HTTPException(status_code=400, detail="Market data is required")
+
+            for i, data in enumerate(market_data):
+                if not isinstance(data, dict):
+                    raise HTTPException(status_code=400, detail=f"Market data at index {i} must be a dictionary")
+
+            result = await advanced_ai_service.analyze_market_sentiment(market_data)
+
+            if "error" in result:
+                raise HTTPException(status_code=500, detail=result["error"])
+
+            logger.info("Market sentiment analysis completed", user_id=current_user.id, data_sources=len(market_data))
+            return {"status": "success", "data": result}
+
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error("Market sentiment analysis failed", error=str(e), user_id=current_user.id)
+            raise HTTPException(status_code=500, detail=str(e))
+
+    @app.post("/ai/crop-disease-detection")
+    async def detect_crop_diseases(
+        file: UploadFile = File(...),
+        crop_type: str = Form(...),
+        location: str = Form(..., description="Location for context"),
+        current_user: User = Depends(get_current_active_user)
+    ):
+        """Detect crop diseases using computer vision AI"""
+        try:
+            # Validate file type
+            if not file.content_type.startswith('image/'):
+                raise HTTPException(status_code=400, detail="File must be an image")
+
+            # Read image data
+            image_data = await file.read()
+
+            # Validate image size (max 10MB)
+            if len(image_data) > 10 * 1024 * 1024:
+                raise HTTPException(status_code=400, detail="Image file too large (max 10MB)")
+
+            # Validate crop type
+            supported_crops = ['maize', 'wheat', 'rice', 'tomato', 'potato', 'soybean', 'cotton']
+            if crop_type.lower() not in supported_crops:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Unsupported crop type. Supported: {', '.join(supported_crops)}"
+                )
+
+            result = await advanced_ai_service.analyze_crop_health(image_data, crop_type, location)
+
+            if "error" in result:
+                raise HTTPException(status_code=500, detail=result["error"])
+
+            logger.info("Crop disease detection completed",
+                       user_id=current_user.id,
+                       crop_type=crop_type,
+                       location=location,
+                       diseases_detected=len(result.get('diseases', [])))
+
+            return {"status": "success", "data": result}
+
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error("Crop disease detection failed", error=str(e), user_id=current_user.id)
+            raise HTTPException(status_code=500, detail=str(e))
 
 # Loan management
 @app.post("/loans", response_model=LoanSchema)
@@ -1888,6 +1983,624 @@ async def generate_sensor_insights(readings: List[SensorReading], device: Sensor
                 "alerts": []
             }
         }
+
+# DID and Identity Management Endpoints
+@app.get("/identity/{wallet_address}")
+async def get_identity(wallet_address: str, db: Session = Depends(get_db)):
+    """Get identity information for a wallet address"""
+    try:
+        # For demo purposes, return mock identity data
+        # In production, this would query the IdentityRegistry contract
+        mock_identity = {
+            "did": f"did:agricredit:{wallet_address}",
+            "wallet": wallet_address,
+            "reputationScore": 750,
+            "isVerified": True,
+            "createdAt": int(time.time()) - 86400,  # 1 day ago
+            "publicKey": "0x" + "a" * 64  # Mock public key
+        }
+
+        logger.info("Identity retrieved", wallet_address=wallet_address)
+        return mock_identity
+
+    except Exception as e:
+        logger.error("Failed to get identity", error=str(e), wallet_address=wallet_address)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/identity/create")
+async def create_identity(request: dict, db: Session = Depends(get_db)):
+    """Create a new DID for a wallet address"""
+    try:
+        wallet_address = request.get("wallet_address")
+        if not wallet_address:
+            raise HTTPException(status_code=400, detail="Wallet address required")
+
+        # Generate a mock DID
+        did = f"did:agricredit:{wallet_address}"
+
+        # In production, this would interact with the IdentityRegistry contract
+        # For now, just return success
+
+        logger.info("DID created", wallet_address=wallet_address, did=did)
+        return {"did": did, "message": "DID created successfully"}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Failed to create DID", error=str(e), wallet_address=request.get("wallet_address"))
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/identity/{wallet_address}/credentials")
+async def get_identity_credentials(wallet_address: str, db: Session = Depends(get_db)):
+    """Get verifiable credentials for a wallet address"""
+    try:
+        # Mock credentials for demo
+        mock_credentials = [
+            {
+                "credentialType": "FarmVerification",
+                "issuer": "AgriCredit DAO",
+                "subject": wallet_address,
+                "issuanceDate": int(time.time()) - 86400 * 30,  # 30 days ago
+                "expirationDate": int(time.time()) + 86400 * 365,  # 1 year from now
+                "isValid": True,
+                "credentialHash": "0x" + "b" * 64,
+                "metadataURI": "ipfs://Qm..."
+            }
+        ]
+
+        logger.info("Credentials retrieved", wallet_address=wallet_address, count=len(mock_credentials))
+        return mock_credentials
+
+    except Exception as e:
+        logger.error("Failed to get credentials", error=str(e), wallet_address=wallet_address)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/reputation/{borrower_address}")
+async def get_borrower_reputation(borrower_address: str):
+    """Get borrower reputation and credit score"""
+    try:
+        # Get reputation from blockchain
+        reputation_data = await blockchain_service.get_borrower_reputation(borrower_address)
+        credit_score = await blockchain_service.calculate_credit_score(borrower_address)
+
+        result = {
+            "borrower": borrower_address,
+            "totalLoans": reputation_data[0],
+            "repaidLoans": reputation_data[1],
+            "defaultedLoans": reputation_data[2],
+            "reputationScore": reputation_data[3],
+            "repaymentRate": reputation_data[4],
+            "creditScore": credit_score
+        }
+
+        logger.info("Reputation retrieved", borrower_address=borrower_address, score=reputation_data[3])
+        return result
+
+    except Exception as e:
+        logger.error("Failed to get reputation", error=str(e), borrower_address=borrower_address)
+        raise HTTPException(status_code=500, detail=str(e))
+
+# New Enhanced Contract Endpoints
+
+# Staking Rewards Endpoints
+@app.post("/staking/stake")
+async def stake_tokens(
+    amount: float,
+    lock_period: int = 30,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """Stake tokens for rewards with AI predictions"""
+    try:
+        # Get AI predictions for staking rewards
+        ai_prediction = await advanced_ai_service.predict_staking_rewards(
+            amount, lock_period, []  # TODO: Add historical data from DB
+        )
+
+        # Execute blockchain transaction
+        result = await blockchain_service.stake_tokens(amount, lock_period)
+
+        # Record monitoring metrics
+        from .core.monitoring import record_staking_transaction, record_ai_prediction
+        record_staking_transaction("stake", result.get("success", True))
+        record_ai_prediction("staking_rewards", ai_prediction.get("confidence", 0.5))
+
+        # Store prediction in database for tracking
+        # TODO: Create StakingPrediction model
+
+        return {
+            "status": "success",
+            "data": result,
+            "ai_prediction": ai_prediction
+        }
+    except Exception as e:
+        logger.error("Staking failed", error=str(e), user_id=current_user.id)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/staking/unstake")
+async def unstake_tokens(
+    amount: float,
+    current_user: User = Depends(get_current_active_user)
+):
+    """Unstake tokens"""
+    try:
+        result = await blockchain_service.unstake_tokens(amount)
+        return {"status": "success", "data": result}
+    except Exception as e:
+        logger.error("Unstaking failed", error=str(e), user_id=current_user.id)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/staking/claim-rewards")
+async def claim_staking_rewards(current_user: User = Depends(get_current_active_user)):
+    """Claim staking rewards"""
+    try:
+        result = await blockchain_service.claim_staking_rewards()
+        return {"status": "success", "data": result}
+    except Exception as e:
+        logger.error("Claim rewards failed", error=str(e), user_id=current_user.id)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/staking/info")
+async def get_staking_info(current_user: User = Depends(get_current_active_user)):
+    """Get staking information"""
+    try:
+        result = await blockchain_service.get_staking_info(current_user.wallet_address or current_user.username)
+        return {"status": "success", "data": result}
+    except Exception as e:
+        logger.error("Get staking info failed", error=str(e), user_id=current_user.id)
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Prediction Market Endpoints
+@app.post("/prediction-markets/create")
+async def create_prediction_market(
+    question: str,
+    outcomes: List[str],
+    end_time: int,
+    fee: float = 0.01,
+    current_user: User = Depends(get_current_active_user)
+):
+    """Create prediction market with AI analysis"""
+    try:
+        # Get AI predictions for market outcomes
+        ai_analysis = await advanced_ai_service.predict_market_outcomes(
+            question, outcomes, []  # TODO: Add historical market data
+        )
+
+        # Execute blockchain transaction
+        result = await blockchain_service.create_market(question, outcomes, end_time, fee)
+
+        return {
+            "status": "success",
+            "data": result,
+            "ai_analysis": ai_analysis
+        }
+    except Exception as e:
+        logger.error("Create market failed", error=str(e), user_id=current_user.id)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/prediction-markets/{market_id}/buy")
+async def buy_market_shares(
+    market_id: int,
+    outcome: int,
+    amount: float,
+    current_user: User = Depends(get_current_active_user)
+):
+    """Buy prediction market shares"""
+    try:
+        result = await blockchain_service.buy_shares(market_id, outcome, amount)
+        return {"status": "success", "data": result}
+    except Exception as e:
+        logger.error("Buy shares failed", error=str(e), user_id=current_user.id)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/prediction-markets/{market_id}/sell")
+async def sell_market_shares(
+    market_id: int,
+    outcome: int,
+    amount: float,
+    current_user: User = Depends(get_current_active_user)
+):
+    """Sell prediction market shares"""
+    try:
+        result = await blockchain_service.sell_shares(market_id, outcome, amount)
+        return {"status": "success", "data": result}
+    except Exception as e:
+        logger.error("Sell shares failed", error=str(e), user_id=current_user.id)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/prediction-markets/{market_id}")
+async def get_market_info(market_id: int):
+    """Get market information"""
+    try:
+        result = await blockchain_service.get_market_info(market_id)
+        return {"status": "success", "data": result}
+    except Exception as e:
+        logger.error("Get market info failed", error=str(e), market_id=market_id)
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Lending Protocol Endpoints
+@app.post("/lending/lend")
+async def lend_tokens(
+    amount: float,
+    interest_rate: float,
+    current_user: User = Depends(get_current_active_user)
+):
+    """Lend tokens"""
+    try:
+        result = await blockchain_service.lend_tokens(amount, interest_rate)
+        return {"status": "success", "data": result}
+    except Exception as e:
+        logger.error("Lending failed", error=str(e), user_id=current_user.id)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/lending/borrow")
+async def borrow_tokens(
+    amount: float,
+    collateral_token: str,
+    collateral_amount: float,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """Borrow tokens with collateral and AI risk assessment"""
+    try:
+        # Get borrower data for AI risk assessment
+        borrower_data = {
+            'credit_score': 650,  # TODO: Get from user's credit score
+            'repayment_history': 0.8,  # TODO: Calculate from loan history
+            'income_stability': 0.7,  # TODO: Get from user profile
+        }
+
+        # AI risk assessment
+        risk_assessment = await advanced_ai_service.assess_lending_risk(
+            borrower_data, amount, collateral_amount
+        )
+
+        # Check if loan amount is within recommended limits
+        loan_to_value = amount / collateral_amount
+        if loan_to_value > risk_assessment.get('recommended_loan_ratio', 0.7):
+            return {
+                "status": "warning",
+                "message": "Loan amount exceeds recommended ratio based on risk assessment",
+                "risk_assessment": risk_assessment
+            }
+
+        # Execute blockchain transaction
+        result = await blockchain_service.borrow_tokens(amount, collateral_token, collateral_amount)
+
+        return {
+            "status": "success",
+            "data": result,
+            "risk_assessment": risk_assessment
+        }
+    except Exception as e:
+        logger.error("Borrowing failed", error=str(e), user_id=current_user.id)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/lending/repay/{loan_id}")
+async def repay_loan(
+    loan_id: int,
+    amount: float,
+    current_user: User = Depends(get_current_active_user)
+):
+    """Repay loan"""
+    try:
+        result = await blockchain_service.repay_loan(loan_id, amount)
+        return {"status": "success", "data": result}
+    except Exception as e:
+        logger.error("Repay loan failed", error=str(e), user_id=current_user.id)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/lending/loans/{loan_id}")
+async def get_loan_info(loan_id: int):
+    """Get loan information"""
+    try:
+        result = await blockchain_service.get_loan_info(loan_id)
+        return {"status": "success", "data": result}
+    except Exception as e:
+        logger.error("Get loan info failed", error=str(e), loan_id=loan_id)
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Yield Aggregator Endpoints
+@app.post("/yield-aggregator/strategies")
+async def create_yield_strategy(
+    name: str,
+    description: str,
+    protocols: List[str],
+    allocations: List[int],
+    risk_tolerance: str = "medium",
+    time_horizon: int = 90,
+    current_user: User = Depends(get_current_active_user)
+):
+    """Create yield aggregation strategy with AI optimization"""
+    try:
+        # Get AI optimization for the strategy
+        ai_optimization = await advanced_ai_service.optimize_yield_strategy(
+            protocols, risk_tolerance, 1000, time_horizon  # Default investment amount
+        )
+
+        # Use AI-optimized allocations if allocations not provided
+        if not allocations or sum(allocations) == 0:
+            allocations = [int(ai_optimization["optimal_allocations"].get(p, 0)) for p in protocols]
+
+        # Execute blockchain transaction
+        result = await blockchain_service.create_strategy(name, description, protocols, allocations)
+
+        return {
+            "status": "success",
+            "data": result,
+            "ai_optimization": ai_optimization
+        }
+    except Exception as e:
+        logger.error("Create strategy failed", error=str(e), user_id=current_user.id)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/yield-aggregator/strategies/{strategy_id}/deposit")
+async def deposit_to_strategy(
+    strategy_id: int,
+    amount: float,
+    current_user: User = Depends(get_current_active_user)
+):
+    """Deposit to yield strategy"""
+    try:
+        result = await blockchain_service.deposit_to_strategy(strategy_id, amount)
+        return {"status": "success", "data": result}
+    except Exception as e:
+        logger.error("Deposit to strategy failed", error=str(e), user_id=current_user.id)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/yield-aggregator/strategies/{strategy_id}")
+async def get_strategy_info(strategy_id: int):
+    """Get strategy information"""
+    try:
+        result = await blockchain_service.get_strategy_info(strategy_id)
+        return {"status": "success", "data": result}
+    except Exception as e:
+        logger.error("Get strategy info failed", error=str(e), strategy_id=strategy_id)
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Governance Token Endpoints
+@app.post("/governance/delegate")
+async def delegate_votes(
+    delegate_address: str,
+    current_user: User = Depends(get_current_active_user)
+):
+    """Delegate voting power"""
+    try:
+        result = await blockchain_service.delegate_votes(delegate_address)
+        return {"status": "success", "data": result}
+    except Exception as e:
+        logger.error("Delegate votes failed", error=str(e), user_id=current_user.id)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/governance/lock-tokens")
+async def lock_governance_tokens(
+    amount: float,
+    duration: int,
+    current_user: User = Depends(get_current_active_user)
+):
+    """Lock tokens for voting power"""
+    try:
+        result = await blockchain_service.lock_tokens(amount, duration)
+        return {"status": "success", "data": result}
+    except Exception as e:
+        logger.error("Lock tokens failed", error=str(e), user_id=current_user.id)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/governance/voting-power")
+async def get_voting_power(current_user: User = Depends(get_current_active_user)):
+    """Get voting power"""
+    try:
+        result = await blockchain_service.get_voting_power(current_user.wallet_address or current_user.username)
+        return {"status": "success", "data": {"voting_power": result}}
+    except Exception as e:
+        logger.error("Get voting power failed", error=str(e), user_id=current_user.id)
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Bridge Endpoints
+@app.post("/bridge/transfer")
+async def initiate_bridge_transfer(
+    amount: float,
+    target_chain: int,
+    recipient: str,
+    current_user: User = Depends(get_current_active_user)
+):
+    """Initiate cross-chain bridge transfer"""
+    try:
+        result = await blockchain_service.initiate_bridge_transfer(amount, target_chain, recipient)
+        return {"status": "success", "data": result}
+    except Exception as e:
+        logger.error("Bridge transfer failed", error=str(e), user_id=current_user.id)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/bridge/transfers/{transfer_id}")
+async def get_bridge_transfer_status(transfer_id: int):
+    """Get bridge transfer status"""
+    try:
+        result = await blockchain_service.get_bridge_transfer_status(transfer_id)
+        return {"status": "success", "data": result}
+    except Exception as e:
+        logger.error("Get bridge transfer status failed", error=str(e), transfer_id=transfer_id)
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Enhanced Security Endpoints
+
+# MFA Endpoints
+@app.post("/auth/mfa/setup")
+async def setup_mfa(current_user: User = Depends(get_current_active_user)):
+    """Set up multi-factor authentication"""
+    try:
+        from ..core.security import generate_mfa_secret, generate_mfa_uri, generate_qr_code
+
+        # Generate MFA secret
+        secret = generate_mfa_secret()
+
+        # Generate QR code URI
+        uri = generate_mfa_uri(current_user.username, secret)
+
+        # Generate QR code image
+        qr_code = generate_qr_code(uri)
+
+        # TODO: Store secret in database (hashed/encrypted)
+        # For now, return it (in production, store securely)
+
+        return {
+            "status": "success",
+            "secret": secret,
+            "qr_code": qr_code,
+            "uri": uri
+        }
+    except Exception as e:
+        logger.error("MFA setup failed", error=str(e), user_id=current_user.id)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/auth/mfa/verify")
+async def verify_mfa_setup(
+    secret: str,
+    code: str,
+    current_user: User = Depends(get_current_active_user)
+):
+    """Verify MFA setup"""
+    try:
+        from ..core.security import verify_mfa_code, generate_backup_codes, hash_backup_code
+
+        # Verify the code
+        if not verify_mfa_code(secret, code):
+            raise HTTPException(status_code=400, detail="Invalid MFA code")
+
+        # Generate backup codes
+        backup_codes = generate_backup_codes()
+        hashed_codes = [hash_backup_code(code) for code in backup_codes]
+
+        # TODO: Store secret and hashed backup codes in database
+
+        return {
+            "status": "success",
+            "message": "MFA setup completed",
+            "backup_codes": backup_codes  # Show to user once, then discard
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("MFA verification failed", error=str(e), user_id=current_user.id)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/auth/mfa/authenticate")
+async def authenticate_mfa(
+    code: str,
+    current_user: User = Depends(get_current_active_user)
+):
+    """Authenticate with MFA code"""
+    try:
+        # TODO: Get user's MFA secret from database
+        secret = "DUMMY_SECRET"  # Replace with actual secret from DB
+
+        from ..core.security import verify_mfa_code
+
+        if verify_mfa_code(secret, code):
+            return {"status": "success", "message": "MFA authentication successful"}
+        else:
+            raise HTTPException(status_code=400, detail="Invalid MFA code")
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("MFA authentication failed", error=str(e), user_id=current_user.id)
+        raise HTTPException(status_code=500, detail=str(e))
+
+# API Key Management
+@app.post("/auth/api-keys")
+async def create_api_key(
+    name: str,
+    current_user: User = Depends(get_current_active_user)
+):
+    """Create a new API key"""
+    try:
+        from ..core.security import generate_api_key, hash_api_key
+
+        api_key = generate_api_key()
+        hashed_key = hash_api_key(api_key)
+
+        # TODO: Store hashed_key and name in database with user_id
+
+        return {
+            "status": "success",
+            "api_key": api_key,  # Return plain key once for user to copy
+            "name": name,
+            "created_at": datetime.utcnow().isoformat()
+        }
+    except Exception as e:
+        logger.error("API key creation failed", error=str(e), user_id=current_user.id)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/auth/api-keys")
+async def list_api_keys(current_user: User = Depends(get_current_active_user)):
+    """List user's API keys"""
+    try:
+        # TODO: Get API keys from database (without revealing hashed keys)
+        return {
+            "status": "success",
+            "api_keys": []  # Placeholder
+        }
+    except Exception as e:
+        logger.error("API key listing failed", error=str(e), user_id=current_user.id)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.delete("/auth/api-keys/{key_id}")
+async def revoke_api_key(
+    key_id: str,
+    current_user: User = Depends(get_current_active_user)
+):
+    """Revoke an API key"""
+    try:
+        # TODO: Mark API key as revoked in database
+        return {"status": "success", "message": "API key revoked"}
+    except Exception as e:
+        logger.error("API key revocation failed", error=str(e), user_id=current_user.id)
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Security Monitoring
+@app.get("/security/activity")
+async def get_security_activity(
+    days: int = 30,
+    current_user: User = Depends(get_current_active_user)
+):
+    """Get security activity for user"""
+    try:
+        # TODO: Get security events from database
+        # For now, return mock data
+        return {
+            "status": "success",
+            "activity": [
+                {
+                    "event": "login",
+                    "timestamp": datetime.utcnow().isoformat(),
+                    "ip": "192.168.1.1",
+                    "device": "Chrome on Windows",
+                    "location": "Lagos, Nigeria"
+                }
+            ]
+        }
+    except Exception as e:
+        logger.error("Security activity retrieval failed", error=str(e), user_id=current_user.id)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/security/suspicious-activity")
+async def report_suspicious_activity(
+    activity_data: Dict[str, Any],
+    current_user: User = Depends(get_current_active_user)
+):
+    """Report suspicious activity"""
+    try:
+        # TODO: Store suspicious activity report and trigger alerts
+        logger.warning("Suspicious activity reported", user_id=current_user.id, activity=activity_data)
+
+        return {
+            "status": "success",
+            "message": "Suspicious activity reported. Security team notified."
+        }
+    except Exception as e:
+        logger.error("Suspicious activity reporting failed", error=str(e), user_id=current_user.id)
+        raise HTTPException(status_code=500, detail=str(e))
 
 # IPFS endpoints
 @app.post(

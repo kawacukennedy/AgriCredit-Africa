@@ -500,5 +500,139 @@ class BlockchainService:
             'status': receipt.status
         }
 
+    async def initiate_bridge_transfer(self, amount: float, target_chain: int, recipient: str) -> Dict[str, Any]:
+        """Initiate cross-chain bridge transfer"""
+        if not self.is_connected() or 'Bridge' not in self.contracts:
+            raise Exception("Blockchain not connected or bridge contract not loaded")
+
+        contract = self.contracts['Bridge']
+
+        # Convert amount to wei (assuming 18 decimals)
+        amount_wei = self.w3.to_wei(amount, 'ether')
+
+        # Build transaction
+        tx = contract.functions.bridgeTokens(
+            self.contracts.get('AgriCredit', {}).address or '0x0000000000000000000000000000000000000000',  # Token address
+            amount_wei,
+            target_chain,
+            recipient
+        ).build_transaction({
+            'from': self.account.address,
+            'gas': 300000,
+            'gasPrice': await self.get_gas_price(),
+            'nonce': self.w3.eth.get_transaction_count(self.account.address)
+        })
+
+        # Sign and send transaction
+        signed_tx = self.w3.eth.account.sign_transaction(tx, self.account.key)
+        tx_hash = self.w3.eth.send_raw_transaction(signed_tx.rawTransaction)
+
+        # Wait for transaction receipt
+        receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash)
+
+        return {
+            'tx_hash': tx_hash.hex(),
+            'bridge_tx_id': receipt.logs[0].topics[1].hex() if receipt.logs else '0x0',  # Extract tx ID from logs
+            'block_number': receipt.blockNumber,
+            'status': receipt.status,
+            'amount': amount,
+            'target_chain': target_chain,
+            'recipient': recipient
+        }
+
+    async def get_bridge_transfer_status(self, transfer_id: int) -> Dict[str, Any]:
+        """Get bridge transfer status"""
+        if not self.is_connected() or 'Bridge' not in self.contracts:
+            raise Exception("Blockchain not connected or bridge contract not loaded")
+
+        contract = self.contracts['Bridge']
+
+        # Get transaction details
+        tx_data = await self.w3.eth.call(contract.functions.getTransaction(transfer_id))
+
+        # Parse the returned data (this would need proper ABI decoding)
+        # For now, return mock data
+        return {
+            'transfer_id': transfer_id,
+            'status': 'completed',  # Would parse from contract
+            'from_chain': self.chain_id,
+            'to_chain': 137,  # Example
+            'amount': 100.0,
+            'recipient': '0x123...',
+            'confirmations': 5,
+            'required_confirmations': 3,
+            'timestamp': 1234567890
+        }
+
+    async def confirm_bridge_transfer(self, transfer_id: int, signature: str) -> Dict[str, Any]:
+        """Confirm bridge transfer (validator function)"""
+        if not self.is_connected() or 'Bridge' not in self.contracts:
+            raise Exception("Blockchain not connected or bridge contract not loaded")
+
+        contract = self.contracts['Bridge']
+
+        # Build transaction
+        tx = contract.functions.confirmTransaction(
+            transfer_id,
+            signature
+        ).build_transaction({
+            'from': self.account.address,
+            'gas': 200000,
+            'gasPrice': await self.get_gas_price(),
+            'nonce': self.w3.eth.get_transaction_count(self.account.address)
+        })
+
+        # Sign and send transaction
+        signed_tx = self.w3.eth.account.sign_transaction(tx, self.account.key)
+        tx_hash = self.w3.eth.send_raw_transaction(signed_tx.rawTransaction)
+
+        # Wait for transaction receipt
+        receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash)
+
+        return {
+            'tx_hash': tx_hash.hex(),
+            'transfer_id': transfer_id,
+            'block_number': receipt.blockNumber,
+            'status': receipt.status
+        }
+
+    async def get_supported_bridge_chains(self) -> List[Dict[str, Any]]:
+        """Get supported chains for bridging"""
+        if not self.is_connected() or 'Bridge' not in self.contracts:
+            raise Exception("Blockchain not connected or bridge contract not loaded")
+
+        contract = self.contracts['Bridge']
+
+        # Get supported chains from contract
+        chains = await self.w3.eth.call(contract.functions.getSupportedChains())
+
+        chain_info = []
+        for chain_id in chains:
+            config = await self.w3.eth.call(contract.functions.getChainConfig(chain_id))
+            chain_info.append({
+                'chain_id': chain_id,
+                'active': config[3],  # active flag
+                'required_confirmations': config[2],
+                'total_transferred': config[4]
+            })
+
+        return chain_info
+
+    async def estimate_bridge_fee(self, target_chain: int, amount: float) -> Dict[str, Any]:
+        """Estimate bridge fee"""
+        if not self.is_connected() or 'Bridge' not in self.contracts:
+            raise Exception("Blockchain not connected or bridge contract not loaded")
+
+        # Mock fee calculation - in reality would query contract
+        base_fee = 0.001  # ETH
+        percentage_fee = amount * 0.0005  # 0.05%
+
+        return {
+            'base_fee': base_fee,
+            'percentage_fee': percentage_fee,
+            'total_fee': base_fee + percentage_fee,
+            'estimated_time': '10-30 minutes'
+        }
+
 # Global blockchain service instance
 blockchain_service = BlockchainService()
