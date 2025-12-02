@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import LoanNFTPage from './LoanNFTPage';
 
 export const metadata: Metadata = {
   title: 'Loan NFT Details',
@@ -17,11 +18,9 @@ export async function generateStaticParams() {
   ];
 }
 
-'use client';
-
-import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { useWallet } from '@/hooks/useWallet';
+export default function Page() {
+  return <LoanNFTPage />;
+}
 import {
   ArrowLeft,
   ShoppingCart,
