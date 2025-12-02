@@ -205,7 +205,7 @@ export default function LoanDetailPage() {
             pestLevel: 12,
             farmSize: 50
           }
-        }
+        },
         repaymentSchedule: [
           {
             date: Date.now() - 90 * 24 * 60 * 60 * 1000,
