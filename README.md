@@ -294,6 +294,9 @@ We welcome contributions from developers, farmers, and blockchain enthusiasts!
 
 ## 📚 Documentation
 
+- **[Deployment Guide](./docs/deployment-guide.md)** - Complete deployment instructions
+- **[Maintenance Guide](./docs/maintenance-guide.md)** - Ongoing maintenance and operations
+- **[User Guide](./docs/user-guide.md)** - Comprehensive user manual
 - **[API Reference](./docs/api.md)** - Backend API documentation
 - **[Contract ABIs](./docs/abis.md)** - Smart contract interfaces
 - **[Architecture](./docs/architecture.txt)** - System design overview

@@ -25,7 +25,12 @@ import {
   Monitor,
   Search,
   ChevronDown,
-  Bell
+  Bell,
+  Shield,
+  Award,
+  HardDrive,
+  Activity,
+  CheckCircle
 } from 'lucide-react';
 import { useTheme } from './ThemeProvider';
 import { useTranslation } from 'react-i18next';
@@ -42,6 +47,11 @@ const navItems = [
   { href: '/liquidity-pool', label: 'Liquidity', icon: Droplets },
   { href: '/yield-farming', label: 'Yield Farm', icon: TrendingUp },
   { href: '/nft-farming', label: 'NFT Farming', icon: Leaf },
+  { href: '/escrow', label: 'Escrow', icon: Shield },
+  { href: '/ipfs', label: 'IPFS Storage', icon: HardDrive },
+  { href: '/monitoring', label: 'Monitoring', icon: Activity },
+  { href: '/testing', label: 'Testing', icon: CheckCircle },
+  { href: '/reputation', label: 'Reputation', icon: Award },
   { href: '/profile', label: 'Profile', icon: User },
 ];
 

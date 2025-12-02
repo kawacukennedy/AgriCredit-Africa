@@ -176,31 +176,47 @@ jobs:
          cache-from: type=gha
          cache-to: type=gha,mode=max
 
-   deploy:
-     needs: [docker-build]
-     runs-on: ubuntu-latest
-     if: github.ref == 'refs/heads/main'
+    deploy:
+      needs: [docker-build]
+      runs-on: ubuntu-latest
+      if: github.ref == 'refs/heads/main'
 
-     steps:
-     - uses: actions/checkout@v4
+      steps:
+      - uses: actions/checkout@v4
 
-     - name: Deploy to production
-       run: |
-         echo "Deploying to production environment"
-         # Add your deployment commands here
-         # Example: kubectl apply -f k8s/ or docker-compose up -d on remote server
+      - name: Deploy frontend to Vercel
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          working-directory: ./src
 
-     - name: Deploy contracts (staging)
-       run: |
-         echo "Deploying contracts to staging"
-         # npx hardhat run scripts/deploy.js --network polygon-mumbai
+      - name: Deploy backend to Railway
+        run: |
+          # Install Railway CLI
+          npm install -g @railway/cli
+          # Login and deploy
+          railway login --token ${{ secrets.RAILWAY_TOKEN }}
+          railway link --project ${{ secrets.RAILWAY_PROJECT_ID }}
+          railway up --service backend
 
-     - name: Run smoke tests
-       run: |
-         echo "Running smoke tests on deployed environment"
-         # curl -f https://api.agricredit.africa/health || exit 1
+      - name: Deploy contracts to Polygon
+        run: |
+          npm ci
+          npx hardhat run scripts/deploy.js --network polygon
 
-     - name: Notify deployment success
-       run: |
-         echo "Deployment completed successfully"
-         # Add notification logic here (Slack, Discord, etc.)
+      - name: Run smoke tests
+        run: |
+          # Test frontend
+          curl -f https://agricredit.vercel.app || exit 1
+          # Test backend API
+          curl -f https://agricredit-backend.railway.app/health || exit 1
+
+      - name: Notify deployment success
+        uses: 8398a7/action-slack@v3
+        with:
+          status: success
+          text: "AgriCredit deployed successfully to production!"
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
