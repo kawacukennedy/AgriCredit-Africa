@@ -1466,3 +1466,11 @@ function generateMockSensorData(hours: number): IoTSensorReading[] {
 
   return data;
 }
+
+// Export main API object for convenience
+export const api = {
+  get: (endpoint: string, config?: any) => apiRequest(endpoint, { ...config, method: 'GET' }),
+  post: (endpoint: string, data?: any, config?: any) => apiRequest(endpoint, { ...config, method: 'POST', body: JSON.stringify(data) }),
+  put: (endpoint: string, data?: any, config?: any) => apiRequest(endpoint, { ...config, method: 'PUT', body: JSON.stringify(data) }),
+  delete: (endpoint: string, config?: any) => apiRequest(endpoint, { ...config, method: 'DELETE' }),
+};

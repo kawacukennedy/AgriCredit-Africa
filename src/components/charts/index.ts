@@ -1,2 +1,2 @@
-export { CustomLineChart } from './LineChart';
-export { CustomBarChart } from './BarChart';
+export { CustomLineChart as LineChart } from './LineChart';
+export { CustomBarChart as BarChart } from './BarChart';
