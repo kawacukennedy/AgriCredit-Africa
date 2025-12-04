@@ -5,11 +5,8 @@ const urlsToCache = [
   '/loan-application',
   '/marketplace',
   '/carbon-dashboard',
-  '/globals.css',
-  '/file.svg',
-  '/globe.svg',
-  '/next.svg',
-  '/vercel.svg'
+  '/favicon.ico',
+  '/manifest.json'
 ];
 
 // Install service worker
