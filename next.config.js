@@ -8,7 +8,7 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  output: 'export',
+  // output: 'export',
   trailingSlash: true,
   images: {
     unoptimized: true,

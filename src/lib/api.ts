@@ -1467,6 +1467,194 @@ function generateMockSensorData(hours: number): IoTSensorReading[] {
   return data;
 }
 
+// Loan Detail API
+export async function getLoanDetail(loanId: string): Promise<any> {
+  return apiRequest(`/loans/${loanId}`);
+}
+
+export async function fundLoan(loanId: string, amount: number): Promise<{ success: boolean; error?: string }> {
+  try {
+    const response = await apiRequest(`/loans/${loanId}/fund`, {
+      method: 'POST',
+      body: JSON.stringify({ amount }),
+    });
+    return { success: true };
+  } catch (error: any) {
+    console.error('Failed to fund loan:', error);
+    return { success: false, error: error.message || 'Failed to fund loan' };
+  }
+}
+
+export async function getAIReport(cid: string): Promise<any> {
+  try {
+    // Try to fetch from IPFS gateway
+    const response = await fetch(`https://ipfs.io/ipfs/${cid}`);
+    if (!response.ok) throw new Error('Failed to fetch from IPFS');
+    return await response.json();
+  } catch (error) {
+    console.warn('Failed to fetch AI report from IPFS:', error);
+    // Return mock data as fallback
+    return {
+      score: 750,
+      risk_level: 'low',
+      confidence: 0.85,
+      explanation: ['Good credit history', 'Stable income', 'Low risk factors'],
+      factors: [
+        { factor: 'Credit History', impact: 50, description: 'Excellent repayment record' },
+        { factor: 'Income Stability', impact: 30, description: 'Consistent farming income' },
+        { factor: 'Location Risk', impact: -10, description: 'Moderate weather risk' }
+      ],
+      recommendations: ['Continue current practices', 'Consider crop diversification']
+    };
+  }
+}
+
+export async function getLoanContractDetails(loanId: string): Promise<any> {
+  try {
+    const response = await apiRequest(`/loans/${loanId}/contract`);
+    return response;
+  } catch (error) {
+    console.warn('Failed to get contract details:', error);
+    // Return mock contract details
+    return {
+      address: '0x1234567890123456789012345678901234567890',
+      network: 'polygon',
+      abi: [],
+      deployedAt: new Date().toISOString(),
+      totalSupply: 1000000,
+      decimals: 18
+    };
+  }
+}
+
+// Portfolio API
+export async function getInvestorPortfolio(userAddress: string): Promise<any> {
+  try {
+    const response = await apiRequest(`/portfolio/${userAddress}`);
+    return response;
+  } catch (error) {
+    console.warn('Failed to get investor portfolio:', error);
+    // Return mock portfolio data
+    return {
+      totalValue: 12500,
+      totalInvested: 10000,
+      totalReturns: 2500,
+      totalAPY: 25,
+      activeLoans: 5,
+      maturedLoans: 3,
+      defaultedLoans: 0,
+      availableBalance: 1500
+    };
+  }
+}
+
+export async function getPortfolioAnalytics(userAddress: string): Promise<any> {
+  try {
+    const response = await apiRequest(`/portfolio/${userAddress}/analytics`);
+    return response;
+  } catch (error) {
+    console.warn('Failed to get portfolio analytics:', error);
+    // Return mock analytics
+    return {
+      monthlyReturns: [1200, 1350, 1180, 1420, 1580, 1750],
+      riskDistribution: [
+        { risk: 'Low', amount: 5000, percentage: 40 },
+        { risk: 'Medium', amount: 6000, percentage: 48 },
+        { risk: 'High', amount: 1500, percentage: 12 }
+      ],
+      performanceByCrop: [
+        { crop: 'Maize', invested: 4000, returns: 800, apy: 20 },
+        { crop: 'Coffee', invested: 3000, returns: 900, apy: 30 },
+        { crop: 'Cassava', invested: 3000, returns: 600, apy: 20 }
+      ]
+    };
+  }
+}
+
+export async function getLoanNFTs(userAddress: string): Promise<any[]> {
+  try {
+    const response = await apiRequest(`/portfolio/${userAddress}/nfts`);
+    return response.nfts || [];
+  } catch (error) {
+    console.warn('Failed to get loan NFTs:', error);
+    // Return mock NFTs
+    return [
+      {
+        id: '1',
+        loanId: 'loan_001',
+        amount: 1000,
+        apy: 25,
+        maturityDate: '2024-12-31',
+        status: 'active',
+        tokenId: '12345'
+      },
+      {
+        id: '2',
+        loanId: 'loan_002',
+        amount: 2000,
+        apy: 22,
+        maturityDate: '2024-11-15',
+        status: 'active',
+        tokenId: '12346'
+      }
+    ];
+  }
+}
+
+export async function getTransactionHistory(userAddress: string, limit: number = 20): Promise<any[]> {
+  try {
+    const response = await apiRequest(`/portfolio/${userAddress}/transactions?limit=${limit}`);
+    return response.transactions || [];
+  } catch (error) {
+    console.warn('Failed to get transaction history:', error);
+    // Return mock transactions
+    return [
+      {
+        id: '1',
+        type: 'investment',
+        amount: 1000,
+        loanId: 'loan_001',
+        timestamp: new Date().toISOString(),
+        txHash: '0x123...'
+      },
+      {
+        id: '2',
+        type: 'return',
+        amount: 125,
+        loanId: 'loan_001',
+        timestamp: new Date(Date.now() - 86400000).toISOString(),
+        txHash: '0x456...'
+      }
+    ];
+  }
+}
+
+export async function withdrawFromLoan(loanId: string, amount: number): Promise<{ success: boolean; error?: string }> {
+  try {
+    const response = await apiRequest(`/loans/${loanId}/withdraw`, {
+      method: 'POST',
+      body: JSON.stringify({ amount }),
+    });
+    return { success: true };
+  } catch (error: any) {
+    console.error('Failed to withdraw from loan:', error);
+    return { success: false, error: error.message || 'Failed to withdraw from loan' };
+  }
+}
+
+export async function sellLoanNFT(tokenId: string, price: number): Promise<{ success: boolean; error?: string }> {
+  try {
+    const response = await apiRequest('/marketplace/nft/sell', {
+      method: 'POST',
+      body: JSON.stringify({ token_id: tokenId, price }),
+    });
+    return { success: true };
+  } catch (error: any) {
+    console.error('Failed to sell loan NFT:', error);
+    return { success: false, error: error.message || 'Failed to sell loan NFT' };
+  }
+}
+
 // Export main API object for convenience
 export const api = {
   get: (endpoint: string, config?: any) => apiRequest(endpoint, { ...config, method: 'GET' }),

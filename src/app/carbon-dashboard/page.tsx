@@ -294,8 +294,9 @@ export default function CarbonDashboard() {
             {[
               { id: 'overview', label: 'Overview', icon: BarChart3 },
               { id: 'portfolio', label: 'Portfolio', icon: Target },
-              { id: 'staking', label: 'Staking', icon: TrendingUp },
-              { id: 'market', label: 'Market', icon: Globe }
+              { id: 'marketplace', label: 'Marketplace', icon: Globe },
+              { id: 'nfts', label: 'Carbon NFTs', icon: Award },
+              { id: 'staking', label: 'Staking', icon: TrendingUp }
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -467,94 +468,215 @@ export default function CarbonDashboard() {
             </motion.div>
           )}
 
-           {activeTab === 'portfolio' && (
-             <motion.div
-               key="portfolio"
-               initial={{ opacity: 0, y: 20 }}
-               animate={{ opacity: 1, y: 0 }}
-               exit={{ opacity: 0, y: -20 }}
-               className="space-y-6"
-             >
-               <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
-                 <div className="flex justify-between items-center mb-6">
-                   <h3 className="text-xl font-semibold text-gray-800 dark:text-white">Carbon Credits Portfolio</h3>
-                   <button
-                     onClick={() => setShowClimateModal(true)}
-                     className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
-                   >
-                     <Plus className="w-4 h-4" />
-                     Submit Climate Data
-                   </button>
-                 </div>
+            {activeTab === 'portfolio' && (
+              <motion.div
+                key="portfolio"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="space-y-6"
+              >
+                {/* Portfolio Overview */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm"
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <DollarSign className="w-5 h-5 text-green-600" />
+                      <h3 className="text-lg font-semibold text-gray-800 dark:text-white">Portfolio Value</h3>
+                    </div>
+                    <div className="text-3xl font-bold text-green-600">
+                      ${(dashboardData?.portfolio_value || 0).toFixed(2)}
+                    </div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Total value in USD</p>
+                  </motion.div>
 
-                 {carbonCredits.length > 0 ? (
-                   <div className="space-y-4">
-                     {carbonCredits.map((credit) => (
-                       <div key={credit.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                         <div className="flex justify-between items-start mb-3">
-                           <div>
-                             <div className="flex items-center gap-2 mb-1">
-                               <Award className="w-5 h-5 text-green-600" />
-                               <span className="font-medium text-gray-800 dark:text-white">
-                                 Credit #{credit.id}
-                               </span>
-                               <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                 credit.transaction_type === 'minted' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
-                                 credit.transaction_type === 'transferred' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
-                                 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
-                               }`}>
-                                 {credit.transaction_type}
-                               </span>
-                             </div>
-                             <p className="text-sm text-gray-600 dark:text-gray-400">
-                               Amount: {credit.amount} CARBT
-                             </p>
-                           </div>
-                           <div className="text-right">
-                             <div className="text-sm text-gray-500 dark:text-gray-400">
-                               {new Date(credit.created_at).toLocaleDateString()}
-                             </div>
-                             {credit.transaction_hash && (
-                               <div className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                                 TX: {credit.transaction_hash.slice(0, 10)}...
-                               </div>
-                             )}
-                           </div>
-                         </div>
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.1 }}
+                    className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm"
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <TrendingUp className="w-5 h-5 text-blue-600" />
+                      <h3 className="text-lg font-semibold text-gray-800 dark:text-white">24h Change</h3>
+                    </div>
+                    <div className="text-3xl font-bold text-blue-600">
+                      +{(dashboardData?.portfolio_change_24h || 0).toFixed(2)}%
+                    </div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Performance today</p>
+                  </motion.div>
 
-                         {credit.verification_proof && (
-                           <div className="mt-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                             <details>
-                               <summary className="cursor-pointer text-sm font-medium text-gray-700 dark:text-gray-300">
-                                 Verification Details
-                               </summary>
-                               <pre className="mt-2 text-xs text-gray-600 dark:text-gray-400 whitespace-pre-wrap">
-                                 {JSON.stringify(credit.verification_proof, null, 2)}
-                               </pre>
-                             </details>
-                           </div>
-                         )}
-                       </div>
-                     ))}
-                   </div>
-                 ) : (
-                   <div className="text-center py-8">
-                     <Award className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                     <h4 className="text-lg font-medium text-gray-800 dark:text-white mb-2">No Carbon Credits Yet</h4>
-                     <p className="text-gray-600 dark:text-gray-400 mb-4">
-                       Start by submitting climate data to generate your first carbon credits.
-                     </p>
-                     <button
-                       onClick={() => setShowClimateModal(true)}
-                       className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition-colors"
-                     >
-                       Generate Carbon Credits
-                     </button>
-                   </div>
-                 )}
-               </div>
-             </motion.div>
-           )}
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.2 }}
+                    className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm"
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <Target className="w-5 h-5 text-purple-600" />
+                      <h3 className="text-lg font-semibold text-gray-800 dark:text-white">Risk Score</h3>
+                    </div>
+                    <div className="text-3xl font-bold text-purple-600">
+                      {dashboardData?.risk_score || 0}/100
+                    </div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Portfolio risk level</p>
+                  </motion.div>
+
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.3 }}
+                    className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm"
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <Award className="w-5 h-5 text-teal-600" />
+                      <h3 className="text-lg font-semibold text-gray-800 dark:text-white">Total Credits</h3>
+                    </div>
+                    <div className="text-3xl font-bold text-teal-600">
+                      {carbonCredits.length}
+                    </div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Carbon credits owned</p>
+                  </motion.div>
+                </div>
+
+                {/* Carbon Credits Portfolio */}
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+                  <div className="flex justify-between items-center mb-6">
+                    <h3 className="text-xl font-semibold text-gray-800 dark:text-white">Carbon Credits Portfolio</h3>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setShowClimateModal(true)}
+                        className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+                      >
+                        <Plus className="w-4 h-4" />
+                        Generate
+                      </button>
+                      <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2">
+                        <Globe className="w-4 h-4" />
+                        Trade
+                      </button>
+                    </div>
+                  </div>
+
+                  {carbonCredits.length > 0 ? (
+                    <div className="space-y-4">
+                      {carbonCredits.map((credit) => (
+                        <div key={credit.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow">
+                          <div className="flex justify-between items-start mb-3">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <Award className="w-5 h-5 text-green-600" />
+                                <span className="font-medium text-gray-800 dark:text-white">
+                                  Credit #{credit.id}
+                                </span>
+                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                  credit.transaction_type === 'minted' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
+                                  credit.transaction_type === 'transferred' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
+                                  'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
+                                }`}>
+                                  {credit.transaction_type}
+                                </span>
+                              </div>
+                              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                                <div>
+                                  <span className="text-gray-500 dark:text-gray-400">Amount:</span>
+                                  <span className="ml-1 font-medium">{credit.amount} CARBT</span>
+                                </div>
+                                <div>
+                                  <span className="text-gray-500 dark:text-gray-400">Value:</span>
+                                  <span className="ml-1 font-medium text-green-600">${(credit.amount * (marketData?.current_price || 2.45)).toFixed(2)}</span>
+                                </div>
+                                <div>
+                                  <span className="text-gray-500 dark:text-gray-400">Status:</span>
+                                  <span className="ml-1 font-medium text-teal-600">Active</span>
+                                </div>
+                                <div>
+                                  <span className="text-gray-500 dark:text-gray-400">Date:</span>
+                                  <span className="ml-1 font-medium">{new Date(credit.created_at).toLocaleDateString()}</span>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex gap-2 ml-4">
+                              <button className="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded text-sm">
+                                Trade
+                              </button>
+                              <button
+                                onClick={() => setShowRetireModal(true)}
+                                className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
+                              >
+                                Retire
+                              </button>
+                            </div>
+                          </div>
+
+                          {credit.verification_proof && (
+                            <div className="mt-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                              <details>
+                                <summary className="cursor-pointer text-sm font-medium text-gray-700 dark:text-gray-300">
+                                  Verification Details
+                                </summary>
+                                <pre className="mt-2 text-xs text-gray-600 dark:text-gray-400 whitespace-pre-wrap">
+                                  {JSON.stringify(credit.verification_proof, null, 2)}
+                                </pre>
+                              </details>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-12">
+                      <Award className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                      <h4 className="text-xl font-medium text-gray-800 dark:text-white mb-2">No Carbon Credits Yet</h4>
+                      <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
+                        Start building your carbon portfolio by submitting climate data to generate verified carbon credits.
+                      </p>
+                      <button
+                        onClick={() => setShowClimateModal(true)}
+                        className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg transition-colors font-medium"
+                      >
+                        Generate Your First Carbon Credits
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Portfolio Analytics */}
+                {carbonCredits.length > 0 && (
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+                      <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">Asset Allocation</h3>
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-gray-600 dark:text-gray-400">Carbon Credits</span>
+                          <span className="text-sm font-medium">100%</span>
+                        </div>
+                        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                          <div className="bg-teal-600 h-2 rounded-full" style={{ width: '100%' }}></div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+                      <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">Performance Metrics</h3>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-green-600">+12.5%</div>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">7-Day Return</p>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-blue-600">+8.3%</div>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">30-Day Return</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            )}
 
           {activeTab === 'staking' && (
             <motion.div
@@ -623,39 +745,276 @@ export default function CarbonDashboard() {
             </motion.div>
           )}
 
-          {activeTab === 'market' && (
-            <motion.div
-              key="market"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="space-y-6"
-            >
-              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
-                <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">Carbon Market Analytics</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-teal-600 mb-2">
-                      {marketData?.total_supply?.toFixed(0) || '0'}
-                    </div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Total CARBT Supply</p>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600 mb-2">
-                      {marketData?.total_staked?.toFixed(0) || '0'}
-                    </div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Total Staked</p>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-600 mb-2">
-                      {marketData?.staking_ratio ? (marketData.staking_ratio * 100).toFixed(1) : '0'}%
-                    </div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Staking Ratio</p>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          )}
+           {activeTab === 'marketplace' && (
+             <motion.div
+               key="marketplace"
+               initial={{ opacity: 0, y: 20 }}
+               animate={{ opacity: 1, y: 0 }}
+               exit={{ opacity: 0, y: -20 }}
+               className="space-y-6"
+             >
+               {/* Market Analytics */}
+               <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+                 <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">Carbon Market Analytics</h3>
+                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                   <div className="text-center">
+                     <div className="text-2xl font-bold text-teal-600 mb-2">
+                       ${marketData?.current_price?.toFixed(2) || '0.00'}
+                     </div>
+                     <p className="text-sm text-gray-600 dark:text-gray-400">CARBT Price</p>
+                   </div>
+                   <div className="text-center">
+                     <div className="text-2xl font-bold text-green-600 mb-2">
+                       {marketData?.total_supply?.toFixed(0) || '0'}
+                     </div>
+                     <p className="text-sm text-gray-600 dark:text-gray-400">Total Supply</p>
+                   </div>
+                   <div className="text-center">
+                     <div className="text-2xl font-bold text-blue-600 mb-2">
+                       {marketData?.trading_volume_24h?.toFixed(0) || '0'}
+                     </div>
+                     <p className="text-sm text-gray-600 dark:text-gray-400">24h Volume</p>
+                   </div>
+                   <div className="text-center">
+                     <div className="text-2xl font-bold text-purple-600 mb-2">
+                       {marketData?.price_change_24h ? (marketData.price_change_24h > 0 ? '+' : '') + marketData.price_change_24h.toFixed(2) : '0.00'}%
+                     </div>
+                     <p className="text-sm text-gray-600 dark:text-gray-400">24h Change</p>
+                   </div>
+                 </div>
+               </div>
+
+               {/* Trading Interface */}
+               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                 {/* Buy/Sell Panel */}
+                 <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+                   <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">Trade CARBT</h3>
+                   <div className="space-y-4">
+                     <div>
+                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                         Order Type
+                       </label>
+                       <div className="flex gap-2">
+                         <button className="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg text-sm font-medium">
+                           Buy
+                         </button>
+                         <button className="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg text-sm font-medium">
+                           Sell
+                         </button>
+                       </div>
+                     </div>
+                     <div>
+                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                         Amount (CARBT)
+                       </label>
+                       <input
+                         type="number"
+                         className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white"
+                         placeholder="Enter amount"
+                         min="0"
+                         step="0.01"
+                       />
+                     </div>
+                     <div>
+                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                         Price (USD)
+                       </label>
+                       <input
+                         type="number"
+                         className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-800 dark:text-white"
+                         placeholder="Enter price"
+                         min="0"
+                         step="0.01"
+                       />
+                     </div>
+                     <div className="text-sm text-gray-600 dark:text-gray-400">
+                       Total: $0.00
+                     </div>
+                     <button className="w-full bg-teal-600 hover:bg-teal-700 text-white py-3 px-4 rounded-lg transition-colors font-medium">
+                       Place Buy Order
+                     </button>
+                   </div>
+                 </div>
+
+                 {/* Order Book */}
+                 <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+                   <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">Order Book</h3>
+                   <div className="space-y-4">
+                     <div>
+                       <h4 className="text-sm font-medium text-green-600 mb-2">Buy Orders</h4>
+                       <div className="space-y-1 max-h-40 overflow-y-auto">
+                         <div className="flex justify-between text-sm">
+                           <span>100 CARBT</span>
+                           <span className="text-green-600">$2.45</span>
+                         </div>
+                         <div className="flex justify-between text-sm">
+                           <span>250 CARBT</span>
+                           <span className="text-green-600">$2.42</span>
+                         </div>
+                         <div className="flex justify-between text-sm">
+                           <span>500 CARBT</span>
+                           <span className="text-green-600">$2.40</span>
+                         </div>
+                       </div>
+                     </div>
+                     <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+                       <h4 className="text-sm font-medium text-red-600 mb-2">Sell Orders</h4>
+                       <div className="space-y-1 max-h-40 overflow-y-auto">
+                         <div className="flex justify-between text-sm">
+                           <span>150 CARBT</span>
+                           <span className="text-red-600">$2.48</span>
+                         </div>
+                         <div className="flex justify-between text-sm">
+                           <span>300 CARBT</span>
+                           <span className="text-red-600">$2.50</span>
+                         </div>
+                         <div className="flex justify-between text-sm">
+                           <span>200 CARBT</span>
+                           <span className="text-red-600">$2.52</span>
+                         </div>
+                       </div>
+                     </div>
+                   </div>
+                 </div>
+
+                 {/* Recent Trades */}
+                 <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+                   <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">Recent Trades</h3>
+                   <div className="space-y-2 max-h-80 overflow-y-auto">
+                     <div className="flex justify-between items-center text-sm">
+                       <div>
+                         <span className="text-green-600 font-medium">BUY</span>
+                         <span className="ml-2">50 CARBT</span>
+                       </div>
+                       <div className="text-right">
+                         <div className="text-green-600">$2.46</div>
+                         <div className="text-xs text-gray-500">2 min ago</div>
+                       </div>
+                     </div>
+                     <div className="flex justify-between items-center text-sm">
+                       <div>
+                         <span className="text-red-600 font-medium">SELL</span>
+                         <span className="ml-2">75 CARBT</span>
+                       </div>
+                       <div className="text-right">
+                         <div className="text-red-600">$2.44</div>
+                         <div className="text-xs text-gray-500">5 min ago</div>
+                       </div>
+                     </div>
+                     <div className="flex justify-between items-center text-sm">
+                       <div>
+                         <span className="text-green-600 font-medium">BUY</span>
+                         <span className="ml-2">100 CARBT</span>
+                       </div>
+                       <div className="text-right">
+                         <div className="text-green-600">$2.47</div>
+                         <div className="text-xs text-gray-500">8 min ago</div>
+                       </div>
+                     </div>
+                   </div>
+                 </div>
+               </div>
+             </motion.div>
+           )}
+
+           {activeTab === 'nfts' && (
+             <motion.div
+               key="nfts"
+               initial={{ opacity: 0, y: 20 }}
+               animate={{ opacity: 1, y: 0 }}
+               exit={{ opacity: 0, y: -20 }}
+               className="space-y-6"
+             >
+               {/* Carbon Credit NFTs */}
+               <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+                 <div className="flex justify-between items-center mb-6">
+                   <h3 className="text-xl font-semibold text-gray-800 dark:text-white">Carbon Credit NFTs</h3>
+                   <button className="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2">
+                     <Plus className="w-4 h-4" />
+                     Mint NFT
+                   </button>
+                 </div>
+
+                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                   {/* Sample NFT Cards */}
+                   <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-lg transition-shadow">
+                     <div className="aspect-square bg-gradient-to-br from-green-400 to-teal-600 rounded-lg mb-4 flex items-center justify-center">
+                       <Award className="w-12 h-12 text-white" />
+                     </div>
+                     <h4 className="font-semibold text-gray-800 dark:text-white mb-2">Carbon Credit #001</h4>
+                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">100 CARBT - Verified sequestration</p>
+                     <div className="flex justify-between items-center">
+                       <span className="text-sm font-medium text-teal-600">$245.00</span>
+                       <button className="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded text-sm">
+                         List
+                       </button>
+                     </div>
+                   </div>
+
+                   <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-lg transition-shadow">
+                     <div className="aspect-square bg-gradient-to-br from-blue-400 to-purple-600 rounded-lg mb-4 flex items-center justify-center">
+                       <Award className="w-12 h-12 text-white" />
+                     </div>
+                     <h4 className="font-semibold text-gray-800 dark:text-white mb-2">Carbon Credit #002</h4>
+                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">250 CARBT - Forest restoration</p>
+                     <div className="flex justify-between items-center">
+                       <span className="text-sm font-medium text-teal-600">$612.50</span>
+                       <button className="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded text-sm">
+                         List
+                       </button>
+                     </div>
+                   </div>
+
+                   <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-lg transition-shadow">
+                     <div className="aspect-square bg-gradient-to-br from-yellow-400 to-orange-600 rounded-lg mb-4 flex items-center justify-center">
+                       <Award className="w-12 h-12 text-white" />
+                     </div>
+                     <h4 className="font-semibold text-gray-800 dark:text-white mb-2">Carbon Credit #003</h4>
+                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">150 CARBT - Renewable energy</p>
+                     <div className="flex justify-between items-center">
+                       <span className="text-sm font-medium text-teal-600">$367.50</span>
+                       <button className="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded text-sm">
+                         List
+                       </button>
+                     </div>
+                   </div>
+                 </div>
+
+                 {/* NFT Marketplace */}
+                 <div className="mt-8">
+                   <h4 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">NFT Marketplace</h4>
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                     <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                       <h5 className="font-medium text-gray-800 dark:text-white mb-2">Listed NFTs</h5>
+                       <div className="space-y-2">
+                         <div className="flex justify-between text-sm">
+                           <span>Credit #004 - 200 CARBT</span>
+                           <span className="text-teal-600">$490.00</span>
+                         </div>
+                         <div className="flex justify-between text-sm">
+                           <span>Credit #005 - 300 CARBT</span>
+                           <span className="text-teal-600">$735.00</span>
+                         </div>
+                       </div>
+                     </div>
+                     <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                       <h5 className="font-medium text-gray-800 dark:text-white mb-2">Recent Sales</h5>
+                       <div className="space-y-2">
+                         <div className="flex justify-between text-sm">
+                           <span>Credit #001 sold</span>
+                           <span className="text-green-600">$245.00</span>
+                         </div>
+                         <div className="flex justify-between text-sm">
+                           <span>Credit #002 sold</span>
+                           <span className="text-green-600">$612.50</span>
+                         </div>
+                       </div>
+                     </div>
+                   </div>
+                 </div>
+               </div>
+             </motion.div>
+           )}
         </AnimatePresence>
 
         {/* Stake Modal */}

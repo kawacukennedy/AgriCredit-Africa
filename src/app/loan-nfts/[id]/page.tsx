@@ -1,26 +1,7 @@
-import { Metadata } from 'next';
-import LoanNFTPage from './LoanNFTPage';
+'use client';
 
-export const metadata: Metadata = {
-  title: 'Loan NFT Details',
-  description: 'View detailed information about your loan NFT',
-};
-
-export async function generateStaticParams() {
-  // Generate static params for common NFT IDs
-  // In a real app, this would fetch from your API
-  return [
-    { id: '1' },
-    { id: '2' },
-    { id: '3' },
-    { id: '4' },
-    { id: '5' },
-  ];
-}
-
-export default function Page() {
-  return <LoanNFTPage />;
-}
+import { useState, useEffect } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import {
   ArrowLeft,
   ShoppingCart,
@@ -96,7 +77,7 @@ interface LoanNFT {
   dynamicAttributes: DynamicAttributes;
 }
 
-export default function LoanDetailPage() {
+export default function Page() {
   const params = useParams();
   const router = useRouter();
   const { address, isConnected } = useWallet();

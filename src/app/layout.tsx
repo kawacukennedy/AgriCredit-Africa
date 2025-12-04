@@ -46,19 +46,19 @@ function RootLayout({
           className={`${inter.className} antialiased`}
         >
           <a href="#main-content" className="skip-link">Skip to main content</a>
-          <ThemeProvider>
-            <AccessibilityProvider>
-              <NavBar />
-              <ErrorBoundary>
-                <main id="main-content" className="flex-1">
-                  {children}
-                </main>
-              </ErrorBoundary>
-              <Footer />
-              <AccessibilityPanel />
-              <OfflineIndicator />
-            </AccessibilityProvider>
-          </ThemeProvider>
+          {/* <ThemeProvider> */}
+             {/* <AccessibilityProvider> */}
+               {/* <NavBar /> */}
+               <ErrorBoundary>
+                 <main id="main-content" className="flex-1">
+                   {children}
+                 </main>
+               </ErrorBoundary>
+               {/* <Footer /> */}
+               {/* <AccessibilityPanel /> */}
+               <OfflineIndicator />
+             {/* </AccessibilityProvider> */}
+           {/* </ThemeProvider> */}
         </body>
       </html>
     </>

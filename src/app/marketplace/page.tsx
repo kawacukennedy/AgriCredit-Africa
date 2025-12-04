@@ -226,7 +226,7 @@ export default function Marketplace() {
   };
 
   const handleViewListingDetails = (listingId: number) => {
-    router.push(`/marketplace/${listingId}`);
+    router.push(`/loan/${listingId}`);
   };
 
   const handleListProduce = () => {
