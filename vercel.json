@@ -1,12 +1,5 @@
 {
   "buildCommand": "npm run build",
-  "outputDirectory": "out",
-  "framework": null,
-  "regions": ["iad1"],
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
-  ]
+  "framework": "nextjs",
+  "regions": ["iad1"]
 }
