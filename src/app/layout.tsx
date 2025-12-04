@@ -8,7 +8,7 @@ import { NavBar } from "@/components/NavBar";
 import { Footer } from "@/components/Footer";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { OfflineIndicator } from "@/components/OfflineIndicator";
-import '../lib/i18n';
+import { I18nProvider } from '@/components/I18nProvider';
 import { ServiceWorkerRegistration } from '@/components/ServiceWorkerRegistration';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -35,6 +35,7 @@ function RootLayout({
         className={`${inter.className} antialiased`}
       >
         <a href="#main-content" className="skip-link">Skip to main content</a>
+        <I18nProvider />
         {/* <ThemeProvider> */}
            {/* <AccessibilityProvider> */}
              {/* <NavBar /> */}

@@ -1,5 +1,4 @@
 import i18n from 'i18next';
-import { initReactI18next } from 'react-i18next';
 
 // Import translations
 import en from '../../public/locales/en/common.json';
@@ -22,17 +21,16 @@ const resources = {
   },
 };
 
-i18n
-  .use(initReactI18next)
-  .init({
-    resources,
-    lng: 'en', // default language
-    fallbackLng: 'en',
-    ns: ['common'],
-    defaultNS: 'common',
-    interpolation: {
-      escapeValue: false, // React already escapes values
-    },
-  });
+// Initialize i18n without React integration for server-side
+i18n.init({
+  resources,
+  lng: 'en', // default language
+  fallbackLng: 'en',
+  ns: ['common'],
+  defaultNS: 'common',
+  interpolation: {
+    escapeValue: false, // React already escapes values
+  },
+});
 
 export default i18n;
