@@ -17,9 +17,12 @@ export const metadata: Metadata = {
   title: 'AgriCredit DApp',
   description: 'AI-Blockchain platform for decentralized microcredit and sustainable agriculture in Africa',
   manifest: '/manifest.json',
+};
+
+export const generateViewport = () => ({
   themeColor: '#22c55e',
   viewport: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no',
-};
+});
 
 function RootLayout({
   children,
