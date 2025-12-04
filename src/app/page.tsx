@@ -288,13 +288,14 @@ export default function Home() {
                  </button>
               </div>
               <div className="flex-1">
-                <Image
-                  src={slides[currentSlide].image}
-                  alt={currentFeature.title}
-                  width={600}
-                  height={256}
-                  className="w-full h-64 object-contain"
-                />
+                 <Image
+                   src={slides[currentSlide].image}
+                   alt={currentFeature.title}
+                   width={600}
+                   height={256}
+                   className="w-full h-64 object-contain"
+                   priority
+                 />
               </div>
             </div>
           </div>
