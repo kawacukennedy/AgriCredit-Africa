@@ -34,11 +34,6 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     setActualTheme(newTheme);
     document.documentElement.classList.remove('light', 'dark');
     document.documentElement.classList.add(newTheme);
-    // Add smooth transition
-    document.documentElement.style.setProperty('--theme-transition', 'background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease');
-    setTimeout(() => {
-      document.documentElement.style.removeProperty('--theme-transition');
-    }, 300);
   };
 
   const resolveTheme = (selectedTheme: Theme): 'light' | 'dark' => {

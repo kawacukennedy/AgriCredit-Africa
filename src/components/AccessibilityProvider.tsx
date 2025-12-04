@@ -11,12 +11,6 @@ export function AccessibilityProvider({ children }: AccessibilityProviderProps) 
   const { getColorBlindStyles, getFontSizeClass, settings } = useAccessibility();
 
   useEffect(() => {
-    // Apply accessibility styles to the document body
-    const styles = getColorBlindStyles();
-
-    // Apply filter styles
-    document.body.style.filter = styles.filter || 'none';
-
     // Apply font size class to body
     const fontClassMap = {
       small: 'font-small',
@@ -47,7 +41,7 @@ export function AccessibilityProvider({ children }: AccessibilityProviderProps) 
       document.body.classList.add(settings.colorBlindMode);
     }
 
-  }, [getColorBlindStyles, settings]);
+  }, [settings]);
 
   return <>{children}</>;
 }
