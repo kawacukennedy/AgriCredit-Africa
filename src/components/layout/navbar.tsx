@@ -37,6 +37,12 @@ export function Navbar() {
             >
               {t('navigation.carbon')}
             </Link>
+            <Link
+              href="/profile"
+              className="transition-colors hover:text-foreground/80 text-foreground/60"
+            >
+              {t('navigation.profile')}
+            </Link>
           </nav>
         </div>
         <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">

@@ -57,5 +57,21 @@
     "activeLoans": "Mikopo Hai",
     "carbonCredits": "Mikopo ya Kaboni",
     "yieldPredictions": "Utabiri wa Mavuno"
+  },
+  "profile": {
+    "title": "Wasifu na Mipangilio",
+    "personalInfo": "Taarifa Binafsi",
+    "name": "Jina Kamili",
+    "email": "Barua pepe",
+    "phone": "Nambari ya Simu",
+    "location": "Eneo la Shamba",
+    "did": "Utambulisho wa Kujitawala",
+    "didId": "ID ya DID",
+    "verifyDid": "Thibitisha DID",
+    "settings": "Mipangilio",
+    "language": "Lugha",
+    "theme": "Mandhari",
+    "notifications": "Arifa",
+    "privacy": "Mipangilio ya Faragha"
   }
 }

@@ -57,5 +57,21 @@
     "activeLoans": "Prêts actifs",
     "carbonCredits": "Crédits carbone",
     "yieldPredictions": "Prévisions de rendement"
+  },
+  "profile": {
+    "title": "Profil et paramètres",
+    "personalInfo": "Informations personnelles",
+    "name": "Nom complet",
+    "email": "Email",
+    "phone": "Numéro de téléphone",
+    "location": "Emplacement de la ferme",
+    "did": "Identité décentralisée",
+    "didId": "ID DID",
+    "verifyDid": "Vérifier DID",
+    "settings": "Paramètres",
+    "language": "Langue",
+    "theme": "Thème",
+    "notifications": "Notifications",
+    "privacy": "Paramètres de confidentialité"
   }
 }

@@ -57,5 +57,21 @@
     "activeLoans": "Active Loans",
     "carbonCredits": "Carbon Credits",
     "yieldPredictions": "Yield Predictions"
+  },
+  "profile": {
+    "title": "Profile & Settings",
+    "personalInfo": "Personal Information",
+    "name": "Full Name",
+    "email": "Email",
+    "phone": "Phone Number",
+    "location": "Farm Location",
+    "did": "Decentralized Identity",
+    "didId": "DID ID",
+    "verifyDid": "Verify DID",
+    "settings": "Settings",
+    "language": "Language",
+    "theme": "Theme",
+    "notifications": "Notifications",
+    "privacy": "Privacy Settings"
   }
 }

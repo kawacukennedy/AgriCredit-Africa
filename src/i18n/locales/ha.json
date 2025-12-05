@@ -57,5 +57,21 @@
     "activeLoans": "Lamuni masu aiki",
     "carbonCredits": "Lamunin Carbon",
     "yieldPredictions": "Hasashen Amfani"
+  },
+  "profile": {
+    "title": "Bayanin martaba da Saituna",
+    "personalInfo": "Bayanin mutum",
+    "name": "Cikakken suna",
+    "email": "Imel",
+    "phone": "Lambar waya",
+    "location": "Wurin gona",
+    "did": "Asalin mutum na dijital",
+    "didId": "ID na DID",
+    "verifyDid": "Tabbatar da DID",
+    "settings": "Saituna",
+    "language": "Harshe",
+    "theme": "Jigo",
+    "notifications": "Sanarwa",
+    "privacy": "Saitunan sirri"
   }
 }
