@@ -73,5 +73,17 @@
     "theme": "Thème",
     "notifications": "Notifications",
     "privacy": "Paramètres de confidentialité"
+  },
+  "help": {
+    "title": "Centre d'aide",
+    "faq": "Questions fréquemment posées",
+    "contact": "Contacter le support",
+    "guides": "Guides utilisateur",
+    "gettingStarted": "Commencer avec AgriCredit",
+    "loanProcess": "Comment demander un prêt",
+    "carbonTrading": "Commerce des crédits carbone",
+    "support": "Support",
+    "email": "Envoyez-nous un email à support@agricredit.com",
+    "phone": "Appelez-nous au +1 (555) 123-4567"
   }
 }

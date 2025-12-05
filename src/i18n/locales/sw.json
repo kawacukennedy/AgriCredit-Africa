@@ -73,5 +73,17 @@
     "theme": "Mandhari",
     "notifications": "Arifa",
     "privacy": "Mipangilio ya Faragha"
+  },
+  "help": {
+    "title": "Kituo cha Msaada",
+    "faq": "Maswali Yanayoulizwa Mara Kwa Mara",
+    "contact": "Wasiliana na Msaada",
+    "guides": "Miongozo ya Mtumiaji",
+    "gettingStarted": "Kuanza na AgriCredit",
+    "loanProcess": "Jinsi ya Kuomba Mkopo",
+    "carbonTrading": "Biashara ya Mikopo ya Kaboni",
+    "support": "Msaada",
+    "email": "Tutumie barua pepe kwa support@agricredit.com",
+    "phone": "Tupigie simu kwa +1 (555) 123-4567"
   }
 }

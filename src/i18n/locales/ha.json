@@ -73,5 +73,17 @@
     "theme": "Jigo",
     "notifications": "Sanarwa",
     "privacy": "Saitunan sirri"
+  },
+  "help": {
+    "title": "Cibiyar Taimako",
+    "faq": "Tambayoyin da ake yi akai-akai",
+    "contact": "Tuntubi tallafi",
+    "guides": "Jagorar mai amfani",
+    "gettingStarted": "Fara da AgriCredit",
+    "loanProcess": "Yadda ake neman aro",
+    "carbonTrading": "Cinikin lamunin carbon",
+    "support": "Tallafi",
+    "email": "Aika mana imel a support@agricredit.com",
+    "phone": "Kira mu a +1 (555) 123-4567"
   }
 }
