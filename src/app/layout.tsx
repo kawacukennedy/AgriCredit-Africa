@@ -1,15 +1,6 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import "./globals.css";
-import { AccessibilityPanel } from "@/components/AccessibilityPanel";
-import { AccessibilityProvider } from "@/components/AccessibilityProvider";
-import { ThemeProvider } from "@/components/ThemeProvider";
-import { NavBar } from "@/components/NavBar";
-import { Footer } from "@/components/Footer";
-import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { OfflineIndicator } from "@/components/OfflineIndicator";
-import { I18nProvider } from '@/components/I18nProvider';
-import { ServiceWorkerRegistration } from '@/components/ServiceWorkerRegistration';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -35,21 +26,9 @@ function RootLayout({
         className={`${inter.className} antialiased`}
       >
         <a href="#main-content" className="skip-link">Skip to main content</a>
-        <I18nProvider />
-        <ThemeProvider>
-          <AccessibilityProvider>
-            <NavBar />
-            <ErrorBoundary>
-              <main id="main-content" className="flex-1">
-                {children}
-              </main>
-            </ErrorBoundary>
-            <Footer />
-            <AccessibilityPanel />
-            <OfflineIndicator />
-          </AccessibilityProvider>
-        </ThemeProvider>
-         <ServiceWorkerRegistration />
+        <main id="main-content" className="flex-1">
+          {children}
+        </main>
       </body>
     </html>
   );
