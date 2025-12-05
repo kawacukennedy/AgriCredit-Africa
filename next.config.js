@@ -14,6 +14,10 @@ const nextConfig = {
     unoptimized: true,
   },
   swcMinify: false,
+  i18n: {
+    locales: ['en', 'fr', 'ha', 'sw'],
+    defaultLocale: 'en',
+  },
   webpack: (config) => {
     config.resolve.alias['@'] = path.resolve(__dirname, 'src');
     return config;
