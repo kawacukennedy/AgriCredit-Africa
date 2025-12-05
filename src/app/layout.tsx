@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import "./globals.css";
+import { Providers } from '@/components/providers';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -25,10 +26,12 @@ function RootLayout({
       <body
         className={`${inter.className} antialiased`}
       >
-        <a href="#main-content" className="skip-link">Skip to main content</a>
-        <main id="main-content" className="flex-1">
-          {children}
-        </main>
+        <Providers>
+          <a href="#main-content" className="skip-link">Skip to main content</a>
+          <main id="main-content" className="flex-1">
+            {children}
+          </main>
+        </Providers>
       </body>
     </html>
   );

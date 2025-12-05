@@ -1,23 +1,35 @@
-export default function Dashboard() {
+'use client';
+
+import { Navbar } from '@/components/layout/navbar';
+import { Footer } from '@/components/layout/footer';
+import { CreditScoreWidget } from '@/components/dashboard/credit-score-widget';
+import { LoanList } from '@/components/dashboard/loan-list';
+import { FarmMap } from '@/components/dashboard/farm-map';
+import { CarbonWidget } from '@/components/dashboard/carbon-widget';
+import { useTranslation } from 'react-i18next';
+
+export default function FarmerDashboard() {
+  const { t } = useTranslation();
+
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="container mx-auto px-6 py-12">
-        <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-8">Dashboard</h1>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-            <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Credit Score</h2>
-            <p className="text-2xl font-bold text-green-600">750</p>
+    <div className="min-h-screen">
+      <Navbar />
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-3xl font-bold text-slate-gray mb-8">
+          {t('dashboard.welcome')}
+        </h1>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="space-y-8">
+            <CreditScoreWidget />
+            <LoanList />
           </div>
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-            <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Active Loans</h2>
-            <p className="text-2xl font-bold text-blue-600">2</p>
-          </div>
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-            <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Carbon Credits</h2>
-            <p className="text-2xl font-bold text-orange-600">150</p>
+          <div className="space-y-8">
+            <FarmMap />
+            <CarbonWidget />
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }
