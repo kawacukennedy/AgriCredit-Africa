@@ -1,0 +1,61 @@
+{
+  "common": {
+    "loading": "Inapakia...",
+    "error": "Kosa",
+    "success": "Mafanikio",
+    "cancel": "Ghairi",
+    "confirm": "Thibitisha",
+    "save": "Hifadhi",
+    "delete": "Futa",
+    "edit": "Hariri",
+    "view": "Tazama",
+    "back": "Rudi",
+    "next": "Ifuatayo",
+    "previous": "Iliyopita",
+    "close": "Funga",
+    "search": "Tafuta",
+    "filter": "Chuja",
+    "sort": "Panga",
+    "apply": "Tumia",
+    "reset": "Weka upya"
+  },
+  "navigation": {
+    "dashboard": "Dashibodi",
+    "loans": "Mikopo",
+    "marketplace": "Soko",
+    "carbon": "Mikopo ya kaboni",
+    "farming": "Kilimo cha mavuno",
+    "governance": "Utawala",
+    "nft": "Kilimo cha NFT",
+    "profile": "Wasifu",
+    "help": "Msaada",
+    "admin": "Msimamizi"
+  },
+  "auth": {
+    "connectWallet": "Unganisha Mkoba",
+    "disconnect": "Tenganisha",
+    "signIn": "Ingia",
+    "signOut": "Toka",
+    "walletRequired": "Tafadhali unganisha mkoba wako kuendelea"
+  },
+  "loans": {
+    "apply": "Omba Mkopo",
+    "myLoans": "Mikopo Yangu",
+    "activeLoans": "Mikopo Hai",
+    "loanAmount": "Kiasi cha Mkopo",
+    "interestRate": "Kiwango cha Riba",
+    "term": "Muda",
+    "status": "Hali",
+    "funded": "Imefadhiliwa",
+    "pending": "Inasubiri",
+    "repaid": "Imelipwa",
+    "defaulted": "Imeshindwa"
+  },
+  "dashboard": {
+    "welcome": "Karibu AgriCredit",
+    "creditScore": "Alama ya Mkopo",
+    "activeLoans": "Mikopo Hai",
+    "carbonCredits": "Mikopo ya Kaboni",
+    "yieldPredictions": "Utabiri wa Mavuno"
+  }
+}

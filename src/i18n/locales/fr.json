@@ -1,0 +1,61 @@
+{
+  "common": {
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "success": "Succès",
+    "cancel": "Annuler",
+    "confirm": "Confirmer",
+    "save": "Sauvegarder",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "view": "Voir",
+    "back": "Retour",
+    "next": "Suivant",
+    "previous": "Précédent",
+    "close": "Fermer",
+    "search": "Rechercher",
+    "filter": "Filtrer",
+    "sort": "Trier",
+    "apply": "Appliquer",
+    "reset": "Réinitialiser"
+  },
+  "navigation": {
+    "dashboard": "Tableau de bord",
+    "loans": "Prêts",
+    "marketplace": "Marché",
+    "carbon": "Crédits carbone",
+    "farming": "Agriculture de rendement",
+    "governance": "Gouvernance",
+    "nft": "Agriculture NFT",
+    "profile": "Profil",
+    "help": "Aide",
+    "admin": "Admin"
+  },
+  "auth": {
+    "connectWallet": "Connecter le portefeuille",
+    "disconnect": "Déconnecter",
+    "signIn": "Se connecter",
+    "signOut": "Se déconnecter",
+    "walletRequired": "Veuillez connecter votre portefeuille pour continuer"
+  },
+  "loans": {
+    "apply": "Demander un prêt",
+    "myLoans": "Mes prêts",
+    "activeLoans": "Prêts actifs",
+    "loanAmount": "Montant du prêt",
+    "interestRate": "Taux d'intérêt",
+    "term": "Durée",
+    "status": "Statut",
+    "funded": "Financé",
+    "pending": "En attente",
+    "repaid": "Remboursé",
+    "defaulted": "Défaillant"
+  },
+  "dashboard": {
+    "welcome": "Bienvenue sur AgriCredit",
+    "creditScore": "Score de crédit",
+    "activeLoans": "Prêts actifs",
+    "carbonCredits": "Crédits carbone",
+    "yieldPredictions": "Prévisions de rendement"
+  }
+}

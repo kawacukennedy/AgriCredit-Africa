@@ -1,0 +1,61 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "close": "Close",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "apply": "Apply",
+    "reset": "Reset"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "loans": "Loans",
+    "marketplace": "Marketplace",
+    "carbon": "Carbon Credits",
+    "farming": "Yield Farming",
+    "governance": "Governance",
+    "nft": "NFT Farming",
+    "profile": "Profile",
+    "help": "Help",
+    "admin": "Admin"
+  },
+  "auth": {
+    "connectWallet": "Connect Wallet",
+    "disconnect": "Disconnect",
+    "signIn": "Sign In",
+    "signOut": "Sign Out",
+    "walletRequired": "Please connect your wallet to continue"
+  },
+  "loans": {
+    "apply": "Apply for Loan",
+    "myLoans": "My Loans",
+    "activeLoans": "Active Loans",
+    "loanAmount": "Loan Amount",
+    "interestRate": "Interest Rate",
+    "term": "Term",
+    "status": "Status",
+    "funded": "Funded",
+    "pending": "Pending",
+    "repaid": "Repaid",
+    "defaulted": "Defaulted"
+  },
+  "dashboard": {
+    "welcome": "Welcome to AgriCredit",
+    "creditScore": "Credit Score",
+    "activeLoans": "Active Loans",
+    "carbonCredits": "Carbon Credits",
+    "yieldPredictions": "Yield Predictions"
+  }
+}

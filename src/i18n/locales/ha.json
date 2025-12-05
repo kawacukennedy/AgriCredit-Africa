@@ -1,0 +1,61 @@
+{
+  "common": {
+    "loading": "Ana loda...",
+    "error": "Kuskure",
+    "success": "Nasara",
+    "cancel": "Soke",
+    "confirm": "Tabbatar",
+    "save": "Ajiye",
+    "delete": "Share",
+    "edit": "Gyara",
+    "view": "Duba",
+    "back": "Koma baya",
+    "next": "Na gaba",
+    "previous": "Na baya",
+    "close": "Rufe",
+    "search": "Bincika",
+    "filter": "Tace",
+    "sort": "Tsara",
+    "apply": "Aiwatar",
+    "reset": "Sake farawa"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "loans": "Lamuni",
+    "marketplace": "Kasuwa",
+    "carbon": "Lamunin Carbon",
+    "farming": "Noman Amfanin",
+    "governance": "Mulki",
+    "nft": "Noman NFT",
+    "profile": "Bayanin martaba",
+    "help": "Taimako",
+    "admin": "Mai gudanarwa"
+  },
+  "auth": {
+    "connectWallet": "Haɗa Wallet",
+    "disconnect": "Cire haɗin",
+    "signIn": "Shiga",
+    "signOut": "Fita",
+    "walletRequired": "Da fatan za a haɗa wallet ɗinku don ci gaba"
+  },
+  "loans": {
+    "apply": "Nemi Aro",
+    "myLoans": "Lamunina",
+    "activeLoans": "Lamuni masu aiki",
+    "loanAmount": "Adadin Aro",
+    "interestRate": "Adadin Riba",
+    "term": "Lokaci",
+    "status": "Matsayi",
+    "funded": "An ba da kuɗi",
+    "pending": "Ana jiran",
+    "repaid": "An biya",
+    "defaulted": "An kasa"
+  },
+  "dashboard": {
+    "welcome": "Barka da zuwa AgriCredit",
+    "creditScore": "Makin Aro",
+    "activeLoans": "Lamuni masu aiki",
+    "carbonCredits": "Lamunin Carbon",
+    "yieldPredictions": "Hasashen Amfani"
+  }
+}
