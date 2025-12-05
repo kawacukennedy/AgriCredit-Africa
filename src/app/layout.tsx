@@ -9,6 +9,9 @@ export const metadata: Metadata = {
   title: 'AgriCredit DApp',
   description: 'AI-Blockchain platform for decentralized microcredit and sustainable agriculture in Africa',
   manifest: '/manifest.json',
+  icons: {
+    icon: 'data:,',
+  },
 };
 
 export const generateViewport = () => ({
