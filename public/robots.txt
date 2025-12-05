@@ -1,0 +1,16 @@
+User-agent: *
+Allow: /
+
+# Block access to admin areas
+Disallow: /admin/
+
+# Block access to API endpoints
+Disallow: /api/
+
+# Allow access to static assets
+Allow: /_next/static/
+Allow: /favicon.ico
+Allow: /manifest.json
+
+# Sitemap
+Sitemap: https://agricredit.com/sitemap.xml
