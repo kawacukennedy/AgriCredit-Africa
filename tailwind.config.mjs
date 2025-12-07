@@ -149,6 +149,15 @@ export default {
         'bounceIn': 'bounceIn 0.6s ease-out',
         'pulse': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         'spin': 'spin 1s linear infinite',
+        // Micro animations
+        'ai-score-pulse': 'aiScorePulse 600ms ease-in-out infinite',
+        'button-press': 'buttonPress 100ms ease-out',
+        // Page transitions
+        'fade-slide': 'fadeIn 300ms ease-out, slideUp 300ms ease-out',
+        'holo-swap': 'holoSwap 600ms ease-out',
+        // Loading animations
+        'data-shimmer': 'dataShimmer 1400ms ease-in-out infinite',
+        'map-pulse': 'mapPulse 2000ms ease-in-out infinite',
       },
       keyframes: {
         fadeIn: {
@@ -183,6 +192,31 @@ export default {
           '0%': { transform: 'scale(0.3)', opacity: '0' },
           '50%': { transform: 'scale(1.05)' },
           '70%': { transform: 'scale(0.9)' },
+          '100%': { transform: 'scale(1)', opacity: '1' },
+        },
+        aiScorePulse: {
+          '0%, 100%': { transform: 'scale(0.98)' },
+          '50%': { transform: 'scale(1.02)' },
+        },
+        buttonPress: {
+          '0%': { transform: 'translateY(0)', boxShadow: 'var(--tw-shadow-level1)' },
+          '50%': { transform: 'translateY(2px)', boxShadow: 'var(--tw-shadow-level2)' },
+          '100%': { transform: 'translateY(0)', boxShadow: 'var(--tw-shadow-level1)' },
+        },
+        holoSwap: {
+          '0%': { opacity: '0', transform: 'scale(0.8)', filter: 'hue-rotate(0deg) brightness(1)' },
+          '25%': { opacity: '0.7', transform: 'scale(1.05)', filter: 'hue-rotate(90deg) brightness(1.2)' },
+          '50%': { opacity: '1', transform: 'scale(1)', filter: 'hue-rotate(180deg) brightness(1.1)' },
+          '75%': { opacity: '0.9', transform: 'scale(0.98)', filter: 'hue-rotate(270deg) brightness(1.3)' },
+          '100%': { opacity: '1', transform: 'scale(1)', filter: 'hue-rotate(360deg) brightness(1)' },
+        },
+        dataShimmer: {
+          '0%': { backgroundPosition: '-200% 0' },
+          '100%': { backgroundPosition: '200% 0' },
+        },
+        mapPulse: {
+          '0%': { transform: 'scale(1)', opacity: '1' },
+          '50%': { transform: 'scale(1.2)', opacity: '0.7' },
           '100%': { transform: 'scale(1)', opacity: '1' },
         },
       },

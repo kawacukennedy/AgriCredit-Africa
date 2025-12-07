@@ -48,7 +48,7 @@ export function FarmMap() {
 
             {/* Map content */}
             <div className="relative z-10 text-center">
-              <MapPin className="w-12 h-12 text-agri-green mx-auto mb-3" />
+              <MapPin className="w-12 h-12 text-agri-green mx-auto mb-3 animate-map-pulse" />
               <h3 className="text-lg font-semibold text-slate-gray mb-1">Farm Location</h3>
               <p className="text-sm text-slate-gray/60">Nairobi Region, Kenya</p>
               <p className="text-xs text-slate-gray/50 mt-1">5.2 hectares</p>

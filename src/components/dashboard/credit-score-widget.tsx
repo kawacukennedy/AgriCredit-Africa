@@ -69,11 +69,11 @@ export function CreditScoreWidget() {
       <CardContent className="space-y-6">
         {creditScore > 0 ? (
           <>
-            {/* Score Display */}
-            <div className="text-center space-y-4">
-              <div className={`text-5xl font-black ${getScoreColor(creditScore)}`}>
-                {creditScore}
-              </div>
+             {/* Score Display */}
+             <div className="text-center space-y-4">
+               <div className={`text-5xl font-black ${getScoreColor(creditScore)} animate-ai-score-pulse`}>
+                 {creditScore}
+               </div>
               <div className="flex items-center justify-center space-x-2">
                 <Badge className={getRiskBadgeColor(riskLevel)}>
                   {riskLevel} Risk

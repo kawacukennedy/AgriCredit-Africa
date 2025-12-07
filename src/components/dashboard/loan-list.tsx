@@ -83,11 +83,11 @@ export function LoanList() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {[1, 2].map((i) => (
-              <div key={i} className="p-6 border border-slate-gray/10 rounded-xl">
-                <div className="animate-pulse space-y-3">
-                  <div className="h-4 bg-slate-gray/10 rounded w-3/4"></div>
-                  <div className="h-3 bg-slate-gray/10 rounded w-1/2"></div>
+             {[1, 2].map((i) => (
+               <div key={i} className="p-6 border border-slate-gray/10 rounded-xl">
+                 <div className="loading-skeleton space-y-3">
+                   <div className="h-4 bg-slate-gray/10 rounded w-3/4"></div>
+                   <div className="h-3 bg-slate-gray/10 rounded w-1/2"></div>
                   <div className="h-3 bg-slate-gray/10 rounded w-2/3"></div>
                 </div>
               </div>
