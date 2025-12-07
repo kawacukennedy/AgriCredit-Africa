@@ -23,6 +23,7 @@ export function AIKYCForm({ onNext, onPrev, initialData }: AIKYCFormProps) {
   const [verificationProgress, setVerificationProgress] = useState(0);
   const [verificationStatus, setVerificationStatus] = useState<'idle' | 'verifying' | 'success' | 'failed'>('idle');
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [isVerifying, setIsVerifying] = useState(false);
 
   const [formData, setFormData] = useState({
     fullName: initialData?.fullName || '',
@@ -101,6 +102,7 @@ export function AIKYCForm({ onNext, onPrev, initialData }: AIKYCFormProps) {
       return;
     }
 
+    setIsVerifying(true);
     setVerificationStatus('verifying');
     setVerificationProgress(0);
 
@@ -120,6 +122,7 @@ export function AIKYCForm({ onNext, onPrev, initialData }: AIKYCFormProps) {
       const isVerified = Math.random() > 0.1;
 
       setVerificationStatus(isVerified ? 'success' : 'failed');
+      setIsVerifying(false);
 
       if (isVerified) {
         setTimeout(() => {
@@ -148,6 +151,7 @@ export function AIKYCForm({ onNext, onPrev, initialData }: AIKYCFormProps) {
       console.error('KYC verification failed:', error);
       setVerificationStatus('failed');
       setVerificationProgress(0);
+      setIsVerifying(false);
     }
   };
 

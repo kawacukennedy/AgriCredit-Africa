@@ -17,6 +17,7 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://agricredit.africa'),
   title: 'AgriCredit Africa - AI + Blockchain for Farmer Finance',
   description: 'AI-Blockchain platform for decentralized microcredit and sustainable agriculture in Africa. Instant loans, carbon credits, and marketplace for African farmers.',
   keywords: 'agriculture, blockchain, DeFi, microfinance, carbon credits, farmers, Africa, AI, sustainable farming',
