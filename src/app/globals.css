@@ -50,8 +50,8 @@
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
 }
 
 /* Smooth theme transitions */
@@ -66,40 +66,9 @@ body {
   }
 }
 
-/* High contrast mode */
-.high-contrast {
-  --background: #000000;
-  --foreground: #ffffff;
-}
-
-.high-contrast * {
-  border-color: #ffffff !important;
-}
-
-.high-contrast button,
-.high-contrast input,
-.high-contrast select,
-.high-contrast textarea {
-  background-color: #000000 !important;
-  color: #ffffff !important;
-  border: 2px solid #ffffff !important;
-}
-
-.high-contrast a {
-  color: #ffffff !important;
-  text-decoration: underline !important;
-}
-
-/* Reduced motion */
-.reduce-motion * {
-  animation-duration: 0.01ms !important;
-  animation-iteration-count: 1 !important;
-  transition-duration: 0.01ms !important;
-}
-
 /* Focus indicators for accessibility */
 *:focus {
-  outline: 2px solid #3b82f6;
+  outline: 2px solid hsl(var(--ring));
   outline-offset: 2px;
 }
 
@@ -107,7 +76,7 @@ button:focus,
 input:focus,
 select:focus,
 textarea:focus {
-  outline: 2px solid #3b82f6;
+  outline: 2px solid hsl(var(--ring));
   outline-offset: 2px;
 }
 
@@ -116,61 +85,14 @@ textarea:focus {
   position: absolute;
   top: -40px;
   left: 6px;
-  background: #000;
-  color: #fff;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
   padding: 8px;
   text-decoration: none;
   z-index: 100;
+  border: 1px solid hsl(var(--border));
 }
 
 .skip-link:focus {
   top: 6px;
-}
-
-/* Color blind simulation filters */
-.protanopia {
-  filter: url(#protanopia-filter);
-}
-
-.deuteranopia {
-  filter: url(#deuteranopia-filter);
-}
-
-.tritanopia {
-  filter: url(#tritanopia-filter);
-}
-
-/* Font size scaling */
-.font-small {
-  font-size: 14px;
-}
-
-.font-medium {
-  font-size: 16px;
-}
-
-.font-large {
-  font-size: 20px;
-}
-
-/* High contrast overrides */
-.high-contrast {
-  --background: #000000 !important;
-  --foreground: #ffffff !important;
-  background-color: #000000 !important;
-  color: #ffffff !important;
-}
-
-.high-contrast button,
-.high-contrast input,
-.high-contrast select,
-.high-contrast textarea {
-  background-color: #000000 !important;
-  color: #ffffff !important;
-  border: 2px solid #ffffff !important;
-}
-
-.high-contrast a {
-  color: #ffffff !important;
-  text-decoration: underline !important;
 }
