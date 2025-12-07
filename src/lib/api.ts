@@ -31,6 +31,28 @@ export const api = apiSlice.injectEndpoints({
         body: { vote },
       }),
     }),
+    // Onboarding endpoints
+    createDID: builder.mutation({
+      query: (data) => ({
+        url: '/onboarding/did/create',
+        method: 'POST',
+        body: data,
+      }),
+    }),
+    submitKYC: builder.mutation({
+      query: (kycData) => ({
+        url: '/onboarding/kyc/verify',
+        method: 'POST',
+        body: { kyc_data: kycData },
+      }),
+    }),
+    completeProfile: builder.mutation({
+      query: (profileData) => ({
+        url: '/onboarding/profile/complete',
+        method: 'POST',
+        body: profileData,
+      }),
+    }),
   }),
 });
 
@@ -42,4 +64,7 @@ export const {
   useGetNFTsQuery,
   useGetGovernanceProposalsQuery,
   useVoteOnProposalMutation,
+  useCreateDIDMutation,
+  useSubmitKYCMutation,
+  useCompleteProfileMutation,
 } = api;

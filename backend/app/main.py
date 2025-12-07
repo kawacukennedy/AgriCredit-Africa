@@ -2080,6 +2080,139 @@ async def get_borrower_reputation(borrower_address: str):
         logger.error("Failed to get reputation", error=str(e), borrower_address=borrower_address)
         raise HTTPException(status_code=500, detail=str(e))
 
+# Onboarding Endpoints
+@app.post("/onboarding/did/create")
+async def create_did_onboarding(request: dict, current_user: User = Depends(get_current_active_user)):
+    """Create DID for onboarding process"""
+    try:
+        wallet_address = request.get("wallet_address")
+        if not wallet_address:
+            raise HTTPException(status_code=400, detail="Wallet address required")
+
+        # Use the identity service to create DID
+        from ..core.identity import identity_service
+        result = await identity_service.create_did(wallet_address, request.get("public_key", ""))
+
+        logger.info("DID created for onboarding", user_id=current_user.id, wallet_address=wallet_address)
+        return {
+            "status": "success",
+            "did": result["did"],
+            "did_document": result["did_document"],
+            "blockchain_tx": result.get("blockchain_tx")
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Failed to create DID for onboarding", error=str(e), user_id=current_user.id)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/onboarding/kyc/verify")
+async def submit_kyc_verification(
+    request: dict,
+    background_tasks: BackgroundTasks,
+    current_user: User = Depends(get_current_active_user)
+):
+    """Submit AI-KYC verification for onboarding"""
+    try:
+        kyc_data = request.get("kyc_data", {})
+        if not kyc_data:
+            raise HTTPException(status_code=400, detail="KYC data required")
+
+        # Validate required fields
+        required_fields = ["fullName", "dateOfBirth", "nationality", "address", "phoneNumber"]
+        for field in required_fields:
+            if field not in kyc_data:
+                raise HTTPException(status_code=400, detail=f"Missing required field: {field}")
+
+        # Submit to identity service for AI-KYC processing
+        from ..core.identity import identity_service
+        result = await identity_service.submit_ai_kyc(current_user.username, kyc_data)
+
+        # Issue verifiable credential if verification passed
+        if result["passed"]:
+            credential = await identity_service.issue_credential(
+                issuer_did="did:agricredit:platform",
+                subject_did=f"did:agricredit:{current_user.username}",
+                credential_type="IdentityVerificationCredential",
+                claims={
+                    "fullName": kyc_data["fullName"],
+                    "dateOfBirth": kyc_data["dateOfBirth"],
+                    "nationality": kyc_data["nationality"],
+                    "verificationScore": result["confidence_score"],
+                    "verifiedAt": result["result_hash"]
+                }
+            )
+
+            # Add background task to store credential
+            background_tasks.add_task(store_verification_credential, current_user.id, credential)
+
+        logger.info("KYC verification submitted", user_id=current_user.id, passed=result["passed"])
+        return {
+            "status": "success",
+            "verification_result": result,
+            "credential_issued": result["passed"]
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Failed to submit KYC verification", error=str(e), user_id=current_user.id)
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/onboarding/profile/complete")
+async def complete_farmer_profile(
+    profile_data: Dict[str, Any],
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """Complete farmer profile setup"""
+    try:
+        # Update user profile with farming information
+        for field in ["farm_name", "farm_size", "farm_location", "primary_crop", "farming_experience"]:
+            if field in profile_data:
+                setattr(current_user, field, profile_data[field])
+
+        # Set onboarding complete flag
+        current_user.is_onboarded = True
+        current_user.onboarding_completed_at = datetime.utcnow()
+
+        db.commit()
+        db.refresh(current_user)
+
+        # Issue farming credential
+        from ..core.identity import identity_service
+        farming_credential = await identity_service.issue_credential(
+            issuer_did="did:agricredit:platform",
+            subject_did=f"did:agricredit:{current_user.username}",
+            credential_type="FarmerProfileCredential",
+            claims={
+                "farmName": profile_data.get("farmName"),
+                "farmSize": profile_data.get("farmSize"),
+                "farmLocation": profile_data.get("farmLocation"),
+                "primaryCrop": profile_data.get("primaryCrop"),
+                "farmingExperience": profile_data.get("farmingExperience"),
+                "profileCompletedAt": current_user.onboarding_completed_at.isoformat()
+            }
+        )
+
+        logger.info("Farmer profile completed", user_id=current_user.id, farm_name=profile_data.get("farmName"))
+        return {
+            "status": "success",
+            "message": "Profile setup completed successfully",
+            "credential": farming_credential
+        }
+
+    except Exception as e:
+        logger.error("Failed to complete farmer profile", error=str(e), user_id=current_user.id)
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Helper function for storing credentials
+async def store_verification_credential(user_id: int, credential: dict):
+    """Store verification credential (placeholder for future implementation)"""
+    logger.info("Verification credential stored", user_id=user_id, credential_type=credential.get("type"))
+
 # New Enhanced Contract Endpoints
 
 # Staking Rewards Endpoints
