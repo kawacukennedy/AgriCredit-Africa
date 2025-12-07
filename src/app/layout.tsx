@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import { Inter, Poppins } from 'next/font/google';
 import "./globals.css";
 import { Providers } from '@/components/providers';
+import { Navbar } from '@/components/layout/navbar';
+import { Footer } from '@/components/layout/footer';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -86,9 +88,11 @@ function RootLayout({
           <a href="#main-content" className="skip-link sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2">
             Skip to main content
           </a>
+          <Navbar />
           <main id="main-content" className="min-h-screen">
             {children}
           </main>
+          <Footer />
         </Providers>
       </body>
     </html>

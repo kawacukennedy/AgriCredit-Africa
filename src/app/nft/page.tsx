@@ -1,8 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Navbar } from '@/components/layout/navbar';
-import { Footer } from '@/components/layout/footer';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -252,7 +250,6 @@ export default function NFTPage() {
 
   return (
     <div className="min-h-screen bg-paper-white">
-      <Navbar />
 
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-purple-600 via-pink-600 to-red-600 text-white py-12">
@@ -669,7 +666,6 @@ export default function NFTPage() {
         </Tabs>
       </div>
 
-      <Footer />
     </div>
   );
 }

@@ -3,8 +3,6 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Navbar } from '@/components/layout/navbar';
-import { Footer } from '@/components/layout/footer';
 import { useTranslation } from 'react-i18next';
 import Link from 'next/link';
 
@@ -358,13 +356,11 @@ function CTASection() {
 
 export default function Home() {
   return (
-    <div className="min-h-screen">
-      <Navbar />
+    <div>
       <Hero />
       <ImpactStrip />
       <Features />
       <CTASection />
-      <Footer />
     </div>
   );
 }

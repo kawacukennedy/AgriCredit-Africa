@@ -1,8 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { Navbar } from '@/components/layout/navbar';
-import { Footer } from '@/components/layout/footer';
 import { AuthGuard } from '@/components/auth/AuthGuard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -93,7 +91,6 @@ function LoanApplyContent() {
 
   return (
     <div className="min-h-screen">
-      <Navbar />
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
           <h1 className="text-3xl font-bold text-center mb-8">
@@ -140,7 +137,6 @@ function LoanApplyContent() {
           </Card>
         </div>
       </div>
-      <Footer />
     </div>
   );
 }

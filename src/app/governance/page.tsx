@@ -1,8 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { Navbar } from '@/components/layout/navbar';
-import { Footer } from '@/components/layout/footer';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -197,7 +195,6 @@ export default function GovernancePage() {
 
   return (
     <div className="min-h-screen bg-paper-white">
-      <Navbar />
 
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-agri-green to-sky-teal text-white py-12">
@@ -572,7 +569,6 @@ export default function GovernancePage() {
         </Tabs>
       </div>
 
-      <Footer />
     </div>
   );
 }

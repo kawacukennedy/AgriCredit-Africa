@@ -1,7 +1,5 @@
 'use client';
 
-import { Navbar } from '@/components/layout/navbar';
-import { Footer } from '@/components/layout/footer';
 import { AuthGuard } from '@/components/auth/AuthGuard';
 import { CreditScoreWidget } from '@/components/dashboard/credit-score-widget';
 import { LoanList } from '@/components/dashboard/loan-list';
@@ -75,8 +73,7 @@ function FarmerDashboardContent() {
   ];
 
   return (
-    <div className="min-h-screen bg-paper-white">
-      <Navbar />
+    <div className="bg-paper-white">
 
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-agri-green to-sky-teal text-white py-12">
@@ -217,8 +214,6 @@ function FarmerDashboardContent() {
           </div>
         </div>
       </div>
-
-      <Footer />
     </div>
   );
 }

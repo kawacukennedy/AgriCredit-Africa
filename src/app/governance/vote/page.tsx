@@ -1,7 +1,5 @@
 'use client';
 
-import { Navbar } from '@/components/layout/navbar';
-import { Footer } from '@/components/layout/footer';
 import { AuthGuard } from '@/components/auth/AuthGuard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -82,7 +80,6 @@ function GovernanceVoteContent() {
 
   return (
     <div className="min-h-screen bg-paper-white">
-      <Navbar />
 
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-agri-green to-sky-teal text-white py-12">
@@ -254,7 +251,6 @@ function GovernanceVoteContent() {
         </div>
       </div>
 
-      <Footer />
     </div>
   );
 }

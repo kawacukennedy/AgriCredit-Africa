@@ -1,8 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { Navbar } from '@/components/layout/navbar';
-import { Footer } from '@/components/layout/footer';
 import { AuthGuard } from '@/components/auth/AuthGuard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -132,7 +130,6 @@ export default function MarketplacePage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-paper-white">
-        <Navbar />
         <div className="container py-8">
           <div className="animate-pulse space-y-8">
             <div className="h-8 bg-slate-gray/10 rounded w-64"></div>
@@ -150,7 +147,6 @@ export default function MarketplacePage() {
             </div>
           </div>
         </div>
-        <Footer />
       </div>
     );
   }
@@ -158,7 +154,6 @@ export default function MarketplacePage() {
   if (error) {
     return (
       <div className="min-h-screen bg-paper-white">
-        <Navbar />
         <div className="container py-8">
           <div className="text-center py-12">
             <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
@@ -171,14 +166,12 @@ export default function MarketplacePage() {
             </Button>
           </div>
         </div>
-        <Footer />
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-paper-white">
-      <Navbar />
 
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-agri-green to-sky-teal text-white py-12">
@@ -469,7 +462,6 @@ export default function MarketplacePage() {
         )}
       </div>
 
-      <Footer />
     </div>
   );
 }

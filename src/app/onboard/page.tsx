@@ -1,8 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Navbar } from '@/components/layout/navbar';
-import { Footer } from '@/components/layout/footer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -134,8 +132,7 @@ export default function OnboardPage() {
   const timeElapsed = Math.floor((Date.now() - startTime) / 60000); // minutes
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-paper-white via-paper-white to-sky-teal/5">
-      <Navbar />
+    <div className="bg-gradient-to-br from-paper-white via-paper-white to-sky-teal/5">
 
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-agri-green to-sky-teal text-white py-16 relative overflow-hidden">
@@ -353,8 +350,6 @@ export default function OnboardPage() {
           </div>
         </div>
       </div>
-
-      <Footer />
     </div>
   );
 }

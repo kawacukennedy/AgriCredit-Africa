@@ -1,7 +1,5 @@
 'use client';
 
-import { Navbar } from '@/components/layout/navbar';
-import { Footer } from '@/components/layout/footer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -86,7 +84,6 @@ export default function ContactPage() {
 
   return (
     <div className="min-h-screen bg-paper-white">
-      <Navbar />
 
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-agri-green to-sky-teal text-white py-16">
@@ -287,7 +284,6 @@ export default function ContactPage() {
         </div>
       </div>
 
-      <Footer />
     </div>
   );
 }
