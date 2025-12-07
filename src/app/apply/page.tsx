@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Navbar } from '@/components/layout/navbar';
 import { Footer } from '@/components/layout/footer';
+import { AuthGuard } from '@/components/auth/AuthGuard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTranslation } from 'react-i18next';
@@ -21,6 +22,14 @@ const steps = [
 ];
 
 export default function LoanApplyPage() {
+  return (
+    <AuthGuard>
+      <LoanApplyContent />
+    </AuthGuard>
+  );
+}
+
+function LoanApplyContent() {
   const { t } = useTranslation();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<any>({});

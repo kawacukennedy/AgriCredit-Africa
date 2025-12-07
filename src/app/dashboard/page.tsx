@@ -2,6 +2,7 @@
 
 import { Navbar } from '@/components/layout/navbar';
 import { Footer } from '@/components/layout/footer';
+import { AuthGuard } from '@/components/auth/AuthGuard';
 import { CreditScoreWidget } from '@/components/dashboard/credit-score-widget';
 import { LoanList } from '@/components/dashboard/loan-list';
 import { FarmMap } from '@/components/dashboard/farm-map';
@@ -26,6 +27,16 @@ import {
 } from 'lucide-react';
 
 export default function FarmerDashboard() {
+  const { t } = useTranslation();
+
+  return (
+    <AuthGuard>
+      <FarmerDashboardContent />
+    </AuthGuard>
+  );
+}
+
+function FarmerDashboardContent() {
   const { t } = useTranslation();
 
   // Mock data for alerts and quick stats

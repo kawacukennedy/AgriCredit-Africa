@@ -51,6 +51,7 @@ export function Navbar() {
 
   const navigationItems = [
     { href: '/dashboard', label: 'Dashboard', icon: BarChart3, badge: null },
+    { href: '/onboard', label: 'Get Started', icon: Zap, badge: null },
     { href: '/marketplace', label: 'Marketplace', icon: ShoppingCart, badge: null },
     { href: '/carbon', label: 'Carbon Credits', icon: Coins, badge: '12' },
     { href: '/farming', label: 'Yield Farming', icon: Leaf, badge: null },

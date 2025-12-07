@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Navbar } from '@/components/layout/navbar';
 import { Footer } from '@/components/layout/footer';
+import { AuthGuard } from '@/components/auth/AuthGuard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -36,6 +37,14 @@ import {
 } from 'lucide-react';
 
 export default function LoanDetailPage({ params }: { params: { id: string } }) {
+  return (
+    <AuthGuard>
+      <LoanDetailContent params={params} />
+    </AuthGuard>
+  );
+}
+
+function LoanDetailContent({ params }: { params: { id: string } }) {
   const { t } = useTranslation();
   const [fundLoan, { isLoading: isFunding }] = useFundLoanMutation();
 
