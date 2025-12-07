@@ -13,21 +13,107 @@ export default {
     },
     extend: {
       colors: {
-        // AgriCredit Design System Colors (from specs.json)
-        'agri-green': '#2E7D32', // Primary green
-        'harvest-gold': '#FFD700', // Accents and highlights
-        'earth-brown': '#6D4C41', // Secondary text
-        'sky-teal': '#00C853', // Success states
-        'paper-white': '#FDFCF9', // Background
-        'slate-gray': '#1E1E1E', // Primary text
+        // Enhanced AgriCredit Design System Colors
+        'agri-green': {
+          DEFAULT: '#2E7D32',
+          light: '#4CAF50',
+          dark: '#1B5E20',
+          50: '#E8F5E8',
+          100: '#C8E6C9',
+          200: '#A5D6A7',
+          300: '#81C784',
+          400: '#66BB6A',
+          500: '#4CAF50',
+          600: '#43A047',
+          700: '#388E3C',
+          800: '#2E7D32',
+          900: '#1B5E20',
+        },
+        'harvest-gold': {
+          DEFAULT: '#FFD700',
+          light: '#FFEB3B',
+          dark: '#F57F17',
+          50: '#FFFDE7',
+          100: '#FFF9C4',
+          200: '#FFF59D',
+          300: '#FFF176',
+          400: '#FFEE58',
+          500: '#FFEB3B',
+          600: '#FDD835',
+          700: '#F9A825',
+          800: '#F57F17',
+          900: '#EF6C00',
+        },
+        'earth-brown': {
+          DEFAULT: '#6D4C41',
+          light: '#8D6E63',
+          dark: '#4E342E',
+          50: '#EFEBE9',
+          100: '#D7CCC8',
+          200: '#BCAAA4',
+          300: '#A1887F',
+          400: '#8D6E63',
+          500: '#795548',
+          600: '#6D4C41',
+          700: '#5D4037',
+          800: '#4E342E',
+          900: '#3E2723',
+        },
+        'sky-teal': {
+          DEFAULT: '#00C853',
+          light: '#00E676',
+          dark: '#00BFA5',
+          50: '#E8F5E8',
+          100: '#B9F6CA',
+          200: '#69F0AE',
+          300: '#00E676',
+          400: '#00C853',
+          500: '#00BF72',
+          600: '#00BFA5',
+          700: '#00A085',
+          800: '#00897B',
+          900: '#00695C',
+        },
+        'paper-white': '#FDFCF9',
+        'slate-gray': {
+          DEFAULT: '#1E1E1E',
+          light: '#424242',
+          dark: '#121212',
+          50: '#FAFAFA',
+          100: '#F5F5F5',
+          200: '#EEEEEE',
+          300: '#E0E0E0',
+          400: '#BDBDBD',
+          500: '#9E9E9E',
+          600: '#757575',
+          700: '#616161',
+          800: '#424242',
+          900: '#212121',
+        },
 
-        // Semantic colors
-        success: '#00C853',
-        warning: '#FFB300',
-        error: '#D32F2F',
-        info: '#1976D2',
+        // Enhanced Semantic colors
+        success: {
+          DEFAULT: '#00C853',
+          light: '#B9F6CA',
+          dark: '#00A085',
+        },
+        warning: {
+          DEFAULT: '#FFB300',
+          light: '#FFF9C4',
+          dark: '#F57F17',
+        },
+        error: {
+          DEFAULT: '#D32F2F',
+          light: '#FFCDD2',
+          dark: '#B71C1C',
+        },
+        info: {
+          DEFAULT: '#1976D2',
+          light: '#BBDEFB',
+          dark: '#0D47A1',
+        },
 
-        // Shadcn/ui compatible colors with AgriCredit theme
+        // Shadcn/ui compatible colors with enhanced AgriCredit theme
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",

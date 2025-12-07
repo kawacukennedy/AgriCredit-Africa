@@ -2,22 +2,49 @@
 @tailwind components;
 @tailwind utilities;
 
-/* AgriCredit Design System Variables */
+/* AgriCredit Enhanced Design System Variables */
 :root {
-  /* AgriCredit Color Palette */
+  /* Core AgriCredit Color Palette */
   --agri-green: 142 71% 45%; /* #2E7D32 */
+  --agri-green-light: 142 71% 65%;
+  --agri-green-dark: 142 71% 25%;
   --harvest-gold: 51 100% 50%; /* #FFD700 */
+  --harvest-gold-light: 51 100% 70%;
+  --harvest-gold-dark: 51 100% 30%;
   --earth-brown: 16 25% 35%; /* #6D4C41 */
+  --earth-brown-light: 16 25% 55%;
+  --earth-brown-dark: 16 25% 15%;
   --sky-teal: 152 100% 35%; /* #00C853 */
+  --sky-teal-light: 152 100% 55%;
+  --sky-teal-dark: 152 100% 15%;
   --paper-white: 45 100% 98%; /* #FDFCF9 */
+  --paper-white-soft: 45 100% 99%;
   --slate-gray: 0 0% 11%; /* #1E1E1E */
+  --slate-gray-light: 0 0% 25%;
+  --slate-gray-dark: 0 0% 5%;
 
-  /* Shadcn/ui compatible variables */
+  /* Enhanced Color Variations */
+  --success-light: 152 100% 92%;
+  --success-dark: 152 100% 15%;
+  --warning-light: 51 100% 92%;
+  --warning-dark: 51 100% 25%;
+  --error-light: 0 84% 92%;
+  --error-dark: 0 84% 45%;
+  --info-light: 217 91% 92%;
+  --info-dark: 217 91% 35%;
+
+  /* Gradient Colors */
+  --gradient-primary: linear-gradient(135deg, hsl(var(--agri-green)) 0%, hsl(var(--sky-teal)) 100%);
+  --gradient-secondary: linear-gradient(135deg, hsl(var(--harvest-gold)) 0%, hsl(var(--agri-green)) 100%);
+  --gradient-accent: linear-gradient(135deg, hsl(var(--sky-teal)) 0%, hsl(var(--harvest-gold)) 100%);
+  --gradient-subtle: linear-gradient(135deg, hsl(var(--paper-white)) 0%, hsl(45 100% 96%) 100%);
+
+  /* Shadcn/ui compatible variables with enhanced colors */
   --background: var(--paper-white);
   --foreground: var(--slate-gray);
-  --card: var(--paper-white);
+  --card: var(--paper-white-soft);
   --card-foreground: var(--slate-gray);
-  --popover: var(--paper-white);
+  --popover: var(--paper-white-soft);
   --popover-foreground: var(--slate-gray);
   --primary: var(--agri-green);
   --primary-foreground: var(--paper-white);
@@ -27,12 +54,12 @@
   --muted-foreground: 0 0% 45%;
   --accent: var(--harvest-gold);
   --accent-foreground: var(--slate-gray);
-  --destructive: 0 84% 60%;
+  --destructive: var(--error-dark);
   --destructive-foreground: var(--paper-white);
   --border: 0 0% 90%;
   --input: 0 0% 90%;
   --ring: var(--agri-green);
-  --radius: 8px;
+  --radius: 12px;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -222,45 +249,139 @@ input:focus, textarea:focus, select:focus {
 .p-6 { padding: 1.5rem; }
 .p-8 { padding: 2rem; }
 
-/* AgriCredit specific styles */
+/* Enhanced AgriCredit Button Styles */
 .btn-primary {
-  background: hsl(var(--agri-green));
+  background: var(--gradient-primary);
   color: hsl(var(--primary-foreground));
-  padding: 0.75rem 1.5rem;
+  padding: 0.875rem 2rem;
   border-radius: var(--radius);
   font-weight: 600;
-  transition: all 0.2s ease;
-  box-shadow: var(--shadow-level1);
+  font-size: 0.95rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--shadow-level2);
+  border: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
 }
 
 .btn-primary:hover {
-  background: hsl(var(--agri-green) / 0.9);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-level2);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-level3);
+  filter: brightness(1.05);
+}
+
+.btn-primary:hover::before {
+  left: 100%;
 }
 
 .btn-primary:active {
   animation: buttonPress 100ms ease-out;
+  transform: translateY(0);
 }
 
 .btn-secondary {
-  background: hsl(var(--harvest-gold));
+  background: var(--gradient-secondary);
   color: hsl(var(--accent-foreground));
-  padding: 0.75rem 1.5rem;
+  padding: 0.875rem 2rem;
   border-radius: var(--radius);
   font-weight: 600;
-  transition: all 0.2s ease;
-  box-shadow: var(--shadow-level1);
+  font-size: 0.95rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--shadow-level2);
+  border: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-secondary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s;
 }
 
 .btn-secondary:hover {
-  background: hsl(var(--harvest-gold) / 0.9);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-level2);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-level3);
+  filter: brightness(1.08);
+}
+
+.btn-secondary:hover::before {
+  left: 100%;
 }
 
 .btn-secondary:active {
   animation: buttonPress 100ms ease-out;
+  transform: translateY(0);
+}
+
+/* Enhanced Card Styles */
+.card {
+  background: var(--gradient-subtle);
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) + 4px);
+  box-shadow: var(--shadow-level1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--gradient-primary);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.card:hover {
+  box-shadow: var(--shadow-level3);
+  transform: translateY(-2px);
+  border-color: hsl(var(--agri-green) / 0.2);
+}
+
+.card:hover::before {
+  opacity: 1;
+}
+
+/* Enhanced Badge Styles */
+.badge-primary {
+  background: var(--gradient-primary);
+  color: white;
+  padding: 0.375rem 0.875rem;
+  border-radius: calc(var(--radius) - 2px);
+  font-size: 0.75rem;
+  font-weight: 600;
+  box-shadow: var(--shadow-level1);
+}
+
+.badge-secondary {
+  background: var(--gradient-secondary);
+  color: hsl(var(--slate-gray));
+  padding: 0.375rem 0.875rem;
+  border-radius: calc(var(--radius) - 2px);
+  font-size: 0.75rem;
+  font-weight: 600;
+  box-shadow: var(--shadow-level1);
 }
 
 .card {
@@ -435,6 +556,66 @@ input:focus, textarea:focus, select:focus {
   color: hsl(var(--info));
 }
 
+/* Background Patterns and Textures */
+.bg-pattern-dots {
+  background-image: radial-gradient(circle, hsl(var(--agri-green) / 0.05) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.bg-pattern-grid {
+  background-image:
+    linear-gradient(hsl(var(--agri-green) / 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, hsl(var(--agri-green) / 0.03) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.bg-pattern-waves {
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%232E7D32' fill-opacity='0.02'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+
+.bg-gradient-mesh {
+  background:
+    radial-gradient(circle at 20% 80%, hsl(var(--sky-teal) / 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, hsl(var(--harvest-gold) / 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, hsl(var(--agri-green) / 0.05) 0%, transparent 50%);
+}
+
+/* Enhanced Glass Effect */
+.glass {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.glass-dark {
+  background: rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+/* Color Accent Classes */
+.accent-glow {
+  box-shadow: 0 0 20px hsl(var(--agri-green) / 0.3);
+}
+
+.accent-border {
+  border: 2px solid transparent;
+  background: linear-gradient(hsl(var(--paper-white)), hsl(var(--paper-white))) padding-box,
+              var(--gradient-primary) border-box;
+}
+
+/* Enhanced Hover Effects */
+.hover-lift {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: var(--shadow-level4);
+}
+
 /* Responsive utilities */
 @media (max-width: 768px) {
   .container {
@@ -448,6 +629,16 @@ input:focus, textarea:focus, select:focus {
   .flex-col-mobile {
     flex-direction: column;
   }
+
+  /* Reduce effects on mobile for performance */
+  .card:hover {
+    transform: none;
+  }
+
+  .btn-primary:hover,
+  .btn-secondary:hover {
+    transform: none;
+  }
 }
 
 @media (max-width: 480px) {
@@ -458,4 +649,9 @@ input:focus, textarea:focus, select:focus {
   .p-4 { padding: 0.75rem; }
   .p-6 { padding: 1rem; }
   .p-8 { padding: 1.5rem; }
+
+  /* Simplify animations on small screens */
+  .card::before {
+    display: none;
+  }
 }
