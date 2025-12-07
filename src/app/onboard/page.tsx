@@ -54,7 +54,7 @@ export default function OnboardPage() {
 
   const nextStep = (stepData?: any) => {
     if (stepData) {
-      setFormData(prev => ({ ...prev, ...stepData }));
+      setFormData((prev: any) => ({ ...prev, ...stepData }));
     }
     if (currentStep < steps.length) {
       setCurrentStep(currentStep + 1);
@@ -193,7 +193,7 @@ export default function OnboardPage() {
             <CardHeader className="pb-6">
               <div className="flex items-center space-x-4">
                 <div className={`w-12 h-12 rounded-xl bg-gradient-to-r ${steps[currentStep - 1].color} flex items-center justify-center`}>
-                  <steps[currentStep - 1].icon className="w-6 h-6 text-white" />
+                  {renderCurrentStepIcon(currentStep)}
                 </div>
                 <div>
                   <CardTitle className="text-2xl text-slate-gray">
@@ -235,4 +235,9 @@ export default function OnboardPage() {
       <Footer />
     </div>
   );
+}
+
+function renderCurrentStepIcon(currentStep: number) {
+  const StepIcon = steps[currentStep - 1].icon;
+  return <StepIcon className="w-6 h-6 text-white" />;
 }

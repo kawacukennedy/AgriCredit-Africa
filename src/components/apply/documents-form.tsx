@@ -46,7 +46,7 @@ export function DocumentsForm({ onNext, onPrev, initialData }: DocumentsFormProp
   };
 
   const handleFileChange = (field: string, file: File | null) => {
-    setFormData(prev => ({ ...prev, [field]: file }));
+    setFormData((prev: any) => ({ ...prev, [field]: file }));
   };
 
   const FileUpload = ({ label, field, required = false }: { label: string; field: string; required?: boolean }) => (

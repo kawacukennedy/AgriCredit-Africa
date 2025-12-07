@@ -32,7 +32,9 @@ import {
   Calendar,
   Users,
   Globe,
-  Zap
+  Zap,
+  Star,
+  Eye
 } from 'lucide-react';
 
 export default function CarbonPage() {

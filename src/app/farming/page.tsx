@@ -36,7 +36,7 @@ import {
 
 export default function FarmingPage() {
   const { t } = useTranslation();
-  const [selectedPool, setSelectedPool] = useState(null);
+  const [selectedPool, setSelectedPool] = useState<any>(null);
   const [stakeAmount, setStakeAmount] = useState('');
 
   // Mock comprehensive farming data

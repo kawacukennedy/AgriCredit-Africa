@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 import { useTranslation } from 'react-i18next';
 
 interface ConsentFormProps {
@@ -46,7 +47,7 @@ export function ConsentForm({ onNext, onPrev, initialData }: ConsentFormProps) {
   };
 
   const handleConsentChange = (field: string, checked: boolean) => {
-    setConsents(prev => ({ ...prev, [field]: checked }));
+    setConsents((prev: any) => ({ ...prev, [field]: checked }));
   };
 
   return (

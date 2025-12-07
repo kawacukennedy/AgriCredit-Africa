@@ -323,7 +323,7 @@ export default function HelpPage() {
                             guide.difficulty === 'Beginner' ? 'bg-sky-teal/10 text-sky-teal border-sky-teal/20' :
                             guide.difficulty === 'Intermediate' ? 'bg-harvest-gold/10 text-harvest-gold border-harvest-gold/20' :
                             'bg-red-500/10 text-red-500 border-red-500/20'
-                          } className="text-xs mb-2">
+                          }>
                             {guide.difficulty}
                           </Badge>
                           <h3 className="font-semibold text-slate-gray group-hover:text-agri-green transition-colors mb-2">

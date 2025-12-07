@@ -27,7 +27,8 @@ import {
   Star,
   CheckCircle,
   AlertTriangle,
-  Info
+  Info,
+  Plus
 } from 'lucide-react';
 
 export default function MarketplacePage() {

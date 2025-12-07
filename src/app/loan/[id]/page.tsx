@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useTranslation } from 'react-i18next';
-import { useGetLoanDetailQuery, useFundLoanMutation } from '@/store/apiSlice';
+import { useGetLoanByIdQuery, useFundLoanMutation } from '@/store/apiSlice';
 import Link from 'next/link';
 import {
   ArrowLeft,

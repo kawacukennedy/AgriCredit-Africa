@@ -227,13 +227,13 @@ export default function AdminDashboard() {
                     </Badge>
                   </div>
                   <h4 className="font-semibold text-slate-gray capitalize mb-2">{service}</h4>
-                  <div className="space-y-1 text-xs text-slate-gray/60">
-                    {service === 'api' && <div>Latency: {health.latency}ms</div>}
-                    {service === 'blockchain' && <div>Blocks: {health.blocks.toLocaleString()}</div>}
-                    {service === 'ai' && <div>Accuracy: {health.accuracy}%</div>}
-                    {service === 'database' && <div>Connections: {health.connections}</div>}
-                    {service === 'oracle' && <div>Pending: {health.pending}</div>}
-                  </div>
+                   <div className="space-y-1 text-xs text-slate-gray/60">
+                     {service === 'api' && 'latency' in health && <div>Latency: {health.latency}ms</div>}
+                     {service === 'blockchain' && 'blocks' in health && <div>Blocks: {health.blocks.toLocaleString()}</div>}
+                     {service === 'ai' && 'accuracy' in health && <div>Accuracy: {health.accuracy}%</div>}
+                     {service === 'database' && 'connections' in health && <div>Connections: {health.connections}</div>}
+                     {service === 'oracle' && 'pending' in health && <div>Pending: {health.pending}</div>}
+                   </div>
                 </CardContent>
               </Card>
             );
@@ -378,7 +378,7 @@ export default function AdminDashboard() {
                       <span className="text-sm font-medium text-slate-gray">{stats.defaultRate}%</span>
                     </div>
                     <Progress value={stats.defaultRate * 10} className="h-2" />
-                    <p className="text-xs text-slate-gray/60">Target: <2.5%</p>
+                    <p className="text-xs text-slate-gray/60">Target: {'<'}2.5%</p>
                   </div>
 
                   <div className="space-y-2">
@@ -396,7 +396,7 @@ export default function AdminDashboard() {
                       <span className="text-sm font-medium text-slate-gray">2.3 days</span>
                     </div>
                     <Progress value={75} className="h-2" />
-                    <p className="text-xs text-slate-gray/60">Target: <3 days</p>
+                    <p className="text-xs text-slate-gray/60">Target: {'<'}3 days</p>
                   </div>
 
                   <div className="space-y-2">

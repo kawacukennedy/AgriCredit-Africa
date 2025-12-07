@@ -35,7 +35,9 @@ import {
   Lock,
   Unlock,
   Fingerprint,
-  CreditCard
+  CreditCard,
+  FileText,
+  Activity
 } from 'lucide-react';
 
 export default function ProfilePage() {

@@ -29,7 +29,7 @@ export default function LoanApplyPage() {
 
   const nextStep = (stepData?: any) => {
     if (stepData) {
-      setFormData(prev => ({ ...prev, ...stepData }));
+      setFormData((prev: any) => ({ ...prev, ...stepData }));
     }
     if (currentStep < steps.length) {
       setCurrentStep(currentStep + 1);

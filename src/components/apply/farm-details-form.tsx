@@ -54,7 +54,7 @@ export function FarmDetailsForm({ onNext, initialData }: FarmDetailsFormProps) {
   };
 
   const handleCropChange = (crop: string, checked: boolean) => {
-    setFormData(prev => ({
+    setFormData((prev: any) => ({
       ...prev,
       crops: checked
         ? [...prev.crops, crop]
@@ -72,7 +72,7 @@ export function FarmDetailsForm({ onNext, initialData }: FarmDetailsFormProps) {
             type="number"
             step="0.1"
             value={formData.farm_size}
-            onChange={(e) => setFormData(prev => ({ ...prev, farm_size: e.target.value }))}
+            onChange={(e) => setFormData((prev: any) => ({ ...prev, farm_size: e.target.value }))}
             className={errors.farm_size ? 'border-error' : ''}
           />
           {errors.farm_size && <p className="text-error text-sm mt-1">{errors.farm_size}</p>}
@@ -83,7 +83,7 @@ export function FarmDetailsForm({ onNext, initialData }: FarmDetailsFormProps) {
           <Input
             id="location"
             value={formData.location}
-            onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
+            onChange={(e) => setFormData((prev: any) => ({ ...prev, location: e.target.value }))}
             placeholder="City, Region, Country"
             className={errors.location ? 'border-error' : ''}
           />
@@ -112,7 +112,7 @@ export function FarmDetailsForm({ onNext, initialData }: FarmDetailsFormProps) {
       <div className="grid md:grid-cols-2 gap-4">
         <div>
           <Label htmlFor="soil_type">Soil Type</Label>
-          <Select value={formData.soil_type} onValueChange={(value) => setFormData(prev => ({ ...prev, soil_type: value }))}>
+          <Select value={formData.soil_type} onValueChange={(value) => setFormData((prev: any) => ({ ...prev, soil_type: value }))}>
             <SelectTrigger>
               <SelectValue placeholder="Select soil type" />
             </SelectTrigger>
@@ -133,7 +133,7 @@ export function FarmDetailsForm({ onNext, initialData }: FarmDetailsFormProps) {
             type="number"
             min="0"
             value={formData.farming_experience}
-            onChange={(e) => setFormData(prev => ({ ...prev, farming_experience: e.target.value }))}
+            onChange={(e) => setFormData((prev: any) => ({ ...prev, farming_experience: e.target.value }))}
           />
         </div>
       </div>
@@ -141,7 +141,7 @@ export function FarmDetailsForm({ onNext, initialData }: FarmDetailsFormProps) {
       <div className="grid md:grid-cols-2 gap-4">
         <div>
           <Label htmlFor="irrigation_access">Irrigation Access</Label>
-          <Select value={formData.irrigation_access ? 'yes' : 'no'} onValueChange={(value) => setFormData(prev => ({ ...prev, irrigation_access: value === 'yes' }))}>
+          <Select value={formData.irrigation_access ? 'yes' : 'no'} onValueChange={(value) => setFormData((prev: any) => ({ ...prev, irrigation_access: value === 'yes' }))}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
@@ -157,7 +157,7 @@ export function FarmDetailsForm({ onNext, initialData }: FarmDetailsFormProps) {
           <Textarea
             id="equipment_owned"
             value={formData.equipment_owned}
-            onChange={(e) => setFormData(prev => ({ ...prev, equipment_owned: e.target.value }))}
+            onChange={(e) => setFormData((prev: any) => ({ ...prev, equipment_owned: e.target.value }))}
             placeholder="List farming equipment you own..."
             rows={2}
           />
