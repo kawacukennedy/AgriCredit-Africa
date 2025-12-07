@@ -61,7 +61,6 @@ interface IFlashLoanReceiver {
 
 contract LoanManager is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable, PausableUpgradeable, ERC2771ContextUpgradeable, UUPSUpgradeable {
     using SafeERC20 for IERC20;
-    using SafeERC20Upgradeable for IERC20Upgradeable;
 
     struct Loan {
         uint256 id;
@@ -135,7 +134,7 @@ contract LoanManager is Initializable, OwnableUpgradeable, ReentrancyGuardUpgrad
     IdentityRegistry public identityRegistry;
     LiquidityPool public liquidityPool;
     YieldToken public yieldToken;
-    IERC20Upgradeable public stableToken;
+    IERC20 public stableToken;
     IPriceOracle public priceOracle;
     IInsurancePool public insurancePool;
     IYieldFarm public yieldFarm;
@@ -196,13 +195,13 @@ contract LoanManager is Initializable, OwnableUpgradeable, ReentrancyGuardUpgrad
         __Ownable_init(msg.sender);
         __ReentrancyGuard_init();
         __Pausable_init();
-        __ERC2771Context_init(trustedForwarder);
+        // __ERC2771Context_init(trustedForwarder); // TODO: Check correct initialization
         __UUPSUpgradeable_init();
 
         identityRegistry = IdentityRegistry(_identityRegistry);
         liquidityPool = LiquidityPool(_liquidityPool);
         yieldToken = YieldToken(_yieldToken);
-        stableToken = IERC20Upgradeable(_stableToken);
+        stableToken = IERC20(_stableToken);
         priceOracle = IPriceOracle(_priceOracle);
         insurancePool = IInsurancePool(_insurancePool);
         yieldFarm = IYieldFarm(_yieldFarm);
@@ -298,7 +297,7 @@ contract LoanManager is Initializable, OwnableUpgradeable, ReentrancyGuardUpgrad
 
         // Record loan in reputation system
         bytes32 loanIdBytes32 = bytes32(loanId);
-        uint256 dueDate = loan.startTime + loan.duration;
+        uint256 dueDate = loans[loanId].startTime + loans[loanId].duration;
         reputation.recordLoan(_borrower, loanIdBytes32, _amount, dueDate);
 
         emit LoanCreated(loanId, _borrower, _amount, _creditScore);

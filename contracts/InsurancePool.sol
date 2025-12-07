@@ -14,7 +14,7 @@ import "@openzeppelin/contracts/utils/math/Math.sol";
  * @dev Decentralized mutual insurance pool with parametric triggers and AI risk assessment
  */
 contract InsurancePool is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable {
-    using SafeERC20Upgradeable for IERC20Upgradeable;
+    using SafeERC20 for IERC20;
 
     enum RiskCategory { Low, Medium, High, Extreme }
     enum ClaimStatus { Pending, Approved, Rejected, Paid }
@@ -147,7 +147,7 @@ contract InsurancePool is Initializable, OwnableUpgradeable, ReentrancyGuardUpgr
         require(contribution >= minContribution, "Contribution below minimum");
 
         // Transfer contribution
-        IERC20Upgradeable(pool.premiumToken).safeTransferFrom(msg.sender, address(this), contribution);
+        IERC20(pool.premiumToken).safeTransferFrom(msg.sender, address(this), contribution);
 
         // Update member info
         Member storage member = pool.members[msg.sender];
@@ -187,7 +187,7 @@ contract InsurancePool is Initializable, OwnableUpgradeable, ReentrancyGuardUpgr
         require(pool.totalCoverage + coverageAmount <= maxCoverage, "Exceeds pool capacity");
 
         // Transfer premium
-        IERC20Upgradeable(pool.premiumToken).safeTransferFrom(msg.sender, address(this), premium);
+        IERC20(pool.premiumToken).safeTransferFrom(msg.sender, address(this), premium);
 
         // Create policy
         policyCount++;
@@ -319,7 +319,7 @@ contract InsurancePool is Initializable, OwnableUpgradeable, ReentrancyGuardUpgr
         }
 
         // Collect platform fee
-        IERC20Upgradeable(pool.premiumToken).safeTransfer(owner(), platformFeeAmount);
+        IERC20(pool.premiumToken).safeTransfer(owner(), platformFeeAmount);
 
         emit PoolFundsDistributed(poolId, totalDistributable - platformFeeAmount);
     }
@@ -336,7 +336,7 @@ contract InsurancePool is Initializable, OwnableUpgradeable, ReentrancyGuardUpgr
         uint256 amount = member.claimableAmount;
         member.claimableAmount = 0;
 
-        IERC20Upgradeable(pool.premiumToken).safeTransfer(msg.sender, amount);
+        IERC20(pool.premiumToken).safeTransfer(msg.sender, amount);
     }
 
     // ============ INTERNAL FUNCTIONS ============
@@ -418,7 +418,7 @@ contract InsurancePool is Initializable, OwnableUpgradeable, ReentrancyGuardUpgr
             // Pay out claim
             require(pool.totalPremiums >= claim.claimedAmount, "Insufficient pool funds");
 
-            IERC20Upgradeable(pool.premiumToken).safeTransfer(claim.claimant, claim.claimedAmount);
+            IERC20(pool.premiumToken).safeTransfer(claim.claimant, claim.claimedAmount);
             pool.lockedFunds += claim.claimedAmount;
             policy.claimStatus = ClaimStatus.Paid;
         }

@@ -11,6 +11,12 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "./IdentityRegistry.sol";
 
+// Cross-chain bridge interface
+interface ICrossChainBridge {
+    function initiateCrossChainTrade(uint256 targetChainId, address targetContract, bytes calldata tradeData) external returns (uint256);
+    function completeCrossChainTrade(bytes calldata tradeData) external;
+}
+
 // Interfaces for external services
 interface IDeliveryOracle {
     function verifyDelivery(uint256 escrowId, bytes memory proof) external returns (bool);
@@ -144,11 +150,7 @@ contract MarketplaceEscrow is Initializable, OwnableUpgradeable, ReentrancyGuard
     uint256 public nextCrossChainListingId = 1;
     uint256 public nextCrossChainEscrowId = 1;
 
-    // Cross-chain bridge interface
-    interface ICrossChainBridge {
-        function initiateCrossChainTrade(uint256 targetChainId, address targetContract, bytes calldata tradeData) external returns (uint256);
-        function completeCrossChainTrade(bytes calldata tradeData) external;
-    }
+
 
     ICrossChainBridge public crossChainBridge;
 
@@ -360,7 +362,7 @@ contract MarketplaceEscrow is Initializable, OwnableUpgradeable, ReentrancyGuard
         emit EscrowDisputed(_escrowId);
     }
 
-    function resolveDispute(uint256 _escrowId, bool _refundBuyer) external onlyOwner {
+    function resolveDispute(uint256 _escrowId, bool _refundBuyer) public onlyOwner {
         Escrow storage escrow = escrows[_escrowId];
         require(escrow.status == EscrowStatus.Disputed, "Escrow not disputed");
 

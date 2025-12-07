@@ -6,6 +6,12 @@ import { Footer } from '@/components/layout/footer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTranslation } from 'react-i18next';
+import { FarmDetailsForm } from '@/components/apply/farm-details-form';
+import { DocumentsForm } from '@/components/apply/documents-form';
+import { ConsentForm } from '@/components/apply/consent-form';
+import { AIResults } from '@/components/apply/ai-results';
+import { useApplyForLoanMutation } from '@/store/apiSlice';
+import { useRouter } from 'next/navigation';
 
 const steps = [
   { id: 1, title: 'Farm Details', description: 'Provide your farm information' },
@@ -17,8 +23,14 @@ const steps = [
 export default function LoanApplyPage() {
   const { t } = useTranslation();
   const [currentStep, setCurrentStep] = useState(1);
+  const [formData, setFormData] = useState<any>({});
+  const [applyForLoan, { isLoading }] = useApplyForLoanMutation();
+  const router = useRouter();
 
-  const nextStep = () => {
+  const nextStep = (stepData?: any) => {
+    if (stepData) {
+      setFormData(prev => ({ ...prev, ...stepData }));
+    }
     if (currentStep < steps.length) {
       setCurrentStep(currentStep + 1);
     }
@@ -27,6 +39,46 @@ export default function LoanApplyPage() {
   const prevStep = () => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
+    }
+  };
+
+  const handleSubmit = async (applicationData: any) => {
+    try {
+      const loanData = {
+        borrower_wallet: '0x1234567890123456789012345678901234567890', // Would come from wallet
+        principal_cents: Math.round(applicationData.credit_score / 10) * 100 * 100, // Convert to cents
+        term_days: 365,
+        purpose: 'Agricultural production',
+        consent: true,
+        farm_id: 'farm-001', // Would be created from farm data
+        credit_score: applicationData.credit_score,
+        risk_level: applicationData.risk_level,
+        trust_score: applicationData.trust_score,
+        collateral_token: '0x0000000000000000000000000000000000000000',
+        collateral_amount: 0,
+        interest_rate: applicationData.credit_score >= 700 ? 8.5 : applicationData.credit_score >= 600 ? 12 : 15
+      };
+
+      await applyForLoan(loanData).unwrap();
+      router.push('/dashboard?success=application_submitted');
+    } catch (error) {
+      console.error('Failed to submit application:', error);
+      // Handle error - show toast or error message
+    }
+  };
+
+  const renderStepContent = () => {
+    switch (currentStep) {
+      case 1:
+        return <FarmDetailsForm onNext={nextStep} initialData={formData} />;
+      case 2:
+        return <DocumentsForm onNext={nextStep} onPrev={prevStep} initialData={formData} />;
+      case 3:
+        return <ConsentForm onNext={nextStep} onPrev={prevStep} initialData={formData} />;
+      case 4:
+        return <AIResults farmData={formData} onSubmit={handleSubmit} onPrev={prevStep} />;
+      default:
+        return null;
     }
   };
 
@@ -74,46 +126,9 @@ export default function LoanApplyPage() {
               <CardTitle>{steps[currentStep - 1].title}</CardTitle>
             </CardHeader>
             <CardContent>
-              {currentStep === 1 && (
-                <div className="space-y-4">
-                  <p>Enter your farm details here.</p>
-                  {/* Farm details form would go here */}
-                </div>
-              )}
-              {currentStep === 2 && (
-                <div className="space-y-4">
-                  <p>Upload your documents.</p>
-                  {/* Document upload would go here */}
-                </div>
-              )}
-              {currentStep === 3 && (
-                <div className="space-y-4">
-                  <p>Consent to data usage.</p>
-                  {/* Consent form would go here */}
-                </div>
-              )}
-              {currentStep === 4 && (
-                <div className="space-y-4">
-                  <p>AI credit assessment results.</p>
-                  {/* AI results would go here */}
-                </div>
-              )}
+              {renderStepContent()}
             </CardContent>
           </Card>
-
-          {/* Navigation */}
-          <div className="flex justify-between mt-8">
-            <Button
-              variant="outline"
-              onClick={prevStep}
-              disabled={currentStep === 1}
-            >
-              {t('common.previous')}
-            </Button>
-            <Button onClick={nextStep} disabled={currentStep === steps.length}>
-              {currentStep === steps.length ? 'Submit Application' : t('common.next')}
-            </Button>
-          </div>
         </div>
       </div>
       <Footer />

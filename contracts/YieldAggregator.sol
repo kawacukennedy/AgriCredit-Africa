@@ -14,7 +14,7 @@ import "./YieldVault.sol";
 import "./LiquidityPool.sol";
 
 contract YieldAggregator is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable {
-    using SafeERC20Upgradeable for IERC20Upgradeable;
+    using SafeERC20 for IERC20;
 
     struct Strategy {
         uint256 id;
@@ -232,7 +232,7 @@ contract YieldAggregator is Initializable, OwnableUpgradeable, ReentrancyGuardUp
 
         // Transfer tokens (assuming AGC token)
         address token = address(stakingRewards.stakingToken());
-        IERC20Upgradeable(token).safeTransferFrom(msg.sender, address(this), _amount);
+        IERC20(token).safeTransferFrom(msg.sender, address(this), _amount);
 
         // Deposit to strategy
         _depositToStrategy(_strategyId, _amount);
@@ -260,11 +260,11 @@ contract YieldAggregator is Initializable, OwnableUpgradeable, ReentrancyGuardUp
         // Call deposit function on protocol (simplified)
         if (strategy.protocol == address(stakingRewards)) {
             // Deposit to staking rewards
-            IERC20Upgradeable(address(stakingRewards.stakingToken())).approve(address(stakingRewards), _amount);
+            IERC20(address(stakingRewards.stakingToken())).approve(address(stakingRewards), _amount);
             stakingRewards.stake(_amount, 30 days, true);
         } else if (strategy.protocol == address(yieldVault)) {
             // Deposit to yield vault
-            IERC20Upgradeable(address(stakingRewards.stakingToken())).approve(address(yieldVault), _amount);
+            IERC20(address(stakingRewards.stakingToken())).approve(address(yieldVault), _amount);
             yieldVault.deposit(_strategyId, _amount, true);
         }
 
@@ -438,7 +438,7 @@ contract YieldAggregator is Initializable, OwnableUpgradeable, ReentrancyGuardUp
 
             // Transfer rewards to user
             address rewardToken = address(stakingRewards.stakingToken()); // Simplified
-            IERC20Upgradeable(rewardToken).safeTransfer(msg.sender, userRewards);
+            IERC20(rewardToken).safeTransfer(msg.sender, userRewards);
         }
 
         emit RewardsHarvested(msg.sender, totalRewards);
@@ -533,7 +533,4 @@ contract YieldAggregator is Initializable, OwnableUpgradeable, ReentrancyGuardUp
     function deactivateStrategy(uint256 _strategyId) external onlyOwner {
         strategies[_strategyId].active = false;
     }
-}</content>
-</xai:function_call
-</xai:function_call name="todowrite">
-<parameter name="todos">[{"content":"Create YieldAggregator contract for automated yield optimization","status":"completed","priority":"medium","id":"create_yield_aggregator"},{"content":"Implement proper governance token with delegation and voting","status":"in_progress","priority":"medium","id":"add_governance_token"}]
+}

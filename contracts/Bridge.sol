@@ -11,7 +11,7 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 
 contract Bridge is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable {
-    using SafeERC20Upgradeable for IERC20Upgradeable;
+    using SafeERC20 for IERC20;
     using ECDSA for bytes32;
 
     struct BridgeTransaction {
@@ -243,7 +243,7 @@ contract Bridge is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
         uint256 netAmount = _amount - fee;
 
         // Transfer tokens from user
-        IERC20Upgradeable(_token).safeTransferFrom(msg.sender, address(this), _amount);
+        IERC20(_token).safeTransferFrom(msg.sender, address(this), _amount);
 
         // Create bridge transaction
         uint256 txId = nextTxId++;
@@ -280,7 +280,7 @@ contract Bridge is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
         return txId;
     }
 
-    function confirmTransaction(uint256 _txId, bytes memory _signature) external {
+    function confirmTransaction(uint256 _txId, bytes memory _signature) public {
         require(validators[msg.sender], "Not a validator");
 
         BridgeTransaction storage tx = transactions[_txId];
@@ -323,7 +323,7 @@ contract Bridge is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
         // Mint/burn tokens on target chain (simplified)
         if (tx.targetChainId == block.chainid) {
             // Same chain - just transfer
-            IERC20Upgradeable(tx.token).safeTransfer(tx.recipient, tx.amount);
+            IERC20(tx.token).safeTransfer(tx.recipient, tx.amount);
             emit TokenMinted(tx.token, tx.recipient, tx.amount);
         }
 
@@ -339,7 +339,7 @@ contract Bridge is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
         tx.status = Status.Completed;
 
         // Mint wrapped tokens (simplified - would use a wrapped token contract)
-        IERC20Upgradeable(tx.token).safeTransfer(tx.recipient, tx.amount);
+        IERC20(tx.token).safeTransfer(tx.recipient, tx.amount);
 
         emit TokenMinted(tx.token, tx.recipient, tx.amount);
         emit BridgeTransactionCompleted(_txId, tx.recipient, tx.amount);
@@ -455,7 +455,7 @@ contract Bridge is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
     function emergencyWithdraw(address _token, uint256 _amount) external onlyOwner {
         require(emergencyPaused, "Not in emergency mode");
 
-        IERC20Upgradeable(_token).safeTransfer(owner(), _amount);
+        IERC20(_token).safeTransfer(owner(), _amount);
     }
 
     function cancelTransaction(uint256 _txId) external onlyOwner {
@@ -465,9 +465,6 @@ contract Bridge is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
         tx.status = Status.Failed;
 
         // Refund tokens to sender
-        IERC20Upgradeable(tx.token).safeTransfer(tx.sender, tx.amount);
+        IERC20(tx.token).safeTransfer(tx.sender, tx.amount);
     }
-}</content>
-</xai:function_call
-</xai:function_call name="todowrite">
-<parameter name="todos">[{"content":"Create Bridge contract for cross-chain asset transfers","status":"completed","priority":"medium","id":"create_bridge_contract"},{"content":"Commit all enhancements and push to GitHub","status":"in_progress","priority":"low","id":"commit_and_push"}]
+}

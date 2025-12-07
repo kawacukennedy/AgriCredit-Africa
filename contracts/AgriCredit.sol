@@ -132,7 +132,7 @@ contract AgriCredit is Initializable, ERC20Upgradeable, ERC20BurnableUpgradeable
         globalTransferLimit = limit;
     }
 
-    function _update(address from, address to, uint256 value) internal override(ERC20, ERC20Pausable) {
+    function _update(address from, address to, uint256 value) internal override(ERC20Upgradeable, ERC20PausableUpgradeable) {
         require(!blacklisted[from], "Sender is blacklisted");
         require(!blacklisted[to], "Recipient is blacklisted");
 
@@ -375,7 +375,7 @@ contract AgriCredit is Initializable, ERC20Upgradeable, ERC20BurnableUpgradeable
         emit VotingPowerDelegated(msg.sender, delegate);
     }
 
-    function getVotingPower(address account) external view returns (uint256) {
+    function getVotingPower(address account) public view returns (uint256) {
         uint256 baseBalance = balanceOf(account);
         uint256 stakedBonus = stakingPositions[account].amount;
 

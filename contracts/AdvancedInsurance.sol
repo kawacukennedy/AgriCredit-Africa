@@ -10,6 +10,16 @@ import "@openzeppelin/contracts/utils/math/Math.sol";
 import "./DecentralizedOracle.sol";
 import "./ParametricInsurance.sol";
 
+// ZK-SNARK verifier interface
+interface IZKVerifier {
+    function verifyProof(
+        uint256[2] memory a,
+        uint256[2][2] memory b,
+        uint256[2] memory c,
+        uint256[4] memory input
+    ) external view returns (bool);
+}
+
 contract AdvancedInsurance is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable {
     using Math for uint256;
 
@@ -87,15 +97,7 @@ contract AdvancedInsurance is Initializable, OwnableUpgradeable, ReentrancyGuard
         int256 payout;
     }
 
-    // ZK-SNARK verifier interface
-    interface IZKVerifier {
-        function verifyProof(
-            uint256[2] memory a,
-            uint256[2][2] memory b,
-            uint256[2] memory c,
-            uint256[4] memory input
-        ) external view returns (bool);
-    }
+
 
     // Advanced insurance features
     mapping(uint256 => CatastropheBond) public catastropheBonds;
@@ -134,17 +136,7 @@ contract AdvancedInsurance is Initializable, OwnableUpgradeable, ReentrancyGuard
     uint256 public emergencyFund;
     address public riskAssessmentOracle;
 
-    // Catastrophe bonds
-    mapping(uint256 => CatastropheBond) public catastropheBonds;
-    uint256 public nextBondId = 1;
 
-    // Parametric options
-    mapping(uint256 => ParametricOption) public parametricOptions;
-    uint256 public nextOptionId = 1;
-
-    // Insurance pools
-    mapping(uint256 => InsurancePool) public insurancePools;
-    uint256 public nextPoolId = 1;
 
     // Oracle integration
     DecentralizedOracle public oracle;

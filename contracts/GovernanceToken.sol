@@ -485,7 +485,7 @@ contract GovernanceToken is Initializable, ERC20Upgradeable, ERC20VotesUpgradeab
         }
     }
 
-    function getVotingPower(address _account) external view returns (uint256) {
+    function getVotingPower(address _account) public view returns (uint256) {
         return balanceOf(_account) + delegatedPower[_account];
     }
 
@@ -635,7 +635,4 @@ contract GovernanceToken is Initializable, ERC20Upgradeable, ERC20VotesUpgradeab
     function CLOCK_MODE() public pure override returns (string memory) {
         return "mode=timestamp";
     }
-}</content>
-</xai:function_call
-</xai:function_call name="todowrite">
-<parameter name="todos">[{"content":"Implement proper governance token with delegation and voting","status":"completed","priority":"medium","id":"add_governance_token"},{"content":"Create Bridge contract for cross-chain asset transfers","status":"in_progress","priority":"medium","id":"create_bridge_contract"}]
+}

@@ -74,7 +74,7 @@ contract SoulboundCredential is Initializable, ERC721Upgradeable, ERC721URIStora
 }
 
 contract IdentityRegistry is Initializable, OwnableUpgradeable, UUPSUpgradeable {
-    using ECDSAUpgradeable for bytes32;
+    using ECDSA for bytes32;
 
     struct Identity {
         string did;

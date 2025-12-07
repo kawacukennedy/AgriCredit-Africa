@@ -106,8 +106,6 @@ contract DecentralizedOracle is Initializable, OwnableUpgradeable, ReentrancyGua
     // Staking
     mapping(address => uint256) public nodeStakes;
     uint256 public totalStaked;
-    uint256 public minStakeAmount = 1000 * 10**18; // 1000 tokens
-    uint256 public slashingPenalty = 100; // 1% penalty for bad submissions
 
     // Reputation system
     uint256 public maxReputation = 1000;
@@ -870,5 +868,4 @@ contract DecentralizedOracle is Initializable, OwnableUpgradeable, ReentrancyGua
     event AutomatedDecisionExecuted(bytes32 indexed decisionId, uint256 action);
     event PredictiveAnalyticsGenerated(address indexed farmer, bytes32 indexed analyticsId, uint256 predictedYield, uint256 confidence);
     event CrossChainAISynced(uint256 indexed chainId, bytes32 indexed modelId, uint256 timestamp);
-}</content>
-</xai:function_call
+}

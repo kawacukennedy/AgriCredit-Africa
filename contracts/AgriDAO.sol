@@ -16,7 +16,7 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
  * quadratic voting, conviction voting, and AI-assisted decision making
  */
 contract AgriDAO is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable {
-    using SafeERC20Upgradeable for IERC20Upgradeable;
+    using SafeERC20 for IERC20;
 
     enum ProposalType { Standard, Emergency, Constitutional, Budget }
     enum ProposalStatus { Pending, Active, Succeeded, Failed, Executed, Cancelled }
@@ -80,7 +80,7 @@ contract AgriDAO is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeabl
     }
 
     // State variables
-    IERC20Upgradeable public governanceToken;
+    IERC20 public governanceToken;
 
     mapping(uint256 => Proposal) public proposals;
     mapping(uint256 => ConvictionProposal) public convictionProposals;
@@ -134,7 +134,7 @@ contract AgriDAO is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeabl
         __ReentrancyGuard_init();
         __UUPSUpgradeable_init();
 
-        governanceToken = IERC20Upgradeable(_governanceToken);
+        governanceToken = IERC20(_governanceToken);
         treasury = _treasury;
         aiOracle = _aiOracle;
         emergencyGuardian = _emergencyGuardian;

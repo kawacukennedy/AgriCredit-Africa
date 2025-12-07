@@ -7,7 +7,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 contract Reputation is Initializable, OwnableUpgradeable, UUPSUpgradeable {
-    using ECDSAUpgradeable for bytes32;
+    using ECDSA for bytes32;
 
     struct BorrowerReputation {
         uint256 totalLoans;

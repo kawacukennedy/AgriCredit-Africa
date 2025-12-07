@@ -11,7 +11,7 @@ import "@openzeppelin/contracts/utils/math/Math.sol";
 import "./DecentralizedOracle.sol";
 
 contract PredictionMarket is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable {
-    using SafeERC20Upgradeable for IERC20Upgradeable;
+    using SafeERC20 for IERC20;
 
     struct Market {
         uint256 id;
@@ -148,7 +148,7 @@ contract PredictionMarket is Initializable, OwnableUpgradeable, ReentrancyGuardU
         require(block.timestamp < market.endTime, "Market ended");
 
         // Transfer tokens
-        IERC20Upgradeable(market.collateralToken).safeTransferFrom(msg.sender, address(this), _amount);
+        IERC20(market.collateralToken).safeTransferFrom(msg.sender, address(this), _amount);
 
         // Distribute liquidity equally among outcomes
         uint256 liquidityPerOutcome = _amount / market.outcomes.length;
@@ -181,7 +181,7 @@ contract PredictionMarket is Initializable, OwnableUpgradeable, ReentrancyGuardU
         market.totalLiquidity -= _amount;
 
         // Transfer tokens back
-        IERC20Upgradeable(market.collateralToken).safeTransfer(msg.sender, _amount);
+        IERC20(market.collateralToken).safeTransfer(msg.sender, _amount);
 
         emit LiquidityRemoved(_marketId, msg.sender, _amount);
     }
@@ -216,7 +216,7 @@ contract PredictionMarket is Initializable, OwnableUpgradeable, ReentrancyGuardU
         uint256 costAfterFee = totalCost - fee;
 
         // Transfer tokens
-        IERC20Upgradeable(market.collateralToken).safeTransferFrom(msg.sender, address(this), totalCost);
+        IERC20(market.collateralToken).safeTransferFrom(msg.sender, address(this), totalCost);
 
         // Update outcome pool
         outcomePool.totalShares += shares;
@@ -266,7 +266,7 @@ contract PredictionMarket is Initializable, OwnableUpgradeable, ReentrancyGuardU
         collectedFees += fee;
 
         // Transfer payout
-        IERC20Upgradeable(market.collateralToken).safeTransfer(msg.sender, payout);
+        IERC20(market.collateralToken).safeTransfer(msg.sender, payout);
 
         // Update position
         _updateUserPosition(_marketId, _outcomeIndex, _shares, payout, false);
@@ -414,7 +414,7 @@ contract PredictionMarket is Initializable, OwnableUpgradeable, ReentrancyGuardU
         position.shares = 0;
 
         // Transfer winnings
-        IERC20Upgradeable(market.collateralToken).safeTransfer(msg.sender, winnings);
+        IERC20(market.collateralToken).safeTransfer(msg.sender, winnings);
 
         emit PositionClosed(msg.sender, _marketId, market.winningOutcome, position.shares, winnings);
     }
@@ -495,7 +495,4 @@ contract PredictionMarket is Initializable, OwnableUpgradeable, ReentrancyGuardU
         // Return liquidity to providers (simplified)
         // In practice, would need to track individual liquidity providers
     }
-}</content>
-</xai:function_call
-</xai:function_call name="todowrite">
-<parameter name="todos">[{"content":"Add PredictionMarket contract for agricultural outcome predictions","status":"completed","priority":"high","id":"create_prediction_market"},{"content":"Create YieldAggregator contract for automated yield optimization","status":"in_progress","priority":"medium","id":"create_yield_aggregator"}]
+}

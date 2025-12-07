@@ -58,7 +58,7 @@ contract YieldVault is Initializable, OwnableUpgradeable, ReentrancyGuardUpgrade
     // Protocol integrations
     LiquidityPool public liquidityPool;
     YieldToken public yieldToken;
-    IERC20Upgradeable public agriCreditToken;
+    IERC20 public agriCreditToken;
     DecentralizedOracle public decentralizedOracle;
 
     // AI-enhanced yield optimization
@@ -119,7 +119,7 @@ contract YieldVault is Initializable, OwnableUpgradeable, ReentrancyGuardUpgrade
 
         liquidityPool = LiquidityPool(_liquidityPool);
         yieldToken = YieldToken(_yieldToken);
-        agriCreditToken = IERC20Upgradeable(_agriCreditToken);
+        agriCreditToken = IERC20(_agriCreditToken);
         decentralizedOracle = DecentralizedOracle(_decentralizedOracle);
         lastGlobalCompound = block.timestamp;
     }

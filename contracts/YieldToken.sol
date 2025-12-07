@@ -71,7 +71,7 @@ contract YieldToken is Initializable, ERC20Upgradeable, OwnableUpgradeable, Reen
      * @param autoCompound Whether to auto-compound yields
      * @param lockPeriod Lock period in seconds for bonus yields
      */
-    function deposit(uint256 amount, bool autoCompound, uint256 lockPeriod) external nonReentrant {
+    function deposit(uint256 amount, bool autoCompound, uint256 lockPeriod) public nonReentrant {
         require(amount > 0, "Amount must be > 0");
 
         // Transfer underlying tokens from user

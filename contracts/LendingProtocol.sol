@@ -12,7 +12,7 @@ import "./DecentralizedOracle.sol";
 import "./IdentityRegistry.sol";
 
 contract LendingProtocol is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable {
-    using SafeERC20Upgradeable for IERC20Upgradeable;
+    using SafeERC20 for IERC20;
 
     struct Loan {
         uint256 id;
@@ -150,7 +150,7 @@ contract LendingProtocol is Initializable, OwnableUpgradeable, ReentrancyGuardUp
         require(pool.active, "Pool not active");
 
         // Transfer tokens
-        IERC20Upgradeable(_token).safeTransferFrom(msg.sender, address(this), _amount);
+        IERC20(_token).safeTransferFrom(msg.sender, address(this), _amount);
 
         pool.totalSupplied += _amount;
         _updatePoolInterestRate(_token);
@@ -169,7 +169,7 @@ contract LendingProtocol is Initializable, OwnableUpgradeable, ReentrancyGuardUp
         _updatePoolInterestRate(_token);
 
         // Transfer tokens back
-        IERC20Upgradeable(_token).safeTransfer(msg.sender, _amount);
+        IERC20(_token).safeTransfer(msg.sender, _amount);
 
         emit CollateralWithdrawn(msg.sender, _token, _amount);
     }
@@ -200,7 +200,7 @@ contract LendingProtocol is Initializable, OwnableUpgradeable, ReentrancyGuardUp
 
     // ============ CREDIT SCORING SYSTEM ============
 
-    function updateCreditScore(address _user) external {
+    function updateCreditScore(address _user) public {
         CreditProfile storage profile = creditProfiles[_user];
 
         if (block.timestamp < profile.lastActivity + creditScoreUpdatePeriod) {
@@ -314,7 +314,7 @@ contract LendingProtocol is Initializable, OwnableUpgradeable, ReentrancyGuardUp
         require(availableLiquidity >= _loanAmount, "Insufficient pool liquidity");
 
         // Transfer collateral
-        IERC20Upgradeable(_collateralToken).safeTransferFrom(msg.sender, address(this), _collateralAmount);
+        IERC20(_collateralToken).safeTransferFrom(msg.sender, address(this), _collateralAmount);
 
         // Calculate interest rate based on credit score and duration
         uint256 baseRate = pool.interestRate;
@@ -352,7 +352,7 @@ contract LendingProtocol is Initializable, OwnableUpgradeable, ReentrancyGuardUp
         profile.collateralValue[_collateralToken] += _collateralAmount;
 
         // Transfer loan tokens
-        IERC20Upgradeable(_loanToken).safeTransfer(msg.sender, _loanAmount);
+        IERC20(_loanToken).safeTransfer(msg.sender, _loanAmount);
 
         emit LoanCreated(loanId, msg.sender, address(this), _loanAmount);
         return loanId;
@@ -367,7 +367,7 @@ contract LendingProtocol is Initializable, OwnableUpgradeable, ReentrancyGuardUp
         require(_amount <= outstandingAmount, "Overpayment");
 
         // Transfer repayment
-        IERC20Upgradeable(loan.loanToken).safeTransferFrom(msg.sender, address(this), _amount);
+        IERC20(loan.loanToken).safeTransferFrom(msg.sender, address(this), _amount);
 
         // Update loan
         loan.totalPaid += _amount;
@@ -386,7 +386,7 @@ contract LendingProtocol is Initializable, OwnableUpgradeable, ReentrancyGuardUp
             loan.status = LoanStatus.Repaid;
 
             // Return collateral
-            IERC20Upgradeable(loan.collateralToken).safeTransfer(msg.sender, loan.collateralAmount);
+            IERC20(loan.collateralToken).safeTransfer(msg.sender, loan.collateralAmount);
 
             // Update profile
             profile.activeLoans--;
@@ -424,10 +424,10 @@ contract LendingProtocol is Initializable, OwnableUpgradeable, ReentrancyGuardUp
         collateralToSeize = Math.min(collateralToSeize, loan.collateralAmount);
 
         // Transfer debt repayment from liquidator
-        IERC20Upgradeable(loan.loanToken).safeTransferFrom(msg.sender, address(this), debtToRepay);
+        IERC20(loan.loanToken).safeTransferFrom(msg.sender, address(this), debtToRepay);
 
         // Transfer collateral to liquidator
-        IERC20Upgradeable(loan.collateralToken).safeTransfer(msg.sender, collateralToSeize);
+        IERC20(loan.collateralToken).safeTransfer(msg.sender, collateralToSeize);
 
         // Update loan
         loan.status = LoanStatus.Liquidated;
@@ -533,7 +533,4 @@ contract LendingProtocol is Initializable, OwnableUpgradeable, ReentrancyGuardUp
         // Transfer to owner (simplified - should use treasury)
         payable(owner()).transfer(amount);
     }
-}</content>
-</xai:function_call
-</xai:function_call name="todowrite">
-<parameter name="todos">[{"content":"Create advanced LendingProtocol contract with credit scoring and liquidation","status":"completed","priority":"high","id":"create_lending_protocol"},{"content":"Add PredictionMarket contract for agricultural outcome predictions","status":"in_progress","priority":"high","id":"create_prediction_market"}]
+}

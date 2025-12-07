@@ -7,6 +7,7 @@ import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
+import "./ICrossChainBridge.sol";
 import "./CarbonToken.sol";
 
 contract LiquidityPool is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable {
@@ -107,11 +108,7 @@ contract LiquidityPool is Initializable, OwnableUpgradeable, ReentrancyGuardUpgr
     event CrossChainBridgeSet(address indexed bridge);
     event LoanRepaid(uint256 indexed loanId, uint256 amount);
 
-    // Cross-chain bridge interface
-    interface ICrossChainBridge {
-        function sendMessage(uint256 targetChainId, address targetContract, bytes calldata message) external;
-        function receiveMessage(bytes calldata message) external;
-    }
+
 
     struct CrossChainMessage {
         uint256 messageId;
@@ -411,8 +408,6 @@ contract LiquidityPool is Initializable, OwnableUpgradeable, ReentrancyGuardUpgr
 
     function getCrossChainLiquidity(uint256 chainId) external view returns (uint256) {
         return crossChainPools[chainId].lockedLiquidity;
-    }
-        pools[token].totalLiquidity += amount;
     }
 
     function setCrossChainPool(uint256 chainId, address remotePool) external onlyOwner {

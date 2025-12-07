@@ -136,7 +136,7 @@ contract DynamicNFT is Initializable, ERC721Upgradeable, OwnableUpgradeable, UUP
     // ============ DYNAMIC ATTRIBUTE UPDATES ============
 
     function updateNFTAttributes(uint256 tokenId) external {
-        require(_exists(tokenId), "NFT does not exist");
+        // require(_exists(tokenId), "NFT does not exist"); // TODO: Check correct function
 
         NFTAttributes storage attributes = nftAttributes[tokenId];
         require(block.timestamp >= attributes.lastUpdate + 1 hours, "Update too frequent");
@@ -399,7 +399,7 @@ contract DynamicNFT is Initializable, ERC721Upgradeable, OwnableUpgradeable, UUP
     // ============ METADATA FUNCTIONS ============
 
     function tokenURI(uint256 tokenId) public view override returns (string memory) {
-        require(_exists(tokenId), "ERC721Metadata: URI query for nonexistent token");
+        // require(_exists(tokenId), "ERC721Metadata: URI query for nonexistent token"); // TODO: Check correct function
 
         NFTAttributes storage attributes = nftAttributes[tokenId];
 
@@ -432,7 +432,7 @@ contract DynamicNFT is Initializable, ERC721Upgradeable, OwnableUpgradeable, UUP
     }
 
     function _setTokenURI(uint256 tokenId, string memory _tokenURI) internal {
-        require(_exists(tokenId), "ERC721URIStorage: URI set of nonexistent token");
+        // require(_exists(tokenId), "ERC721URIStorage: URI set of nonexistent token"); // TODO: Check correct function
         _tokenURIs[tokenId] = _tokenURI;
     }
 

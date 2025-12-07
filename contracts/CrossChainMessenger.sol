@@ -387,7 +387,4 @@ contract CrossChainMessenger is Initializable, OwnableUpgradeable, ReentrancyGua
 
         _deliverMessage(_messageId);
     }
-}</content>
-</xai:function_call
-</xai:function_call name="todowrite">
-<parameter name="todos">[{"content":"Implement cross-chain messaging system for better interoperability","status":"completed","priority":"medium","id":"add_cross_chain_messaging"},{"content":"Create DEX contract for token trading within the ecosystem","status":"in_progress","priority":"medium","id":"create_dex_contract"}]
+}

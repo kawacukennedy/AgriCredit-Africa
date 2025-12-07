@@ -27,7 +27,7 @@ interface ICarbonToken {
  * @dev Decentralized marketplace for trading carbon credits with AI-powered pricing
  */
 contract CarbonMarketplace is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable {
-    using SafeERC20Upgradeable for IERC20Upgradeable;
+    using SafeERC20 for IERC20;
 
     struct Listing {
         uint256 listingId;
@@ -153,8 +153,8 @@ contract CarbonMarketplace is Initializable, OwnableUpgradeable, ReentrancyGuard
         uint256 sellerAmount = listing.price - fee;
 
         // Transfer payment
-        IERC20Upgradeable(listing.paymentToken).safeTransferFrom(msg.sender, feeRecipient, fee);
-        IERC20Upgradeable(listing.paymentToken).safeTransferFrom(msg.sender, listing.seller, sellerAmount);
+        IERC20(listing.paymentToken).safeTransferFrom(msg.sender, feeRecipient, fee);
+        IERC20(listing.paymentToken).safeTransferFrom(msg.sender, listing.seller, sellerAmount);
 
         // Transfer carbon credit token
         soulboundCredit.safeTransferFrom(listing.seller, msg.sender, listing.tokenId);
@@ -210,8 +210,8 @@ contract CarbonMarketplace is Initializable, OwnableUpgradeable, ReentrancyGuard
         uint256 sellerAmount = bid.bidAmount - fee;
 
         // Transfer payment
-        IERC20Upgradeable(listing.paymentToken).safeTransferFrom(bid.bidder, feeRecipient, fee);
-        IERC20Upgradeable(listing.paymentToken).safeTransferFrom(bid.bidder, listing.seller, sellerAmount);
+        IERC20(listing.paymentToken).safeTransferFrom(bid.bidder, feeRecipient, fee);
+        IERC20(listing.paymentToken).safeTransferFrom(bid.bidder, listing.seller, sellerAmount);
 
         // Transfer carbon credit token
         soulboundCredit.safeTransferFrom(listing.seller, bid.bidder, listing.tokenId);

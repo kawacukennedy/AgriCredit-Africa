@@ -11,7 +11,7 @@ import "@openzeppelin/contracts/utils/math/Math.sol";
 import "./DecentralizedOracle.sol";
 
 contract StakingRewards is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable {
-    using SafeERC20Upgradeable for IERC20Upgradeable;
+    using SafeERC20 for IERC20;
 
     struct StakeInfo {
         uint256 amount;
@@ -30,10 +30,10 @@ contract StakingRewards is Initializable, OwnableUpgradeable, ReentrancyGuardUpg
     }
 
     // Staking token (AGC)
-    IERC20Upgradeable public stakingToken;
+    IERC20 public stakingToken;
 
     // Reward token (can be same as staking token or different)
-    IERC20Upgradeable public rewardToken;
+    IERC20 public rewardToken;
 
     // Oracle for dynamic reward adjustments
     DecentralizedOracle public oracle;
@@ -90,8 +90,8 @@ contract StakingRewards is Initializable, OwnableUpgradeable, ReentrancyGuardUpg
         __ReentrancyGuard_init();
         __UUPSUpgradeable_init();
 
-        stakingToken = IERC20Upgradeable(_stakingToken);
-        rewardToken = IERC20Upgradeable(_rewardToken);
+        stakingToken = IERC20(_stakingToken);
+        rewardToken = IERC20(_rewardToken);
         oracle = DecentralizedOracle(_oracle);
 
         rewardRate = _rewardRate;
@@ -337,7 +337,4 @@ contract StakingRewards is Initializable, OwnableUpgradeable, ReentrancyGuardUpg
     function getTotalRewardTiers() external view returns (uint256) {
         return rewardTiers.length;
     }
-}</content>
-</xai:function_call
-</xai:function_call name="todowrite">
-<parameter name="todos">[{"content":"Create new StakingRewards contract for AGC token staking with rewards","status":"completed","priority":"high","id":"create_staking_contract"},{"content":"Add advanced AI features like predictive farming analytics and automated decision making","status":"in_progress","priority":"high","id":"enhance_ai_features"}]
+}

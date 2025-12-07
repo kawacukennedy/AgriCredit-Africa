@@ -1,19 +1,36 @@
 'use client';
 
+import { useState } from 'react';
 import { Navbar } from '@/components/layout/navbar';
 import { Footer } from '@/components/layout/footer';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useTranslation } from 'react-i18next';
+import { useGetGovernanceProposalsQuery, useVoteOnProposalMutation } from '@/store/apiSlice';
 
 export default function GovernancePage() {
   const { t } = useTranslation();
+  const [voteOnProposal, { isLoading: voting }] = useVoteOnProposalMutation();
+  const { data: proposals, isLoading } = useGetGovernanceProposalsQuery({});
 
-  // Mock governance proposals
-  const proposals = [
+  const handleVote = async (proposalId: string, vote: boolean) => {
+    try {
+      await voteOnProposal({
+        id: proposalId,
+        vote: vote,
+        amount: 100 // Mock voting power
+      }).unwrap();
+      // Refresh data or show success message
+    } catch (error) {
+      console.error('Failed to vote:', error);
+    }
+  };
+
+  // Mock proposals if API doesn't return data
+  const mockProposals = [
     {
-      id: 1,
+      id: '1',
       title: 'Increase Carbon Credit Rewards',
       description: 'Proposal to boost rewards for verified carbon sequestration activities by 15%.',
       status: 'Active',
@@ -23,7 +40,7 @@ export default function GovernancePage() {
       type: 'Parameter Change',
     },
     {
-      id: 2,
+      id: '2',
       title: 'Add New Crop Types to Yield Prediction',
       description: 'Include maize and cassava in the AI yield prediction model.',
       status: 'Passed',
@@ -33,7 +50,7 @@ export default function GovernancePage() {
       type: 'Feature Addition',
     },
     {
-      id: 3,
+      id: '3',
       title: 'Reduce Loan Interest Rates',
       description: 'Lower base interest rates for smallholder farmers by 2%.',
       status: 'Pending',
@@ -43,6 +60,8 @@ export default function GovernancePage() {
       type: 'Economic Parameter',
     },
   ];
+
+  const displayProposals = proposals || mockProposals;
 
   return (
     <div className="min-h-screen">
@@ -56,6 +75,7 @@ export default function GovernancePage() {
             Create Proposal
           </Button>
         </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
           <Card>
             <CardHeader>
@@ -65,11 +85,13 @@ export default function GovernancePage() {
               <div className="space-y-4">
                 <div className="flex justify-between">
                   <span>Total Proposals:</span>
-                  <span className="font-bold">47</span>
+                  <span className="font-bold">{displayProposals.length}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Active Proposals:</span>
-                  <span className="font-bold">8</span>
+                  <span className="font-bold">
+                    {displayProposals.filter((p: any) => p.status === 'Active').length}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span>Your Voting Power:</span>
@@ -82,6 +104,7 @@ export default function GovernancePage() {
               </div>
             </CardContent>
           </Card>
+
           <Card className="lg:col-span-2">
             <CardHeader>
               <CardTitle>Recent Proposals</CardTitle>
@@ -90,59 +113,85 @@ export default function GovernancePage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-6">
-                {proposals.map((proposal) => (
-                  <div key={proposal.id} className="border rounded-lg p-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <h3 className="font-semibold">{proposal.title}</h3>
-                        <p className="text-sm text-muted-foreground">{proposal.description}</p>
-                      </div>
-                      <Badge variant={
-                        proposal.status === 'Active' ? 'default' :
-                        proposal.status === 'Passed' ? 'default' :
-                        'secondary'
-                      }>
-                        {proposal.status}
-                      </Badge>
+              {isLoading ? (
+                <div className="space-y-6">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="border rounded-lg p-4 animate-pulse">
+                      <div className="h-4 bg-muted rounded w-3/4 mb-2"></div>
+                      <div className="h-3 bg-muted rounded w-1/2 mb-4"></div>
+                      <div className="h-8 bg-muted rounded w-full"></div>
                     </div>
-                    <div className="flex justify-between items-center text-sm mb-3">
-                      <span>Type: {proposal.type}</span>
-                      <span>Ends: {proposal.endDate}</span>
-                    </div>
-                    {proposal.status === 'Active' && (
-                      <div className="mb-3">
-                        <div className="flex justify-between text-sm mb-1">
-                          <span>For: {proposal.votesFor}</span>
-                          <span>Against: {proposal.votesAgainst}</span>
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {displayProposals.map((proposal: any) => (
+                    <div key={proposal.id} className="border rounded-lg p-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <h3 className="font-semibold">{proposal.title}</h3>
+                          <p className="text-sm text-muted-foreground">{proposal.description}</p>
                         </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div
-                            className="bg-agri-green h-2 rounded-full"
-                            style={{
-                              width: `${(proposal.votesFor / (proposal.votesFor + proposal.votesAgainst)) * 100}%`
-                            }}
-                          ></div>
-                        </div>
+                        <Badge variant={
+                          proposal.status === 'Active' ? 'default' :
+                          proposal.status === 'Passed' ? 'default' :
+                          'secondary'
+                        }>
+                          {proposal.status}
+                        </Badge>
                       </div>
-                    )}
-                    <div className="flex space-x-2">
-                      <Button size="sm" variant="outline">
-                        Vote For
-                      </Button>
-                      <Button size="sm" variant="outline">
-                        Vote Against
-                      </Button>
-                      <Button size="sm" variant="ghost">
-                        View Details
-                      </Button>
+                      <div className="flex justify-between items-center text-sm mb-3">
+                        <span>Type: {proposal.type}</span>
+                        <span>Ends: {proposal.endDate}</span>
+                      </div>
+                      {proposal.status === 'Active' && (
+                        <div className="mb-3">
+                          <div className="flex justify-between text-sm mb-1">
+                            <span>For: {proposal.votesFor}</span>
+                            <span>Against: {proposal.votesAgainst}</span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div
+                              className="bg-agri-green h-2 rounded-full"
+                              style={{
+                                width: `${proposal.votesFor + proposal.votesAgainst > 0 ?
+                                  (proposal.votesFor / (proposal.votesFor + proposal.votesAgainst)) * 100 : 0}%`
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+                      )}
+                      {proposal.status === 'Active' && (
+                        <div className="flex space-x-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleVote(proposal.id, true)}
+                            disabled={voting}
+                          >
+                            Vote For
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleVote(proposal.id, false)}
+                            disabled={voting}
+                          >
+                            Vote Against
+                          </Button>
+                          <Button size="sm" variant="ghost">
+                            View Details
+                          </Button>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
+
         <Card>
           <CardHeader>
             <CardTitle>Your Voting History</CardTitle>

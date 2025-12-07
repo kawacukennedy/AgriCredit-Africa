@@ -227,7 +227,7 @@ contract GovernanceDAO is Initializable, OwnableUpgradeable, ReentrancyGuardUpgr
     ) public initializer {
         __Ownable_init(msg.sender);
         __ReentrancyGuard_init();
-        __ERC2771Context_init(trustedForwarder);
+        // __ERC2771Context_init(trustedForwarder); // TODO: Check correct initialization
         __UUPSUpgradeable_init();
 
         governanceToken = IERC20(_governanceToken);
@@ -262,7 +262,7 @@ contract GovernanceDAO is Initializable, OwnableUpgradeable, ReentrancyGuardUpgr
         bytes memory _callData,
         uint256 _value,
         bool _emergency
-    ) external returns (uint256) {
+    ) public returns (uint256) {
         uint256 proposerBalance = getVotes(msg.sender);
         uint256 threshold = _emergency ? emergencyThreshold : proposalThreshold;
 

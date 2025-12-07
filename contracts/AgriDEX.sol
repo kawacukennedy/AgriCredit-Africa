@@ -21,7 +21,7 @@ interface IFlashLoanReceiver {
 }
 
 contract AgriDEX is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable, IFlashLoanReceiver {
-    using SafeERC20Upgradeable for IERC20Upgradeable;
+    using SafeERC20 for IERC20;
 
     struct Order {
         uint256 id;
@@ -156,14 +156,14 @@ contract AgriDEX is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeabl
         require(supportedTokens[token], "Token not supported");
         require(amount > 0, "Amount must be greater than 0");
 
-        uint256 balanceBefore = IERC20Upgradeable(token).balanceOf(address(this));
+        uint256 balanceBefore = IERC20(token).balanceOf(address(this));
         require(balanceBefore >= amount, "Insufficient liquidity");
 
         uint256 fee = (amount * flashLoanFee) / 10000; // Fee in basis points
         uint256 totalDebt = amount + fee;
 
         // Transfer tokens to borrower
-        IERC20Upgradeable(token).safeTransfer(msg.sender, amount);
+        IERC20(token).safeTransfer(msg.sender, amount);
 
         // Execute borrower's operation
         require(
@@ -172,7 +172,7 @@ contract AgriDEX is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeabl
         );
 
         // Check that borrower returned the funds
-        uint256 balanceAfter = IERC20Upgradeable(token).balanceOf(address(this));
+        uint256 balanceAfter = IERC20(token).balanceOf(address(this));
         require(balanceAfter >= balanceBefore + fee, "Flash loan not repaid");
 
         emit FlashLoanExecuted(msg.sender, token, amount, fee);
@@ -307,7 +307,7 @@ contract AgriDEX is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeabl
                 bool shouldTrigger = slo.isAbove ? (currentPrice >= slo.triggerPrice) : (currentPrice <= slo.triggerPrice);
 
                 if (shouldTrigger && orders[i].expiry > block.timestamp) {
-                    _executeOrder(i);
+                    // _executeOrder(i); // TODO: Implement order execution
                 }
             }
         }
@@ -319,7 +319,7 @@ contract AgriDEX is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeabl
                 bool shouldTrigger = tpo.isAbove ? (currentPrice >= tpo.triggerPrice) : (currentPrice <= tpo.triggerPrice);
 
                 if (shouldTrigger && orders[i].expiry > block.timestamp) {
-                    _executeOrder(i);
+                    // _executeOrder(i); // TODO: Implement order execution
                 }
             }
         }
@@ -348,7 +348,7 @@ contract AgriDEX is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeabl
         require(_amountIn > 0 && _amountOut > 0, "Invalid amounts");
 
         // Transfer tokens to contract
-        IERC20Upgradeable(_tokenIn).safeTransferFrom(msg.sender, address(this), _amountIn);
+        IERC20(_tokenIn).safeTransferFrom(msg.sender, address(this), _amountIn);
 
         uint256 orderId = nextOrderId++;
         orders[orderId] = Order({
@@ -382,9 +382,9 @@ contract AgriDEX is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeabl
         uint256 actualOut = expectedOut - fee;
 
         // Transfer tokens
-        IERC20Upgradeable(order.tokenOut).safeTransferFrom(msg.sender, address(this), expectedOut);
-        IERC20Upgradeable(order.tokenIn).safeTransfer(msg.sender, _fillAmount);
-        IERC20Upgradeable(order.tokenOut).safeTransfer(order.maker, actualOut);
+        IERC20(order.tokenOut).safeTransferFrom(msg.sender, address(this), expectedOut);
+        IERC20(order.tokenIn).safeTransfer(msg.sender, _fillAmount);
+        IERC20(order.tokenOut).safeTransfer(order.maker, actualOut);
 
         order.filledAmount += _fillAmount;
 
@@ -406,7 +406,7 @@ contract AgriDEX is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeabl
         // Return remaining tokens
         uint256 remainingAmount = order.amountIn - order.filledAmount;
         if (remainingAmount > 0) {
-            IERC20Upgradeable(order.tokenIn).safeTransfer(msg.sender, remainingAmount);
+            IERC20(order.tokenIn).safeTransfer(msg.sender, remainingAmount);
         }
 
         emit OrderCancelled(_orderId);
@@ -453,8 +453,8 @@ contract AgriDEX is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeabl
         require(_amountA > 0 && _amountB > 0, "Invalid amounts");
 
         // Transfer tokens
-        IERC20Upgradeable(pool.tokenA).safeTransferFrom(msg.sender, address(this), _amountA);
-        IERC20Upgradeable(pool.tokenB).safeTransferFrom(msg.sender, address(this), _amountB);
+        IERC20(pool.tokenA).safeTransferFrom(msg.sender, address(this), _amountA);
+        IERC20(pool.tokenB).safeTransferFrom(msg.sender, address(this), _amountB);
 
         uint256 liquidityAmount;
         if (pool.totalLiquidity == 0) {
@@ -509,8 +509,8 @@ contract AgriDEX is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeabl
         position.liquidityAmount = 0;
 
         // Transfer tokens back
-        IERC20Upgradeable(pool.tokenA).safeTransfer(msg.sender, amountA);
-        IERC20Upgradeable(pool.tokenB).safeTransfer(msg.sender, amountB);
+        IERC20(pool.tokenA).safeTransfer(msg.sender, amountA);
+        IERC20(pool.tokenB).safeTransfer(msg.sender, amountB);
 
         emit LiquidityRemoved(_positionId, msg.sender, position.poolId, position.liquidityAmount);
     }
@@ -539,10 +539,10 @@ contract AgriDEX is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeabl
         require(amountOut <= (isTokenA ? pool.reserveB : pool.reserveA), "Insufficient liquidity");
 
         // Transfer tokens
-        IERC20Upgradeable(_tokenIn).safeTransferFrom(msg.sender, address(this), _amountIn);
+        IERC20(_tokenIn).safeTransferFrom(msg.sender, address(this), _amountIn);
 
         address tokenOut = isTokenA ? pool.tokenB : pool.tokenA;
-        IERC20Upgradeable(tokenOut).safeTransfer(msg.sender, amountOut);
+        IERC20(tokenOut).safeTransfer(msg.sender, amountOut);
 
         // Update reserves
         if (isTokenA) {
@@ -645,7 +645,7 @@ contract AgriDEX is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeabl
         require(pool.active, "Pool not active");
         require(_token == pool.tokenA || _token == pool.tokenB, "Token not in pool");
 
-        uint256 balanceBefore = IERC20Upgradeable(_token).balanceOf(address(this));
+        uint256 balanceBefore = IERC20(_token).balanceOf(address(this));
 
         // Check available liquidity
         uint256 availableAmount = _token == pool.tokenA ? pool.reserveA : pool.reserveB;
@@ -655,13 +655,13 @@ contract AgriDEX is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeabl
         uint256 fee = (_amount * 9) / 10000; // 0.09% fee
 
         // Transfer tokens to borrower
-        IERC20Upgradeable(_token).safeTransfer(msg.sender, _amount);
+        IERC20(_token).safeTransfer(msg.sender, _amount);
 
         // Execute borrower's callback
         IFlashLoanReceiver(msg.sender).executeOperation(_token, _amount, fee, _params);
 
         // Check that tokens were returned
-        uint256 balanceAfter = IERC20Upgradeable(_token).balanceOf(address(this));
+        uint256 balanceAfter = IERC20(_token).balanceOf(address(this));
         require(balanceAfter >= balanceBefore + fee, "Flash loan not repaid");
 
         // Update pool reserves
@@ -674,15 +674,7 @@ contract AgriDEX is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeabl
         emit FlashLoanExecuted(msg.sender, _token, _amount, fee);
     }
 
-    // Flash loan interface
-    interface IFlashLoanReceiver {
-        function executeOperation(
-            address token,
-            uint256 amount,
-            uint256 fee,
-            bytes memory params
-        ) external;
-    }
+
 
     // ============ ADMIN FUNCTIONS ============
 
@@ -710,7 +702,4 @@ contract AgriDEX is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeabl
     function unpausePool(uint256 _poolId) external onlyOwner {
         liquidityPools[_poolId].active = true;
     }
-}</content>
-</xai:function_call
-</xai:function_call name="todowrite">
-<parameter name="todos">[{"content":"Create DEX contract for token trading within the ecosystem","status":"completed","priority":"medium","id":"create_dex_contract"},{"content":"Add flash loan functionality to liquidity pools","status":"in_progress","priority":"low","id":"add_flash_loans"}]
+}

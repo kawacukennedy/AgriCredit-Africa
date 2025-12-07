@@ -28,7 +28,7 @@ interface ICropOracle {
 }
 
 contract ParametricInsurance is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable {
-    using SafeERC20Upgradeable for IERC20Upgradeable;
+    using SafeERC20 for IERC20;
 
     enum InsuranceType { Drought, Flood, Pest, Disease, ExtremeWeather }
     enum ClaimStatus { None, Submitted, Approved, Rejected, Paid }
@@ -86,7 +86,7 @@ contract ParametricInsurance is Initializable, OwnableUpgradeable, ReentrancyGua
     mapping(InsuranceType => uint256) public basePremiumRates; // in basis points
     mapping(InsuranceType => uint256) public triggerThresholds;
 
-    IERC20Upgradeable public paymentToken;
+    IERC20 public paymentToken;
 
     // AI-enhanced risk assessment
     struct AIRiskAssessment {
@@ -134,7 +134,7 @@ contract ParametricInsurance is Initializable, OwnableUpgradeable, ReentrancyGua
 
         weatherOracle = IWeatherOracle(_weatherOracle);
         cropOracle = ICropOracle(_cropOracle);
-        paymentToken = IERC20Upgradeable(_paymentToken);
+        paymentToken = IERC20(_paymentToken);
         decentralizedOracle = DecentralizedOracle(_decentralizedOracle);
 
         // Initialize base premium rates (in basis points)
@@ -525,5 +525,4 @@ contract ParametricInsurance is Initializable, OwnableUpgradeable, ReentrancyGua
         require(_amount <= paymentToken.balanceOf(address(this)), "Insufficient balance");
         paymentToken.safeTransfer(owner(), _amount);
     }
-}</content>
-</xai:function_call
+}
