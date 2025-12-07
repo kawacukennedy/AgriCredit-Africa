@@ -90,8 +90,8 @@ export function Navbar() {
   const currentLang = languageOptions.find(lang => lang.code === i18n.language) || languageOptions[0];
 
   return (
-    <nav className="sticky top-0 z-50 bg-paper-white/95 backdrop-blur-md border-b border-slate-gray/10 shadow-level1">
-      <div className="container">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-b border-border shadow-level1">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-3 group">
@@ -99,10 +99,10 @@ export function Navbar() {
               <Leaf className="w-6 h-6 text-white" />
             </div>
             <div className="hidden sm:block">
-              <div className="font-black text-xl text-slate-gray group-hover:text-agri-green transition-colors">
+              <div className="font-black text-xl text-foreground group-hover:text-agri-green transition-colors">
                 AgriCredit
               </div>
-              <div className="text-xs text-slate-gray/60 -mt-1">Africa</div>
+              <div className="text-xs text-muted-foreground -mt-1">Africa</div>
             </div>
           </Link>
 
@@ -112,7 +112,7 @@ export function Navbar() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium text-slate-gray/70 hover:text-agri-green hover:bg-agri-green/5 transition-all duration-200 group"
+                className="flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-agri-green hover:bg-agri-green/5 transition-all duration-200 group"
               >
                 <item.icon className="w-4 h-4 group-hover:scale-110 transition-transform" />
                 <span>{item.label}</span>
@@ -129,13 +129,13 @@ export function Navbar() {
           <div className="hidden md:flex items-center space-x-3">
             {/* Search Bar */}
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-gray/40" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-foreground/40" />
               <Input
                 type="text"
                 placeholder="Search..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-64 pl-10 pr-4 py-2 bg-slate-gray/5 border-slate-gray/20 focus:border-agri-green focus:ring-agri-green/20 rounded-full"
+                className="w-64 pl-10 pr-4 py-2 bg-muted/5 border-border focus:border-agri-green focus:ring-agri-green/20 rounded-full"
               />
             </div>
 
@@ -145,19 +145,19 @@ export function Navbar() {
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowLangMenu(!showLangMenu)}
-                className="flex items-center space-x-2 px-3 py-2 hover:bg-slate-gray/5 transition-colors"
+                className="flex items-center space-x-2 px-3 py-2 hover:bg-muted/5 transition-colors"
                 aria-label="Select language"
                 aria-expanded={showLangMenu}
                 aria-haspopup="menu"
               >
-                <Globe className="w-4 h-4 text-slate-gray" />
-                <span className="text-sm text-slate-gray">{currentLang.flag}</span>
-                <ChevronDown className="w-3 h-3 text-slate-gray" />
+                <Globe className="w-4 h-4 text-foreground" />
+                <span className="text-sm text-foreground">{currentLang.flag}</span>
+                <ChevronDown className="w-3 h-3 text-foreground" />
               </Button>
 
               {showLangMenu && (
                 <div
-                  className="absolute right-0 mt-2 w-40 bg-paper-white border border-slate-gray/20 rounded-xl shadow-level3 z-50"
+                  className="absolute right-0 mt-2 w-40 bg-paper-white border border-border rounded-xl shadow-level3 z-50"
                   role="menu"
                   aria-label="Language selection menu"
                 >
@@ -168,11 +168,11 @@ export function Navbar() {
                         i18n.changeLanguage(lang.code);
                         setShowLangMenu(false);
                       }}
-                      className="w-full flex items-center space-x-3 px-4 py-3 text-left hover:bg-slate-gray/5 transition-colors first:rounded-t-xl last:rounded-b-xl"
+                      className="w-full flex items-center space-x-3 px-4 py-3 text-left hover:bg-muted/5 transition-colors first:rounded-t-xl last:rounded-b-xl"
                       role="menuitem"
                     >
                       <span className="text-lg">{lang.flag}</span>
-                      <span className="text-sm text-slate-gray">{lang.label}</span>
+                      <span className="text-sm text-foreground">{lang.label}</span>
                       {i18n.language === lang.code && <CheckCircle className="w-4 h-4 text-agri-green ml-auto" />}
                     </button>
                   ))}
@@ -186,22 +186,22 @@ export function Navbar() {
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowThemeMenu(!showThemeMenu)}
-                className="flex items-center space-x-2 px-3 py-2 hover:bg-slate-gray/5 transition-colors"
+                className="flex items-center space-x-2 px-3 py-2 hover:bg-muted/5 transition-colors"
                 aria-label="Select theme"
                 aria-expanded={showThemeMenu}
                 aria-haspopup="menu"
               >
                 {resolvedTheme === 'dark' ? (
-                  <Moon className="w-4 h-4 text-slate-gray" />
+                  <Moon className="w-4 h-4 text-foreground" />
                 ) : (
-                  <Sun className="w-4 h-4 text-slate-gray" />
+                  <Sun className="w-4 h-4 text-foreground" />
                 )}
-                <ChevronDown className="w-3 h-3 text-slate-gray" />
+                <ChevronDown className="w-3 h-3 text-foreground" />
               </Button>
 
               {showThemeMenu && (
                 <div
-                  className="absolute right-0 mt-2 w-36 bg-paper-white border border-slate-gray/20 rounded-xl shadow-level3 z-50"
+                  className="absolute right-0 mt-2 w-36 bg-paper-white border border-border rounded-xl shadow-level3 z-50"
                   role="menu"
                   aria-label="Theme selection menu"
                 >
@@ -212,11 +212,11 @@ export function Navbar() {
                         setTheme(option.value as 'light' | 'dark' | 'system');
                         setShowThemeMenu(false);
                       }}
-                      className="w-full flex items-center space-x-3 px-4 py-3 text-left hover:bg-slate-gray/5 transition-colors first:rounded-t-xl last:rounded-b-xl"
+                      className="w-full flex items-center space-x-3 px-4 py-3 text-left hover:bg-muted/5 transition-colors first:rounded-t-xl last:rounded-b-xl"
                       role="menuitem"
                     >
-                      <option.icon className="w-4 h-4 text-slate-gray" />
-                      <span className="text-sm text-slate-gray">{option.label}</span>
+                      <option.icon className="w-4 h-4 text-foreground" />
+                      <span className="text-sm text-foreground">{option.label}</span>
                       {theme === option.value && <CheckCircle className="w-4 h-4 text-agri-green ml-auto" />}
                     </button>
                   ))}
@@ -233,12 +233,12 @@ export function Navbar() {
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowNotifications(!showNotifications)}
-                  className="relative p-2 hover:bg-slate-gray/5 transition-colors"
+                  className="relative p-2 hover:bg-muted/5 transition-colors"
                   aria-label={`Notifications ${unreadCount > 0 ? `(${unreadCount} unread)` : ''}`}
                   aria-expanded={showNotifications}
                   aria-haspopup="menu"
                 >
-                  <Bell className="w-5 h-5 text-slate-gray" />
+                  <Bell className="w-5 h-5 text-foreground" />
                   {unreadCount > 0 && (
                     <Badge className="absolute -top-1 -right-1 w-5 h-5 p-0 bg-red-500 text-white text-xs flex items-center justify-center">
                       {unreadCount}
@@ -249,17 +249,17 @@ export function Navbar() {
                 {/* Notifications Dropdown */}
                 {showNotifications && (
                   <div
-                    className="absolute right-0 mt-2 w-80 bg-paper-white border border-slate-gray/20 rounded-xl shadow-level3 z-50"
+                    className="absolute right-0 mt-2 w-80 bg-paper-white border border-border rounded-xl shadow-level3 z-50"
                     role="menu"
                     aria-label="Notifications menu"
                   >
-                    <div className="p-4 border-b border-slate-gray/10">
-                      <h3 className="font-semibold text-slate-gray">Notifications</h3>
-                      <p className="text-sm text-slate-gray/60">Stay updated with your activities</p>
+                    <div className="p-4 border-b border-border/10">
+                      <h3 className="font-semibold text-foreground">Notifications</h3>
+                      <p className="text-sm text-foreground/60">Stay updated with your activities</p>
                     </div>
                     <div className="max-h-96 overflow-y-auto">
                       {notifications.map((notification) => (
-                        <div key={notification.id} className="p-4 border-b border-slate-gray/5 hover:bg-slate-gray/5 transition-colors cursor-pointer">
+                        <div key={notification.id} className="p-4 border-b border-border/5 hover:bg-muted/5 transition-colors cursor-pointer">
                           <div className="flex items-start space-x-3">
                             <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
                               notification.type === 'success' ? 'bg-green-500/10 text-green-600' :
@@ -271,15 +271,15 @@ export function Navbar() {
                                <Zap className="w-4 h-4" />}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-slate-gray">{notification.title}</p>
-                              <p className="text-sm text-slate-gray/70 line-clamp-2">{notification.message}</p>
-                              <p className="text-xs text-slate-gray/50 mt-1">{notification.time}</p>
+                              <p className="text-sm font-medium text-foreground">{notification.title}</p>
+                              <p className="text-sm text-foreground/70 line-clamp-2">{notification.message}</p>
+                              <p className="text-xs text-foreground/50 mt-1">{notification.time}</p>
                             </div>
                           </div>
                         </div>
                       ))}
                     </div>
-                    <div className="p-3 border-t border-slate-gray/10">
+                    <div className="p-3 border-t border-border/10">
                       <Button variant="ghost" className="w-full text-sm text-agri-green hover:text-agri-green hover:bg-agri-green/5">
                         View All Notifications
                       </Button>
@@ -291,18 +291,18 @@ export function Navbar() {
 
             {isAuthenticated ? (
               <div className="hidden sm:flex items-center space-x-3">
-                <div className="flex items-center space-x-2 bg-slate-gray/5 rounded-full px-3 py-1.5">
+                <div className="flex items-center space-x-2 bg-muted/5 rounded-full px-3 py-1.5">
                   <div className="w-6 h-6 bg-gradient-to-br from-agri-green to-sky-teal rounded-full flex items-center justify-center">
                     <User className="w-3 h-3 text-white" />
                   </div>
-                  <span className="text-sm font-medium text-slate-gray">
+                  <span className="text-sm font-medium text-foreground">
                     {user?.name || user?.walletAddress?.slice(0, 6) + '...'}
                   </span>
                 </div>
                 <Button
                   variant="outline"
                   size="sm"
-                  className="border-slate-gray/20 hover:border-agri-green hover:text-agri-green"
+                  className="border-border hover:border-agri-green hover:text-agri-green"
                 >
                   Disconnect
                 </Button>
@@ -317,13 +317,13 @@ export function Navbar() {
             {/* Mobile Menu Button */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden p-2 rounded-lg hover:bg-slate-gray/5 transition-colors"
+              className="md:hidden p-2 rounded-lg hover:bg-muted/5 transition-colors"
               aria-label="Toggle mobile menu"
             >
               {isMobileMenuOpen ? (
-                <X className="w-6 h-6 text-slate-gray" />
+                <X className="w-6 h-6 text-foreground" />
               ) : (
-                <Menu className="w-6 h-6 text-slate-gray" />
+                <Menu className="w-6 h-6 text-foreground" />
               )}
             </button>
           </div>
@@ -331,17 +331,17 @@ export function Navbar() {
 
         {/* Mobile Navigation */}
         {isMobileMenuOpen && (
-          <div className="md:hidden border-t border-slate-gray/10 bg-paper-white/95 backdrop-blur-md animate-slideDown">
+          <div className="md:hidden border-t border-border/10 bg-paper-white/95 backdrop-blur-md animate-slideDown">
             <div className="px-4 py-6 space-y-4">
               {/* Mobile Search */}
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-gray/40" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-foreground/40" />
                 <Input
                   type="text"
                   placeholder="Search..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-slate-gray/5 border-slate-gray/20 focus:border-agri-green focus:ring-agri-green/20 rounded-lg"
+                  className="w-full pl-10 pr-4 py-3 bg-muted/5 border-border focus:border-agri-green focus:ring-agri-green/20 rounded-lg"
                 />
               </div>
 
@@ -351,7 +351,7 @@ export function Navbar() {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className="flex items-center space-x-3 px-4 py-3 rounded-lg text-slate-gray/70 hover:text-agri-green hover:bg-agri-green/5 transition-all duration-200"
+                    className="flex items-center space-x-3 px-4 py-3 rounded-lg text-foreground/70 hover:text-agri-green hover:bg-agri-green/5 transition-all duration-200"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     <item.icon className="w-5 h-5" />
@@ -366,14 +366,14 @@ export function Navbar() {
               </div>
 
               {/* Mobile Controls */}
-              <div className="border-t border-slate-gray/10 pt-4 space-y-3">
+              <div className="border-t border-border/10 pt-4 space-y-3">
                 <div className="flex space-x-2">
                   {/* Mobile Language */}
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => setShowLangMenu(!showLangMenu)}
-                    className="flex-1 border-slate-gray/20 hover:border-agri-green hover:text-agri-green"
+                    className="flex-1 border-border hover:border-agri-green hover:text-agri-green"
                   >
                     <Globe className="w-4 h-4 mr-2" />
                     {currentLang.flag} {currentLang.label}
@@ -384,7 +384,7 @@ export function Navbar() {
                     variant="outline"
                     size="sm"
                     onClick={() => setShowThemeMenu(!showThemeMenu)}
-                    className="flex-1 border-slate-gray/20 hover:border-agri-green hover:text-agri-green"
+                    className="flex-1 border-border hover:border-agri-green hover:text-agri-green"
                   >
                     {resolvedTheme === 'dark' ? (
                       <Moon className="w-4 h-4 mr-2" />
@@ -397,7 +397,7 @@ export function Navbar() {
 
                 {/* Mobile Language Menu */}
                 {showLangMenu && (
-                  <div className="bg-slate-gray/5 rounded-lg p-2 space-y-1">
+                  <div className="bg-muted/5 rounded-lg p-2 space-y-1">
                     {languageOptions.map((lang) => (
                       <button
                         key={lang.code}
@@ -405,10 +405,10 @@ export function Navbar() {
                           i18n.changeLanguage(lang.code);
                           setShowLangMenu(false);
                         }}
-                        className="w-full flex items-center space-x-3 px-3 py-2 rounded-md hover:bg-slate-gray/10 transition-colors"
+                        className="w-full flex items-center space-x-3 px-3 py-2 rounded-md hover:bg-muted/10 transition-colors"
                       >
                         <span className="text-lg">{lang.flag}</span>
-                        <span className="text-sm text-slate-gray">{lang.label}</span>
+                        <span className="text-sm text-foreground">{lang.label}</span>
                         {i18n.language === lang.code && <CheckCircle className="w-4 h-4 text-agri-green ml-auto" />}
                       </button>
                     ))}
@@ -417,7 +417,7 @@ export function Navbar() {
 
                 {/* Mobile Theme Menu */}
                 {showThemeMenu && (
-                  <div className="bg-slate-gray/5 rounded-lg p-2 space-y-1">
+                  <div className="bg-muted/5 rounded-lg p-2 space-y-1">
                     {themeOptions.map((option) => (
                       <button
                         key={option.value}
@@ -425,10 +425,10 @@ export function Navbar() {
                           setTheme(option.value as 'light' | 'dark' | 'system');
                           setShowThemeMenu(false);
                         }}
-                        className="w-full flex items-center space-x-3 px-3 py-2 rounded-md hover:bg-slate-gray/10 transition-colors"
+                        className="w-full flex items-center space-x-3 px-3 py-2 rounded-md hover:bg-muted/10 transition-colors"
                       >
-                        <option.icon className="w-4 h-4 text-slate-gray" />
-                        <span className="text-sm text-slate-gray">{option.label}</span>
+                        <option.icon className="w-4 h-4 text-foreground" />
+                        <span className="text-sm text-foreground">{option.label}</span>
                         {theme === option.value && <CheckCircle className="w-4 h-4 text-agri-green ml-auto" />}
                       </button>
                     ))}
@@ -436,20 +436,20 @@ export function Navbar() {
                 )}
 
                 {/* Mobile Auth */}
-                <div className="border-t border-slate-gray/10 pt-4">
+                <div className="border-t border-border/10 pt-4">
                   {isAuthenticated ? (
                     <div className="space-y-2">
                       <div className="flex items-center space-x-3 px-4 py-2">
                         <div className="w-8 h-8 bg-gradient-to-br from-agri-green to-sky-teal rounded-full flex items-center justify-center">
                           <User className="w-4 h-4 text-white" />
                         </div>
-                        <span className="font-medium text-slate-gray">
+                        <span className="font-medium text-foreground">
                           {user?.name || user?.walletAddress?.slice(0, 6) + '...'}
                         </span>
                       </div>
                       <Button
                         variant="outline"
-                        className="w-full border-slate-gray/20 hover:border-agri-green hover:text-agri-green"
+                        className="w-full border-border hover:border-agri-green hover:text-agri-green"
                       >
                         Disconnect Wallet
                       </Button>
