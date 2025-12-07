@@ -1,30 +1,203 @@
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { Leaf, Twitter, Github, Mail, MapPin, Phone, ExternalLink } from 'lucide-react';
 
 export function Footer() {
   const { t } = useTranslation();
 
+  const footerLinks = {
+    platform: [
+      { name: 'Dashboard', href: '/dashboard' },
+      { name: 'Marketplace', href: '/marketplace' },
+      { name: 'Carbon Credits', href: '/carbon' },
+      { name: 'Yield Farming', href: '/farming' },
+    ],
+    governance: [
+      { name: 'DAO Governance', href: '/governance' },
+      { name: 'Proposals', href: '/governance/proposals' },
+      { name: 'Voting', href: '/governance/vote' },
+      { name: 'Treasury', href: '/governance/treasury' },
+    ],
+    support: [
+      { name: 'Help Center', href: '/help' },
+      { name: 'Documentation', href: '/docs' },
+      { name: 'API Reference', href: '/api' },
+      { name: 'Contact Us', href: '/contact' },
+    ],
+    legal: [
+      { name: 'Privacy Policy', href: '/privacy' },
+      { name: 'Terms of Service', href: '/terms' },
+      { name: 'Cookie Policy', href: '/cookies' },
+      { name: 'Compliance', href: '/compliance' },
+    ],
+  };
+
+  const socialLinks = [
+    { name: 'Twitter', href: 'https://twitter.com/agricreditafrica', icon: Twitter },
+    { name: 'GitHub', href: 'https://github.com/agricreditafrica', icon: Github },
+    { name: 'Email', href: 'mailto:hello@agricredit.africa', icon: Mail },
+  ];
+
   return (
-    <footer className="border-t bg-background">
-      <div className="container flex flex-col items-center justify-between gap-4 py-10 md:h-24 md:flex-row md:py-0">
-        <div className="flex flex-col items-center gap-4 px-8 md:flex-row md:gap-2 md:px-0">
-          <p className="text-center text-sm leading-loose text-muted-foreground md:text-left">
-            Built for African farmers. Powered by AI and Blockchain.
-          </p>
+    <footer className="bg-slate-gray text-paper-white">
+      {/* Main Footer Content */}
+      <div className="container py-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8">
+          {/* Brand Section */}
+          <div className="lg:col-span-2">
+            <Link href="/" className="flex items-center space-x-3 mb-6 group">
+              <div className="w-12 h-12 bg-gradient-to-br from-agri-green to-sky-teal rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
+                <Leaf className="w-7 h-7 text-white" />
+              </div>
+              <div>
+                <div className="font-black text-2xl text-paper-white group-hover:text-harvest-gold transition-colors">
+                  AgriCredit
+                </div>
+                <div className="text-sm text-paper-white/60">Africa</div>
+              </div>
+            </Link>
+
+            <p className="text-paper-white/80 mb-6 leading-relaxed">
+              Empowering African farmers with AI-powered microfinance and blockchain technology.
+              Transparent, fair, and sustainable agricultural finance for the future.
+            </p>
+
+            <div className="flex space-x-4">
+              {socialLinks.map((social) => (
+                <a
+                  key={social.name}
+                  href={social.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 bg-paper-white/10 rounded-lg flex items-center justify-center hover:bg-harvest-gold hover:text-slate-gray transition-all duration-200 group"
+                  aria-label={social.name}
+                >
+                  <social.icon className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                </a>
+              ))}
+            </div>
+          </div>
+
+          {/* Platform Links */}
+          <div>
+            <h3 className="font-bold text-lg mb-4 text-harvest-gold">Platform</h3>
+            <ul className="space-y-3">
+              {footerLinks.platform.map((link) => (
+                <li key={link.name}>
+                  <Link
+                    href={link.href}
+                    className="text-paper-white/70 hover:text-harvest-gold transition-colors duration-200 flex items-center group"
+                  >
+                    {link.name}
+                    <ExternalLink className="w-3 h-3 ml-1 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Governance Links */}
+          <div>
+            <h3 className="font-bold text-lg mb-4 text-harvest-gold">Governance</h3>
+            <ul className="space-y-3">
+              {footerLinks.governance.map((link) => (
+                <li key={link.name}>
+                  <Link
+                    href={link.href}
+                    className="text-paper-white/70 hover:text-harvest-gold transition-colors duration-200 flex items-center group"
+                  >
+                    {link.name}
+                    <ExternalLink className="w-3 h-3 ml-1 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Support Links */}
+          <div>
+            <h3 className="font-bold text-lg mb-4 text-harvest-gold">Support</h3>
+            <ul className="space-y-3">
+              {footerLinks.support.map((link) => (
+                <li key={link.name}>
+                  <Link
+                    href={link.href}
+                    className="text-paper-white/70 hover:text-harvest-gold transition-colors duration-200 flex items-center group"
+                  >
+                    {link.name}
+                    <ExternalLink className="w-3 h-3 ml-1 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Contact & Newsletter */}
+          <div>
+            <h3 className="font-bold text-lg mb-4 text-harvest-gold">Stay Connected</h3>
+            <div className="space-y-4">
+              <div className="flex items-start space-x-3">
+                <MapPin className="w-5 h-5 text-harvest-gold mt-0.5 flex-shrink-0" />
+                <div className="text-paper-white/70 text-sm">
+                  <div>Nairobi, Kenya</div>
+                  <div>Lagos, Nigeria</div>
+                  <div>Accra, Ghana</div>
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-3">
+                <Phone className="w-5 h-5 text-harvest-gold flex-shrink-0" />
+                <a
+                  href="tel:+254700000000"
+                  className="text-paper-white/70 hover:text-harvest-gold transition-colors text-sm"
+                >
+                  +254 700 000 000
+                </a>
+              </div>
+
+              <div className="pt-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full border-harvest-gold text-harvest-gold hover:bg-harvest-gold hover:text-slate-gray"
+                >
+                  Join Newsletter
+                </Button>
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="flex items-center space-x-4">
-          <Link
-            href="/help"
-            className="text-sm text-muted-foreground hover:text-foreground"
-          >
-            {t('navigation.help')}
-          </Link>
-          <Link
-            href="/profile"
-            className="text-sm text-muted-foreground hover:text-foreground"
-          >
-            {t('navigation.profile')}
-          </Link>
+      </div>
+
+      <Separator className="bg-paper-white/10" />
+
+      {/* Bottom Footer */}
+      <div className="container py-6">
+        <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+          <div className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-6 text-sm text-paper-white/60">
+            <p>© 2025 AgriCredit Africa. All rights reserved.</p>
+            <div className="flex space-x-6">
+              {footerLinks.legal.map((link) => (
+                <Link
+                  key={link.name}
+                  href={link.href}
+                  className="hover:text-harvest-gold transition-colors"
+                >
+                  {link.name}
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex items-center space-x-4 text-sm text-paper-white/60">
+            <span>Powered by</span>
+            <div className="flex items-center space-x-2">
+              <div className="w-6 h-6 bg-gradient-to-br from-agri-green to-sky-teal rounded"></div>
+              <span className="font-semibold text-harvest-gold">AI + Blockchain</span>
+            </div>
+          </div>
         </div>
       </div>
     </footer>
