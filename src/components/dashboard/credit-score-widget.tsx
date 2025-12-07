@@ -3,9 +3,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
 import { useTranslation } from 'react-i18next';
 import { useRunCreditScoringMutation } from '@/store/apiSlice';
-import { useState } from 'react';
+import { TrendingUp, TrendingDown, BarChart3, RefreshCw, CheckCircle, AlertTriangle, Info } from 'lucide-react';
 
 export function CreditScoreWidget() {
   const { t } = useTranslation();
@@ -33,72 +34,165 @@ export function CreditScoreWidget() {
 
   const creditScore = creditData?.data?.credit_score || 0;
   const confidence = creditData?.data?.confidence ? Math.round(creditData.data.confidence * 100) : 0;
+  const riskLevel = creditData?.data?.risk_level || 'Unknown';
 
   const getScoreColor = (score: number) => {
-    if (score >= 700) return 'text-success';
-    if (score >= 600) return 'text-warning';
-    return 'text-error';
+    if (score >= 700) return 'text-sky-teal';
+    if (score >= 600) return 'text-harvest-gold';
+    return 'text-red-500';
   };
 
-  const getScoreBadge = (score: number) => {
-    if (score >= 700) return 'Excellent';
-    if (score >= 600) return 'Good';
-    return 'Needs Improvement';
+  const getScoreGradient = (score: number) => {
+    if (score >= 700) return 'from-green-500 to-emerald-500';
+    if (score >= 600) return 'from-amber-500 to-orange-500';
+    return 'from-red-500 to-red-600';
+  };
+
+  const getRiskBadgeColor = (risk: string) => {
+    switch (risk.toLowerCase()) {
+      case 'low': return 'bg-sky-teal/10 text-sky-teal border-sky-teal/20';
+      case 'medium': return 'bg-harvest-gold/10 text-harvest-gold border-harvest-gold/20';
+      case 'high': return 'bg-red-500/10 text-red-500 border-red-500/20';
+      default: return 'bg-slate-gray/10 text-slate-gray border-slate-gray/20';
+    }
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{t('dashboard.creditScore')}</CardTitle>
+    <Card className="shadow-level2 border-0 overflow-hidden">
+      <div className={`h-1 bg-gradient-to-r ${getScoreGradient(creditScore)}`}></div>
+      <CardHeader className="pb-4">
+        <CardTitle className="flex items-center text-slate-gray">
+          <BarChart3 className="w-5 h-5 mr-2 text-agri-green" />
+          AI Credit Score
+        </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-6">
         {creditScore > 0 ? (
           <>
-            <div className="flex items-center justify-between mb-4">
-              <div className={`text-4xl font-bold ${getScoreColor(creditScore)}`}>
+            {/* Score Display */}
+            <div className="text-center space-y-4">
+              <div className={`text-5xl font-black ${getScoreColor(creditScore)}`}>
                 {creditScore}
               </div>
-              <Badge variant="secondary">{getScoreBadge(creditScore)}</Badge>
-            </div>
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>Confidence Level</span>
-                <span>{confidence}%</span>
-              </div>
-              <div className="w-full bg-muted rounded-full h-2">
-                <div
-                  className="bg-agri-green h-2 rounded-full"
-                  style={{ width: `${confidence}%` }}
-                />
+              <div className="flex items-center justify-center space-x-2">
+                <Badge className={getRiskBadgeColor(riskLevel)}>
+                  {riskLevel} Risk
+                </Badge>
+                <Badge variant="outline" className="border-slate-gray/20">
+                  <CheckCircle className="w-3 h-3 mr-1" />
+                  Verified
+                </Badge>
               </div>
             </div>
-            <p className="text-sm text-muted-foreground mt-4">
-              Based on satellite data, farm history, and repayment behavior.
-            </p>
+
+            {/* Confidence Meter */}
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium text-slate-gray">AI Confidence</span>
+                <span className="text-sm font-bold text-agri-green">{confidence}%</span>
+              </div>
+              <Progress value={confidence} className="h-3" />
+              <p className="text-xs text-slate-gray/60 text-center">
+                Based on satellite data, repayment history, and market factors
+              </p>
+            </div>
+
+            {/* Key Factors */}
             {creditData?.data?.explainability && (
-              <div className="mt-4">
-                <h4 className="text-sm font-medium mb-2">Key Factors:</h4>
-                <ul className="text-xs text-muted-foreground space-y-1">
+              <div className="space-y-3">
+                <h4 className="text-sm font-semibold text-slate-gray flex items-center">
+                  <Info className="w-4 h-4 mr-2 text-agri-green" />
+                  Key Factors
+                </h4>
+                <div className="space-y-2">
                   {creditData.data.explainability.slice(0, 3).map((factor: any, index: number) => (
-                    <li key={index}>• {factor.feature}: {factor.impact > 0 ? '+' : ''}{factor.impact.toFixed(2)}</li>
+                    <div key={index} className="flex items-center justify-between p-3 bg-slate-gray/5 rounded-lg">
+                      <span className="text-sm text-slate-gray capitalize">
+                        {factor.feature.replace(/_/g, ' ')}
+                      </span>
+                      <div className="flex items-center space-x-1">
+                        {factor.impact > 0 ? (
+                          <TrendingUp className="w-4 h-4 text-sky-teal" />
+                        ) : (
+                          <TrendingDown className="w-4 h-4 text-red-500" />
+                        )}
+                        <span className={`text-sm font-medium ${
+                          factor.impact > 0 ? 'text-sky-teal' : 'text-red-500'
+                        }`}>
+                          {factor.impact > 0 ? '+' : ''}{factor.impact.toFixed(1)}
+                        </span>
+                      </div>
+                    </div>
                   ))}
-                </ul>
+                </div>
               </div>
             )}
+
+            {/* Last Updated */}
+            <div className="flex items-center justify-between pt-4 border-t border-slate-gray/10">
+              <span className="text-xs text-slate-gray/60">Last updated</span>
+              <span className="text-xs text-slate-gray/60">
+                {new Date().toLocaleDateString()}
+              </span>
+            </div>
           </>
         ) : (
-          <div className="text-center py-8">
-            <p className="text-muted-foreground mb-4">
-              Run AI credit scoring to get your personalized credit score
-            </p>
-            <Button onClick={handleRunScoring} disabled={isLoading}>
-              {isLoading ? 'Analyzing...' : 'Run Credit Scoring'}
-            </Button>
-            {error && (
-              <p className="text-error text-sm mt-2">
-                Failed to run credit scoring. Please try again.
+          <div className="text-center py-8 space-y-6">
+            <div className="w-16 h-16 bg-gradient-to-br from-agri-green/20 to-sky-teal/20 rounded-2xl flex items-center justify-center mx-auto">
+              <BarChart3 className="w-8 h-8 text-agri-green" />
+            </div>
+
+            <div>
+              <h3 className="text-lg font-semibold text-slate-gray mb-2">
+                Get Your AI Credit Score
+              </h3>
+              <p className="text-slate-gray/70 text-sm max-w-sm mx-auto">
+                Our AI analyzes satellite imagery, repayment history, and market data to calculate your personalized credit score
               </p>
+            </div>
+
+            <Button
+              onClick={handleRunScoring}
+              disabled={isLoading}
+              className="btn-primary w-full"
+            >
+              {isLoading ? (
+                <>
+                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                  Analyzing Your Data...
+                </>
+              ) : (
+                <>
+                  <BarChart3 className="w-4 h-4 mr-2" />
+                  Run AI Credit Scoring
+                </>
+              )}
+            </Button>
+
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <div className="flex items-start space-x-3">
+                  <AlertTriangle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <h5 className="font-medium text-red-800 mb-1">Analysis Failed</h5>
+                    <p className="text-sm text-red-700">
+                      Unable to calculate credit score. Please check your farm data and try again.
+                    </p>
+                  </div>
+                </div>
+              </div>
             )}
+
+            <div className="grid grid-cols-2 gap-4 text-xs text-slate-gray/60">
+              <div className="text-center">
+                <div className="font-semibold text-agri-green">300-850</div>
+                <div>Score Range</div>
+              </div>
+              <div className="text-center">
+                <div className="font-semibold text-agri-green">24h</div>
+                <div>Processing Time</div>
+              </div>
+            </div>
           </div>
         )}
       </CardContent>
