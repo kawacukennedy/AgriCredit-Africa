@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { useAppSelector } from '@/store/hooks';
-import { useTheme } from '@/hooks/useTheme';
+import { useTheme } from '@/components/theme-provider';
 import { Menu, X, Leaf, Wallet, User, BarChart3, ShoppingCart, Coins, HelpCircle, Settings, Bell, ChevronDown, CheckCircle, AlertCircle, Zap, Search, Sun, Moon, Monitor, Globe } from 'lucide-react';
 
 export function Navbar() {

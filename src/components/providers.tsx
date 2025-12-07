@@ -2,6 +2,7 @@
 
 import { Provider } from 'react-redux';
 import { store } from '@/store';
+import { ThemeProvider } from '@/components/theme-provider';
 import '../i18n';
 
 interface ProvidersProps {
@@ -11,7 +12,9 @@ interface ProvidersProps {
 export function Providers({ children }: ProvidersProps) {
   return (
     <Provider store={store}>
-      {children}
+      <ThemeProvider>
+        {children}
+      </ThemeProvider>
     </Provider>
   );
 }
