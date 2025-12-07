@@ -92,8 +92,8 @@ export function Navbar() {
   const currentLang = languageOptions.find(lang => lang.code === i18n.language) || languageOptions[0];
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border shadow-md">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-background/98 backdrop-blur-md border-b border-border shadow-lg">
+      <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-3 group">
@@ -137,7 +137,7 @@ export function Navbar() {
                 placeholder="Search..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-40 pl-10 pr-4 py-2 bg-muted/5 border-border focus:border-agri-green focus:ring-agri-green/20 rounded-full"
+                className="w-48 pl-10 pr-4 py-2 bg-muted/5 border-border focus:border-agri-green focus:ring-agri-green/20 rounded-full"
               />
             </div>
 
@@ -333,7 +333,7 @@ export function Navbar() {
 
         {/* Mobile Navigation */}
         {isMobileMenuOpen && (
-          <div className="md:hidden border-t border-border bg-background animate-slideDown">
+          <div className="md:hidden border-t border-border bg-background/98 backdrop-blur-md animate-slideDown">
             <div className="px-4 py-6 space-y-4">
               {/* Mobile Search */}
               <div className="relative">
