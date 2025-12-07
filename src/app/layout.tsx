@@ -89,7 +89,7 @@ function RootLayout({
             Skip to main content
           </a>
           <Navbar />
-          <main id="main-content" className="min-h-screen pt-24">
+          <main id="main-content" className="min-h-screen pt-16">
             {children}
           </main>
           <Footer />

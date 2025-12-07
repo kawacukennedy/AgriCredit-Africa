@@ -23,8 +23,6 @@ export function Navbar() {
   const themeRef = useRef<HTMLDivElement>(null);
   const langRef = useRef<HTMLDivElement>(null);
 
-
-
   // Close dropdowns when clicking outside or pressing Escape
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -44,6 +42,7 @@ export function Navbar() {
         setShowNotifications(false);
         setShowThemeMenu(false);
         setShowLangMenu(false);
+        setIsMobileMenuOpen(false);
       }
     }
 
@@ -92,11 +91,11 @@ export function Navbar() {
   const currentLang = languageOptions.find(lang => lang.code === i18n.language) || languageOptions[0];
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-background/98 backdrop-blur-md border-b border-border shadow-lg">
-      <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border shadow-sm">
+      <div className="w-full px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center space-x-3 group">
+          <Link href="/" className="flex items-center space-x-3 group flex-shrink-0">
             <div className="w-10 h-10 bg-gradient-to-br from-agri-green to-sky-teal rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
               <Leaf className="w-6 h-6 text-white" />
             </div>
@@ -109,7 +108,7 @@ export function Navbar() {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-1">
+          <div className="hidden md:flex items-center space-x-1 flex-1 justify-center">
             {navigationItems.map((item) => (
               <Link
                 key={item.href}
@@ -128,10 +127,10 @@ export function Navbar() {
           </div>
 
           {/* Search and Controls */}
-          <div className="hidden md:flex items-center space-x-3">
+          <div className="hidden md:flex items-center space-x-3 flex-shrink-0">
             {/* Search Bar */}
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-foreground/40" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 type="text"
                 placeholder="Search..."
@@ -159,7 +158,7 @@ export function Navbar() {
 
               {showLangMenu && (
                 <div
-                  className="absolute right-0 mt-2 w-40 bg-background border border-border rounded-xl shadow-level3 z-50"
+                  className="absolute right-0 mt-2 w-40 bg-background border border-border rounded-xl shadow-lg z-50"
                   role="menu"
                   aria-label="Language selection menu"
                 >
@@ -203,7 +202,7 @@ export function Navbar() {
 
               {showThemeMenu && (
                 <div
-                  className="absolute right-0 mt-2 w-36 bg-background border border-border rounded-xl shadow-level3 z-50"
+                  className="absolute right-0 mt-2 w-36 bg-background border border-border rounded-xl shadow-lg z-50"
                   role="menu"
                   aria-label="Theme selection menu"
                 >
@@ -228,7 +227,7 @@ export function Navbar() {
           </div>
 
           {/* Auth Section */}
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-3 flex-shrink-0">
             {isAuthenticated && (
               <div className="relative" ref={notificationsRef}>
                 <Button
@@ -251,13 +250,13 @@ export function Navbar() {
                 {/* Notifications Dropdown */}
                 {showNotifications && (
                   <div
-                    className="absolute right-0 mt-2 w-80 bg-background border border-border rounded-xl shadow-level3 z-50"
+                    className="absolute right-0 mt-2 w-80 bg-background border border-border rounded-xl shadow-lg z-50"
                     role="menu"
                     aria-label="Notifications menu"
                   >
                     <div className="p-4 border-b border-border/10">
                       <h3 className="font-semibold text-foreground">Notifications</h3>
-                      <p className="text-sm text-foreground/60">Stay updated with your activities</p>
+                      <p className="text-sm text-muted-foreground">Stay updated with your activities</p>
                     </div>
                     <div className="max-h-96 overflow-y-auto">
                       {notifications.map((notification) => (
@@ -274,8 +273,8 @@ export function Navbar() {
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-medium text-foreground">{notification.title}</p>
-                              <p className="text-sm text-foreground/70 line-clamp-2">{notification.message}</p>
-                              <p className="text-xs text-foreground/50 mt-1">{notification.time}</p>
+                              <p className="text-sm text-muted-foreground line-clamp-2">{notification.message}</p>
+                              <p className="text-xs text-muted-foreground mt-1">{notification.time}</p>
                             </div>
                           </div>
                         </div>
@@ -333,11 +332,11 @@ export function Navbar() {
 
         {/* Mobile Navigation */}
         {isMobileMenuOpen && (
-          <div className="md:hidden border-t border-border bg-background/98 backdrop-blur-md animate-slideDown">
+          <div className="md:hidden border-t border-border bg-background">
             <div className="px-4 py-6 space-y-4">
               {/* Mobile Search */}
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-foreground/40" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   type="text"
                   placeholder="Search..."
@@ -353,7 +352,7 @@ export function Navbar() {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className="flex items-center space-x-3 px-4 py-3 rounded-lg text-foreground/70 hover:text-agri-green hover:bg-agri-green/5 transition-all duration-200"
+                    className="flex items-center space-x-3 px-4 py-3 rounded-lg text-muted-foreground hover:text-agri-green hover:bg-agri-green/5 transition-all duration-200"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     <item.icon className="w-5 h-5" />

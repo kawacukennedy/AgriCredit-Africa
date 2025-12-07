@@ -70,9 +70,9 @@ export function Footer() {
   };
 
   return (
-    <footer className="bg-slate-gray text-paper-white">
+    <footer className="bg-slate-gray text-paper-white mt-16">
       {/* Main Footer Content */}
-      <div className="container py-16">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8">
           {/* Brand Section */}
           <div className="lg:col-span-2">
@@ -186,31 +186,31 @@ export function Footer() {
                 </a>
               </div>
 
-               <div className="pt-4">
-                 <form onSubmit={handleNewsletterSubmit} className="space-y-3">
-                   <div className="flex space-x-2">
-                     <Input
-                       type="email"
-                       placeholder="Enter your email"
-                       value={email}
-                       onChange={(e) => setEmail(e.target.value)}
-                       className="flex-1 bg-paper-white/10 border-paper-white/20 text-paper-white placeholder:text-paper-white/60 focus:border-harvest-gold focus:ring-harvest-gold/20"
-                       required
-                     />
-                     <Button
-                       type="submit"
-                       size="sm"
-                       className="bg-harvest-gold hover:bg-harvest-gold/90 text-slate-gray px-4"
-                       disabled={isSubscribed}
-                     >
-                       {isSubscribed ? <CheckCircle className="w-4 h-4" /> : <Send className="w-4 h-4" />}
-                     </Button>
-                   </div>
-                   {isSubscribed && (
-                     <p className="text-sm text-harvest-gold">Successfully subscribed!</p>
-                   )}
-                 </form>
-               </div>
+              <div className="pt-4">
+                <form onSubmit={handleNewsletterSubmit} className="space-y-3">
+                  <div className="flex space-x-2">
+                    <Input
+                      type="email"
+                      placeholder="Enter your email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="flex-1 bg-paper-white/10 border-paper-white/20 text-paper-white placeholder:text-paper-white/60 focus:border-harvest-gold focus:ring-harvest-gold/20"
+                      required
+                    />
+                    <Button
+                      type="submit"
+                      size="sm"
+                      className="bg-harvest-gold hover:bg-harvest-gold/90 text-slate-gray px-4"
+                      disabled={isSubscribed}
+                    >
+                      {isSubscribed ? <CheckCircle className="w-4 h-4" /> : <Send className="w-4 h-4" />}
+                    </Button>
+                  </div>
+                  {isSubscribed && (
+                    <p className="text-sm text-harvest-gold">Successfully subscribed!</p>
+                  )}
+                </form>
+              </div>
             </div>
           </div>
         </div>
@@ -218,7 +218,7 @@ export function Footer() {
 
       {/* Certifications Section */}
       <div className="bg-paper-white/5 border-t border-paper-white/10">
-        <div className="container py-8">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <div className="flex flex-wrap justify-center md:justify-start gap-6">
               {certifications.map((cert) => (
@@ -249,7 +249,7 @@ export function Footer() {
       <Separator className="bg-paper-white/10" />
 
       {/* Bottom Footer */}
-      <div className="container py-6">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
           <div className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-6 text-sm text-paper-white/60">
             <p>© 2025 AgriCredit Africa. All rights reserved.</p>
