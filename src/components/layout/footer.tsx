@@ -1,11 +1,15 @@
 import Link from 'next/link';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
-import { Leaf, Twitter, Github, Mail, MapPin, Phone, ExternalLink } from 'lucide-react';
+import { Leaf, Twitter, Github, Mail, MapPin, Phone, ExternalLink, ArrowUp, Shield, Award, CheckCircle, Linkedin, MessageCircle, Send } from 'lucide-react';
 
 export function Footer() {
   const { t } = useTranslation();
+  const [email, setEmail] = useState('');
+  const [isSubscribed, setIsSubscribed] = useState(false);
 
   const footerLinks = {
     platform: [
@@ -36,9 +40,32 @@ export function Footer() {
 
   const socialLinks = [
     { name: 'Twitter', href: 'https://twitter.com/agricreditafrica', icon: Twitter },
+    { name: 'LinkedIn', href: 'https://linkedin.com/company/agricreditafrica', icon: Linkedin },
     { name: 'GitHub', href: 'https://github.com/agricreditafrica', icon: Github },
+    { name: 'Telegram', href: 'https://t.me/agricreditafrica', icon: Send },
+    { name: 'Discord', href: 'https://discord.gg/agricreditafrica', icon: MessageCircle },
     { name: 'Email', href: 'mailto:hello@agricredit.africa', icon: Mail },
   ];
+
+  const certifications = [
+    { name: 'ISO 27001', icon: Shield, description: 'Information Security' },
+    { name: 'Blockchain Verified', icon: CheckCircle, description: 'Smart Contract Audited' },
+    { name: 'Carbon Certified', icon: Award, description: 'Climate Action Verified' },
+  ];
+
+  const handleNewsletterSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (email) {
+      // Mock subscription
+      setIsSubscribed(true);
+      setEmail('');
+      setTimeout(() => setIsSubscribed(false), 3000);
+    }
+  };
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   return (
     <footer className="bg-slate-gray text-paper-white">
@@ -157,16 +184,62 @@ export function Footer() {
                 </a>
               </div>
 
-              <div className="pt-4">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full border-harvest-gold text-harvest-gold hover:bg-harvest-gold hover:text-slate-gray"
-                >
-                  Join Newsletter
-                </Button>
-              </div>
+               <div className="pt-4">
+                 <form onSubmit={handleNewsletterSubmit} className="space-y-3">
+                   <div className="flex space-x-2">
+                     <Input
+                       type="email"
+                       placeholder="Enter your email"
+                       value={email}
+                       onChange={(e) => setEmail(e.target.value)}
+                       className="flex-1 bg-paper-white/10 border-paper-white/20 text-paper-white placeholder:text-paper-white/60 focus:border-harvest-gold focus:ring-harvest-gold/20"
+                       required
+                     />
+                     <Button
+                       type="submit"
+                       size="sm"
+                       className="bg-harvest-gold hover:bg-harvest-gold/90 text-slate-gray px-4"
+                       disabled={isSubscribed}
+                     >
+                       {isSubscribed ? <CheckCircle className="w-4 h-4" /> : <Send className="w-4 h-4" />}
+                     </Button>
+                   </div>
+                   {isSubscribed && (
+                     <p className="text-sm text-harvest-gold">Successfully subscribed!</p>
+                   )}
+                 </form>
+               </div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Certifications Section */}
+      <div className="bg-paper-white/5 border-t border-paper-white/10">
+        <div className="container py-8">
+          <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+            <div className="flex flex-wrap justify-center md:justify-start gap-6">
+              {certifications.map((cert) => (
+                <div key={cert.name} className="flex items-center space-x-3 text-paper-white/80">
+                  <cert.icon className="w-6 h-6 text-harvest-gold" />
+                  <div>
+                    <div className="font-semibold text-sm">{cert.name}</div>
+                    <div className="text-xs text-paper-white/60">{cert.description}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Back to Top Button */}
+            <Button
+              onClick={scrollToTop}
+              variant="outline"
+              size="sm"
+              className="border-harvest-gold text-harvest-gold hover:bg-harvest-gold hover:text-slate-gray"
+            >
+              <ArrowUp className="w-4 h-4 mr-2" />
+              Back to Top
+            </Button>
           </div>
         </div>
       </div>
