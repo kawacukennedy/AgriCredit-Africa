@@ -6,7 +6,11 @@ import { useAppDispatch } from '@/store/hooks';
 import { loginStart, loginSuccess, loginFailure } from '@/store/slices/authSlice';
 import { useTranslation } from 'react-i18next';
 
-export function WalletConnect() {
+interface WalletConnectProps {
+  onSuccess?: () => void;
+}
+
+export function WalletConnect({ onSuccess }: WalletConnectProps) {
   const [isConnecting, setIsConnecting] = useState(false);
   const dispatch = useAppDispatch();
   const { t } = useTranslation();
@@ -42,7 +46,8 @@ export function WalletConnect() {
         profileComplete: true,
       };
 
-      dispatch(loginSuccess({ user, token: 'mock-jwt-token' }));
+       dispatch(loginSuccess({ user, token: 'mock-jwt-token' }));
+       onSuccess?.();
     } catch (error) {
       console.error('Wallet connection failed:', error);
       dispatch(loginFailure('Failed to connect wallet'));

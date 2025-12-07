@@ -1,28 +1,22 @@
 'use client';
 
+import { Suspense } from 'react';
+import { useTranslation } from 'react-i18next';
+import Link from 'next/link';
 import { AuthGuard } from '@/components/auth/AuthGuard';
 import { CreditScoreWidget } from '@/components/dashboard/credit-score-widget';
 import { LoanList } from '@/components/dashboard/loan-list';
-import { FarmMap } from '@/components/dashboard/farm-map';
 import { CarbonWidget } from '@/components/dashboard/carbon-widget';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useTranslation } from 'react-i18next';
-import Link from 'next/link';
-import {
-  TrendingUp,
-  AlertTriangle,
-  CheckCircle,
-  DollarSign,
-  Leaf,
-  BarChart3,
-  Plus,
-  ArrowRight,
-  Bell,
-  Settings,
-  User
-} from 'lucide-react';
+import { Bell, Settings, CheckCircle, AlertTriangle, Leaf, DollarSign, BarChart3, TrendingUp, Plus, User } from 'lucide-react';
+import dynamic from 'next/dynamic';
+
+const FarmMap = dynamic(() => import('@/components/dashboard/farm-map'), {
+  ssr: false,
+  loading: () => <div className="h-64 bg-gray-100 rounded-lg animate-pulse" />
+});
 
 export default function FarmerDashboard() {
   const { t } = useTranslation();

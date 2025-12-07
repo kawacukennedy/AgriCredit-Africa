@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useTranslation } from 'react-i18next';
 import { MapPin, ZoomIn, ZoomOut, RotateCcw, Activity, TrendingUp, Cloud, Sun } from 'lucide-react';
 
-export function FarmMap() {
+export default function FarmMap() {
   const { t } = useTranslation();
 
   // Mock NDVI data for the last 30 days

@@ -4,6 +4,7 @@ import "./globals.css";
 import { Providers } from '@/components/providers';
 import { Navbar } from '@/components/layout/navbar';
 import { Footer } from '@/components/layout/footer';
+import { ServiceWorkerRegister } from '@/components/service-worker-register';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -85,6 +86,7 @@ function RootLayout({
       </head>
       <body className="font-sans antialiased bg-background text-foreground">
         <Providers>
+          <ServiceWorkerRegister />
           <a href="#main-content" className="skip-link sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2">
             Skip to main content
           </a>

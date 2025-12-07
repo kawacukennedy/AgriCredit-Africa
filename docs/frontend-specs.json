@@ -1,0 +1,3480 @@
+{
+  "project_overview": {
+    "app_name": "AgriCredit Africa",
+    "app_description": "A full-stack AI + Blockchain platform providing smallholder farmers in Africa with instant microloans, tokenized carbon incentives, and a marketplace. Combines satellite/IoT/mobile data with explainable AI credit scoring and smart-contract lending.",
+    "target_platforms": ["web", "mobile_web", "pwa", "desktop"],
+    "supported_browsers": [
+      "Chrome >= 90",
+      "Firefox >= 88",
+      "Safari >= 14",
+      "Edge >= 91",
+      "Opera >= 76",
+      "Samsung Internet >= 16"
+    ],
+    "supported_devices": {
+      "mobile": {
+        "min_viewport": "320px",
+        "max_viewport": "767px",
+        "target_devices": ["Smartphones", "Feature phones with web capability", "USSD fallback devices"],
+        "touch_target_size": "44px minimum"
+      },
+      "tablet": {
+        "min_viewport": "768px",
+        "max_viewport": "1023px",
+        "target_devices": ["iPad", "Android tablets", "Hybrid devices"],
+        "orientation_support": "both portrait and landscape"
+      },
+      "desktop": {
+        "min_viewport": "1024px",
+        "max_viewport": "3840px",
+        "target_devices": ["Laptops", "Desktop computers", "Large monitors"],
+        "mouse_support": "full hover and precision interactions"
+      }
+    },
+    "accessibility_standards": "WCAG 2.1 AA compliance with AAA targets for critical functions",
+    "offline_capability": {
+      "pwa_installable": true,
+      "offline_functionality": ["View existing loans", "Access documents", "Basic dashboard"],
+      "data_sync_strategy": "Background sync for form submissions"
+    }
+  },
+  "technical_architecture": {
+    "application_type": "Progressive Web App (PWA) with SSR for critical pages and CSR for application shell",
+    "framework_selection": {
+      "primary_framework": "Next.js 14.1.0 with App Router",
+      "justification": "Provides optimal blend of SSR for SEO/performance, static generation for marketing pages, client-side routing for app experience, and built-in PWA support. Strong TypeScript integration and ecosystem for our complex state management needs.",
+      "framework_specific_patterns": {
+        "app_router_structure": {
+          "layout_patterns": "Root layout for global styles, nested layouts for dashboard/auth sections",
+          "route_groups": "(auth) for authentication pages, (dashboard) for protected routes",
+          "server_components": "Used for data-fetching heavy pages (marketplace, admin dashboard)",
+          "client_components": "Used for interactive features (loan application wizard, wallet connections)"
+        },
+        "api_routes": "Next.js API routes for serverless functions handling webhook callbacks and proxy requests",
+        "middleware_usage": "Authentication middleware for route protection, geolocation headers, A/B testing"
+      }
+    },
+    "state_management": {
+      "client_state_solution": "Redux Toolkit 1.9.5 with RTK Query",
+      "state_architecture": {
+        "store_structure": {
+          "auth": {
+            "user": {
+              "profile": "User object with wallet, DID, role",
+              "session": "JWT tokens, expiry",
+              "wallet_connection": "Web3 provider state, chain ID, account"
+            },
+            "permissions": "Role-based permissions array",
+            "onboarding": "Step completion tracking"
+          },
+          "loans": {
+            "requests": "Normalized by ID",
+            "marketplace": "Filtered and paginated loans",
+            "userLoans": "Current user's loan portfolio",
+            "fundedLoans": "Investor's funded loans"
+          },
+          "farms": {
+            "userFarms": "Current user's farm profiles",
+            "selectedFarm": "Currently active farm for operations"
+          },
+          "carbon": {
+            "credits": "User's carbon credit balance",
+            "marketplace": "Carbon credit listings"
+          },
+          "ui": {
+            "theme": "light/dark/high-contrast",
+            "notifications": "Toast notifications queue",
+            "modals": "Active modal stack",
+            "loading": "Global loading states by key"
+          }
+        },
+        "actions_definition": [
+          {
+            "slice": "auth",
+            "actions": ["setUser", "logout", "updateWallet", "setOnboardingStep"],
+            "thunks": ["loginWithWallet", "loginWithPhone", "refreshSession", "completeKYC"]
+          },
+          {
+            "slice": "loans",
+            "actions": ["setLoanFilters", "selectLoan", "updateLoanStatus"],
+            "thunks": ["applyForLoan", "fundLoan", "repayLoan", "liquidateLoanNFT"]
+          }
+        ],
+        "reducers_selectors": {
+          "normalization_strategy": "Normalizr for API responses",
+          "memoized_selectors": "createSelector from Redux Toolkit",
+          "key_selectors": [
+            "selectCurrentUser",
+            "selectUserLoans",
+            "selectFilteredMarketplaceLoans",
+            "selectFarmDetails",
+            "selectCarbonBalance",
+            "selectThemeMode"
+          ]
+        },
+        "middlewares": [
+          {
+            "middleware": "redux-persist",
+            "version": "6.0.0",
+            "purpose": "Persist auth and user preferences across sessions",
+            "whitelist": ["auth.user", "auth.permissions", "ui.theme"]
+          },
+          {
+            "middleware": "redux-logger",
+            "version": "3.0.6",
+            "purpose": "Development-only action logging",
+            "config": "collapsed: true, diff: true"
+          }
+        ],
+        "persistence_strategy": {
+          "storage_engine": "localStorage for basic persistence, IndexedDB for larger datasets",
+          "persisted_slices": ["auth", "ui"],
+          "migration_strategy": "Versioned migrations using redux-persist migrations",
+          "encryption": "Encrypt sensitive auth data using CryptoJS before storage"
+        }
+      },
+      "server_state_solution": "RTK Query 1.9.5 (integrated with Redux Toolkit)",
+      "caching_strategy": {
+        "cache_time": {
+          "public_data": 300,
+          "user_specific": 60,
+          "real_time": 30
+        },
+        "stale_time": {
+          "marketplace_listings": 120,
+          "loan_details": 180,
+          "user_profile": 300
+        },
+        "cache_invalidation_strategy": {
+          "tag_based_invalidation": {
+            "tags": ["Loan", "User", "Farm", "CarbonCredit"],
+            "invalidations": "Mutations automatically invalidate matching tags"
+          },
+          "optimistic_updates": "Implemented for funding actions and repayments",
+          "pessimistic_updates": "Used for critical financial transactions"
+        },
+        "prefetching": {
+          "on_hover": "Loan details on marketplace card hover",
+          "on_route_change": "Dashboard data on navigation prediction"
+        }
+      }
+    },
+    "routing_solution": {
+      "router_library": "Next.js App Router (built-in)",
+      "routing_configuration": {
+        "route_structure": [
+          {
+            "path": "/",
+            "type": "static",
+            "page": "LandingPage",
+            "priority": 1,
+            "sitemap": true
+          },
+          {
+            "path": "/dashboard",
+            "type": "protected",
+            "page": "DashboardPage",
+            "required_roles": ["farmer", "lender", "admin"],
+            "layout": "DashboardLayout"
+          },
+          {
+            "path": "/apply",
+            "type": "protected",
+            "page": "LoanApplicationWizard",
+            "required_roles": ["farmer", "coop_agent"],
+            "wizard_steps": 4
+          },
+          {
+            "path": "/marketplace",
+            "type": "protected",
+            "page": "LoanMarketplace",
+            "required_roles": ["lender", "investor"],
+            "search_params": ["filter", "sort", "page"]
+          },
+          {
+            "path": "/loan/[id]",
+            "type": "dynamic",
+            "page": "LoanDetailPage",
+            "validation": "UUID or on-chain address format"
+          },
+          {
+            "path": "/portfolio",
+            "type": "protected",
+            "page": "InvestorPortfolio",
+            "required_roles": ["lender", "investor"]
+          },
+          {
+            "path": "/admin",
+            "type": "protected",
+            "page": "AdminDashboard",
+            "required_roles": ["admin", "auditor"],
+            "subroutes": ["/admin/oracle", "/admin/disputes", "/admin/analytics"]
+          }
+        ],
+        "dynamic_routes": [
+          {
+            "pattern": "/loan/[id]",
+            "param_type": "uuid_or_hash",
+            "validation": "/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$|^0x[a-fA-F0-9]{64}$/",
+            "prefetch": true
+          },
+          {
+            "pattern": "/profile/[wallet]",
+            "param_type": "ethereum_address",
+            "validation": "/^0x[a-fA-F0-9]{40}$/",
+            "prefetch": false
+          }
+        ],
+        "route_guards": [
+          {
+            "guard_type": "authentication",
+            "implementation": "Middleware function checking JWT and wallet connection",
+            "redirect": "/login",
+            "bypass_routes": ["/", "/login", "/register", "/help", "/privacy"]
+          },
+          {
+            "guard_type": "authorization",
+            "implementation": "Role-based checks in layout components",
+            "redirect": "/dashboard",
+            "error_message": "Insufficient permissions"
+          }
+        ],
+        "route_transitions": [
+          {
+            "from": "/apply/*",
+            "to": "/dashboard",
+            "animation": "slide-left",
+            "duration": 300
+          },
+          {
+            "from": "/marketplace",
+            "to": "/loan/[id]",
+            "animation": "fade-scale",
+            "duration": 250
+          }
+        ],
+        "scroll_restoration": {
+          "enabled": true,
+          "behavior": "smooth",
+          "excluded_routes": ["/apply/*", "/admin/*"],
+          "save_scroll_position": true
+        },
+        "error_boundaries_per_route": {
+          "enabled": true,
+          "global_boundary": "Root error boundary for 500 errors",
+          "route_specific": {
+            "/dashboard": "DashboardErrorBoundary",
+            "/apply": "WizardErrorBoundary",
+            "/marketplace": "MarketplaceErrorBoundary"
+          }
+        }
+      }
+    },
+    "internationalization": {
+      "i18n_library": "next-i18next 13.2.0 with react-i18next 12.2.0",
+      "supported_languages": [
+        {
+          "code": "en",
+          "name": "English",
+          "default": true,
+          "region": "International"
+        },
+        {
+          "code": "fr",
+          "name": "Français",
+          "default": false,
+          "region": "Francophone Africa"
+        },
+        {
+          "code": "sw",
+          "name": "Kiswahili",
+          "default": false,
+          "region": "East Africa"
+        },
+        {
+          "code": "ha",
+          "name": "Hausa",
+          "default": false,
+          "region": "West Africa"
+        },
+        {
+          "code": "pt",
+          "name": "Português",
+          "default": false,
+          "region": "Lusophone Africa"
+        }
+      ],
+      "translation_structure": {
+        "namespace_organization": {
+          "common": ["buttons", "errors", "labels", "placeholders"],
+          "auth": ["login", "registration", "onboarding"],
+          "dashboard": ["navigation", "widgets", "alerts"],
+          "loans": ["application", "marketplace", "repayment"],
+          "carbon": ["credits", "marketplace", "verification"],
+          "admin": ["users", "loans", "oracle", "analytics"]
+        },
+        "key_naming_convention": "namespace:section.specific_key (e.g., loans:application.step1_title)",
+        "pluralization_rules": {
+          "en": "standard English plurals",
+          "fr": "complex plural rules with 0,1,many",
+          "sw": "noun classes with prefixes",
+          "ha": "singular/plural distinction",
+          "pt": "singular/plural with gender"
+        },
+        "rtl_support": {
+          "enabled": false,
+          "languages": ["ar", "he"],
+          "implementation": "CSS logical properties, direction context provider"
+        },
+        "localized_formatting": {
+          "dates": "Intl.DateTimeFormat with locale-specific calendars",
+          "numbers": "Intl.NumberFormat for currencies and percentages",
+          "currencies": "cUSD, XOF, XAF, NGN, KES, GHS with local symbols"
+        }
+      }
+    },
+    "performance_optimization": {
+      "code_splitting_strategy": {
+        "route_level_splitting": {
+          "enabled": true,
+          "strategy": "Automatic by Next.js App Router",
+          "loading_components": "Route-specific loading.tsx files"
+        },
+        "component_level_splitting": {
+          "enabled": true,
+          "components": [
+            {
+              "name": "FarmMap",
+              "import": "dynamic(() => import('@/components/maps/FarmMap'), { ssr: false })",
+              "loading": "MapSkeleton"
+            },
+            {
+              "name": "AIScoreChart",
+              "import": "dynamic(() => import('@/components/charts/AIScoreChart'))",
+              "loading": "ChartSkeleton"
+            },
+            {
+              "name": "LoanContractViewer",
+              "import": "dynamic(() => import('@/components/contracts/LoanContractViewer'), { ssr: false })",
+              "loading": "ContractLoader"
+            }
+          ]
+        },
+        "vendor_splitting": {
+          "enabled": true,
+          "chunks": [
+            {
+              "name": "web3-vendor",
+              "includes": ["ethers", "web3modal", "@walletconnect"]
+            },
+            {
+              "name": "charts-vendor",
+              "includes": ["chart.js", "react-chartjs-2", "d3-scale"]
+            },
+            {
+              "name": "maps-vendor",
+              "includes": ["maplibre-gl", "@mapbox/tilebelt", "turf"]
+            }
+          ],
+          "strategy": "Next.js automatic vendor chunking with manual overrides"
+        }
+      },
+      "asset_optimization": {
+        "image_optimization_strategy": {
+          "next_image": {
+            "enabled": true,
+            "formats": ["webp", "avif"],
+            "quality": 75,
+            "sizes": "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          },
+          "responsive_images": {
+            "breakpoints": [640, 750, 828, 1080, 1200, 1920],
+            "placeholder": "blur",
+            "blur_data_url": "generated for critical images"
+          },
+          "lazy_loading": {
+            "threshold": "0.1",
+            "root_margin": "200px",
+            "native_lazy": true
+          }
+        },
+        "font_loading_strategy": {
+          "font_families": [
+            {
+              "name": "Poppins",
+              "weights": [300, 400, 500, 600, 700],
+              "display": "swap",
+              "preload": true,
+              "subsets": ["latin", "latin-ext"]
+            },
+            {
+              "name": "Inter",
+              "weights": [400, 500, 600],
+              "display": "swap",
+              "preload": true,
+              "subsets": ["latin"]
+            }
+          ],
+          "font_loading": "next/font with optimizeFonts: true",
+          "font_display": "swap for all, optional block for critical text"
+        },
+        "critical_css_extraction": {
+          "enabled": true,
+          "tool": "@next/bundle-analyzer",
+          "strategy": "Inline critical CSS for above-the-fold content",
+          "per_page_critical_css": true
+        }
+      },
+      "rendering_strategy": {
+        "initial_render": {
+          "strategy": "Hybrid SSR/SSG",
+          "static_pages": ["/", "/help", "/privacy", "/terms"],
+          "server_rendered": ["/dashboard", "/marketplace", "/portfolio"],
+          "client_rendered": ["/apply", "/loan/[id]", "/admin/*"]
+        },
+        "hydration_strategy": {
+          "type": "progressive",
+          "priority_hydration": ["header", "main navigation", "critical widgets"],
+          "deferred_hydration": ["charts", "maps", "secondary widgets"],
+          "partial_hydration": true
+        },
+        "suspense_boundaries": [
+          {
+            "component": "LoanMarketplace",
+            "fallback": "MarketplaceSkeleton",
+            "error_boundary": "MarketplaceError"
+          },
+          {
+            "component": "AIScoreWidget",
+            "fallback": "ScoreSkeleton",
+            "error_boundary": "ScoreError"
+          },
+          {
+            "component": "CarbonCreditBalance",
+            "fallback": "BalanceSkeleton",
+            "error_boundary": "BalanceError"
+          }
+        ]
+      }
+    }
+  },
+  "design_system": {
+    "design_tokens": {
+      "color_palette": {
+        "primaries": [
+          {
+            "name": "primary-50",
+            "hex": "#E8F5E9",
+            "rgb": "rgb(232,245,233)",
+            "usage_context": "Primary background tints",
+            "accessibility_contrast": "AA against #000000"
+          },
+          {
+            "name": "primary-100",
+            "hex": "#C8E6C9",
+            "rgb": "rgb(200,230,201)",
+            "usage_context": "Subtle highlights",
+            "accessibility_contrast": "AA against #000000"
+          },
+          {
+            "name": "primary-200",
+            "hex": "#A5D6A7",
+            "rgb": "rgb(165,214,167)",
+            "usage_context": "Disabled states",
+            "accessibility_contrast": "AA against #000000"
+          },
+          {
+            "name": "primary-300",
+            "hex": "#81C784",
+            "rgb": "rgb(129,199,132)",
+            "usage_context": "Secondary actions",
+            "accessibility_contrast": "AA against #000000"
+          },
+          {
+            "name": "primary-400",
+            "hex": "#66BB6A",
+            "rgb": "rgb(102,187,106)",
+            "usage_context": "Hover states",
+            "accessibility_contrast": "AA against #FFFFFF"
+          },
+          {
+            "name": "primary-500",
+            "hex": "#4CAF50",
+            "rgb": "rgb(76,175,80)",
+            "usage_context": "Primary brand color",
+            "accessibility_contrast": "AAA against #FFFFFF"
+          },
+          {
+            "name": "primary-600",
+            "hex": "#43A047",
+            "rgb": "rgb(67,160,71)",
+            "usage_context": "Active states",
+            "accessibility_contrast": "AAA against #FFFFFF"
+          },
+          {
+            "name": "primary-700",
+            "hex": "#388E3C",
+            "rgb": "rgb(56,142,60)",
+            "usage_context": "Pressed states",
+            "accessibility_contrast": "AAA against #FFFFFF"
+          },
+          {
+            "name": "primary-800",
+            "hex": "#2E7D32",
+            "rgb": "rgb(46,125,50)",
+            "usage_context": "Text on light",
+            "accessibility_contrast": "AAA against #FFFFFF"
+          },
+          {
+            "name": "primary-900",
+            "hex": "#1B5E20",
+            "rgb": "rgb(27,94,32)",
+            "usage_context": "Dark mode primary",
+            "accessibility_contrast": "AAA against #FFFFFF"
+          }
+        ],
+        "secondaries": [
+          {
+            "name": "secondary-50",
+            "hex": "#FFFDE7",
+            "rgb": "rgb(255,253,231)",
+            "usage_context": "Gold background tints",
+            "accessibility_contrast": "AA against #000000"
+          },
+          {
+            "name": "secondary-500",
+            "hex": "#FFD700",
+            "rgb": "rgb(255,215,0)",
+            "usage_context": "Accent, currency markers",
+            "accessibility_contrast": "AAA against #000000"
+          },
+          {
+            "name": "secondary-900",
+            "hex": "#FF6F00",
+            "rgb": "rgb(255,111,0)",
+            "usage_context": "Warning accents",
+            "accessibility_contrast": "AAA against #FFFFFF"
+          }
+        ],
+        "neutrals": [
+          {
+            "name": "neutral-50",
+            "hex": "#FAFAFA",
+            "rgb": "rgb(250,250,250)",
+            "usage_context": "Background surfaces",
+            "accessibility_contrast": "AA against #000000"
+          },
+          {
+            "name": "neutral-100",
+            "hex": "#F5F5F5",
+            "rgb": "rgb(245,245,245)",
+            "usage_context": "Subtle backgrounds",
+            "accessibility_contrast": "AA against #000000"
+          },
+          {
+            "name": "neutral-200",
+            "hex": "#EEEEEE",
+            "rgb": "rgb(238,238,238)",
+            "usage_context": "Dividers, borders",
+            "accessibility_contrast": "AA against #000000"
+          },
+          {
+            "name": "neutral-300",
+            "hex": "#E0E0E0",
+            "rgb": "rgb(224,224,224)",
+            "usage_context": "Disabled fills",
+            "accessibility_contrast": "AA against #000000"
+          },
+          {
+            "name": "neutral-400",
+            "hex": "#BDBDBD",
+            "rgb": "rgb(189,189,189)",
+            "usage_context": "Placeholder text",
+            "accessibility_contrast": "AA against #FFFFFF"
+          },
+          {
+            "name": "neutral-500",
+            "hex": "#9E9E9E",
+            "rgb": "rgb(158,158,158)",
+            "usage_context": "Secondary text",
+            "accessibility_contrast": "AA against #FFFFFF"
+          },
+          {
+            "name": "neutral-600",
+            "hex": "#757575",
+            "rgb": "rgb(117,117,117)",
+            "usage_context": "Muted text",
+            "accessibility_contrast": "AAA against #FFFFFF"
+          },
+          {
+            "name": "neutral-700",
+            "hex": "#616161",
+            "rgb": "rgb(97,97,97)",
+            "usage_context": "Primary text dark mode",
+            "accessibility_contrast": "AAA against #FFFFFF"
+          },
+          {
+            "name": "neutral-800",
+            "hex": "#424242",
+            "rgb": "rgb(66,66,66)",
+            "usage_context": "Strong text",
+            "accessibility_contrast": "AAA against #FFFFFF"
+          },
+          {
+            "name": "neutral-900",
+            "hex": "#212121",
+            "rgb": "rgb(33,33,33)",
+            "usage_context": "Primary text light mode",
+            "accessibility_contrast": "AAA against #FFFFFF"
+          }
+        ],
+        "semantics": {
+          "success": {
+            "light": "#00C853",
+            "dark": "#00E676",
+            "contrast": "7.0:1 against white, 4.5:1 against black"
+          },
+          "warning": {
+            "light": "#FFB300",
+            "dark": "#FFCA28",
+            "contrast": "6.5:1 against white, 4.0:1 against black"
+          },
+          "error": {
+            "light": "#D32F2F",
+            "dark": "#F44336",
+            "contrast": "7.5:1 against white, 5.0:1 against black"
+          },
+          "info": {
+            "light": "#1976D2",
+            "dark": "#2196F3",
+            "contrast": "7.0:1 against white, 4.5:1 against black"
+          }
+        },
+        "themes": {
+          "light_theme": {
+            "background": {
+              "primary": "#FFFFFF",
+              "secondary": "#FAFAFA",
+              "tertiary": "#F5F5F5"
+            },
+            "surface": {
+              "default": "#FFFFFF",
+              "elevated": "#FFFFFF",
+              "overlay": "rgba(0, 0, 0, 0.32)"
+            },
+            "text": {
+              "primary": "#212121",
+              "secondary": "#757575",
+              "disabled": "#9E9E9E",
+              "inverse": "#FFFFFF"
+            },
+            "border": {
+              "light": "#E0E0E0",
+              "medium": "#BDBDBD",
+              "heavy": "#757575"
+            }
+          },
+          "dark_theme": {
+            "background": {
+              "primary": "#121212",
+              "secondary": "#1E1E1E",
+              "tertiary": "#242424"
+            },
+            "surface": {
+              "default": "#1E1E1E",
+              "elevated": "#242424",
+              "overlay": "rgba(255, 255, 255, 0.16)"
+            },
+            "text": {
+              "primary": "#FFFFFF",
+              "secondary": "#BDBDBD",
+              "disabled": "#757575",
+              "inverse": "#000000"
+            },
+            "border": {
+              "light": "#424242",
+              "medium": "#616161",
+              "heavy": "#9E9E9E"
+            }
+          },
+          "high_contrast_theme": {
+            "background": {
+              "primary": "#000000",
+              "secondary": "#0A0A0A",
+              "tertiary": "#141414"
+            },
+            "surface": {
+              "default": "#000000",
+              "elevated": "#0A0A0A",
+              "overlay": "rgba(255, 255, 255, 0.9)"
+            },
+            "text": {
+              "primary": "#FFFFFF",
+              "secondary": "#CCCCCC",
+              "disabled": "#999999",
+              "inverse": "#000000"
+            },
+            "accent": {
+              "primary": "#00FF00",
+              "secondary": "#FFFF00",
+              "error": "#FF0000"
+            }
+          }
+        }
+      },
+      "typography": {
+        "font_families": {
+          "primary": "'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, sans-serif",
+          "secondary": "'Inter', system-ui, -apple-system, sans-serif",
+          "monospace": "'Roboto Mono', 'SF Mono', Monaco, 'Courier New', monospace"
+        },
+        "scale": {
+          "h1": {
+            "font_size": "3rem",
+            "line_height": "1.167",
+            "letter_spacing": "-0.01562em",
+            "font_weight": 700,
+            "margin": "0 0 1.5rem 0"
+          },
+          "h2": {
+            "font_size": "2.25rem",
+            "line_height": "1.2",
+            "letter_spacing": "-0.00833em",
+            "font_weight": 600,
+            "margin": "0 0 1.25rem 0"
+          },
+          "h3": {
+            "font_size": "1.875rem",
+            "line_height": "1.167",
+            "letter_spacing": "0em",
+            "font_weight": 600,
+            "margin": "0 0 1rem 0"
+          },
+          "h4": {
+            "font_size": "1.5rem",
+            "line_height": "1.235",
+            "letter_spacing": "0.00735em",
+            "font_weight": 500,
+            "margin": "0 0 0.75rem 0"
+          },
+          "h5": {
+            "font_size": "1.25rem",
+            "line_height": "1.334",
+            "letter_spacing": "0em",
+            "font_weight": 500,
+            "margin": "0 0 0.5rem 0"
+          },
+          "h6": {
+            "font_size": "1.125rem",
+            "line_height": "1.6",
+            "letter_spacing": "0.0075em",
+            "font_weight": 500,
+            "margin": "0 0 0.5rem 0"
+          },
+          "body_large": {
+            "font_size": "1.125rem",
+            "line_height": "1.556",
+            "letter_spacing": "0.00938em",
+            "font_weight": 400
+          },
+          "body_medium": {
+            "font_size": "1rem",
+            "line_height": "1.5",
+            "letter_spacing": "0.00938em",
+            "font_weight": 400
+          },
+          "body_small": {
+            "font_size": "0.875rem",
+            "line_height": "1.429",
+            "letter_spacing": "0.01071em",
+            "font_weight": 400
+          },
+          "caption": {
+            "font_size": "0.75rem",
+            "line_height": "1.333",
+            "letter_spacing": "0.03333em",
+            "font_weight": 400
+          },
+          "overline": {
+            "font_size": "0.625rem",
+            "line_height": "1.6",
+            "letter_spacing": "0.08333em",
+            "font_weight": 500
+          }
+        },
+        "responsive_typography": {
+          "breakpoints": {
+            "mobile": {
+              "h1_size": "2rem",
+              "h2_size": "1.75rem",
+              "h3_size": "1.5rem",
+              "scale_factor": 0.875
+            },
+            "tablet": {
+              "h1_size": "2.5rem",
+              "h2_size": "2rem",
+              "h3_size": "1.75rem",
+              "scale_factor": 0.9375
+            },
+            "desktop": {
+              "h1_size": "3rem",
+              "h2_size": "2.25rem",
+              "h3_size": "1.875rem",
+              "scale_factor": 1
+            }
+          }
+        }
+      },
+      "spacing": {
+        "base_unit": "8px",
+        "scale": {
+          "0": "0px",
+          "xs": "4px",
+          "sm": "8px",
+          "md": "12px",
+          "lg": "16px",
+          "xl": "24px",
+          "2xl": "32px",
+          "3xl": "48px",
+          "4xl": "64px",
+          "5xl": "96px",
+          "6xl": "128px"
+        },
+        "spacing_usage_rules": {
+          "padding": {
+            "containers": "lg (16px)",
+            "cards": "md (12px)",
+            "form_fields": "sm (8px)",
+            "buttons": "sm md (8px 12px)"
+          },
+          "margin": {
+            "between_sections": "3xl (48px)",
+            "between_components": "xl (24px)",
+            "within_components": "md (12px)",
+            "text_blocks": "lg (16px)"
+          },
+          "gap": {
+            "grid_gap": "lg (16px)",
+            "flex_gap": "md (12px)",
+            "stack_gap": "xl (24px)"
+          }
+        }
+      },
+      "borders": {
+        "radius_scale": {
+          "none": "0px",
+          "xs": "2px",
+          "sm": "4px",
+          "md": "8px",
+          "lg": "12px",
+          "xl": "16px",
+          "2xl": "24px",
+          "full": "9999px"
+        },
+        "width_scale": {
+          "thin": "1px",
+          "medium": "2px",
+          "thick": "3px"
+        },
+        "style_variants": {
+          "solid": "solid",
+          "dashed": "dashed",
+          "dotted": "dotted"
+        }
+      },
+      "shadows": {
+        "elevation_levels": {
+          "level_0": "none",
+          "level_1": "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+          "level_2": "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
+          "level_3": "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+          "level_4": "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
+          "level_5": "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)"
+        },
+        "usage_context": {
+          "cards": "level_2",
+          "modals": "level_5",
+          "dropdowns": "level_3",
+          "buttons": "level_1 (hover: level_2)",
+          "navigation": "level_1",
+          "tabs": "level_0 (active: level_1)"
+        }
+      },
+      "motion": {
+        "duration_scale": {
+          "instant": "0ms",
+          "fast": "100ms",
+          "normal": "200ms",
+          "slow": "300ms",
+          "slower": "500ms",
+          "deliberate": "1000ms"
+        },
+        "easing_functions": {
+          "linear": "cubic-bezier(0, 0, 1, 1)",
+          "ease_in": "cubic-bezier(0.4, 0, 1, 1)",
+          "ease_out": "cubic-bezier(0, 0, 0.2, 1)",
+          "ease_in_out": "cubic-bezier(0.4, 0, 0.2, 1)",
+          "bounce": "cubic-bezier(0.68, -0.55, 0.265, 1.55)"
+        },
+        "animation_types": {
+          "fade": "opacity from 0 to 1",
+          "slide_up": "transform translateY(8px) to 0",
+          "slide_down": "transform translateY(-8px) to 0",
+          "scale": "transform scale(0.95) to 1",
+          "rotate": "transform rotate(0deg) to 360deg"
+        }
+      },
+      "z_index_scale": {
+        "base": 0,
+        "dropdown": 1000,
+        "sticky": 1020,
+        "fixed": 1030,
+        "modal_backdrop": 1040,
+        "modal": 1050,
+        "popover": 1060,
+        "tooltip": 1070,
+        "toast": 1080,
+        "notification": 1090,
+        "max": 9999
+      }
+    },
+    "component_library": {
+      "foundation_components": {
+        "typography_components": [
+          {
+            "name": "Heading",
+            "variants": ["h1", "h2", "h3", "h4", "h5", "h6"],
+            "props": {
+              "as": "string (h1-h6)",
+              "color": "token reference",
+              "align": "left|center|right|justify",
+              "truncate": "boolean",
+              "weight": "light|normal|medium|semibold|bold"
+            }
+          },
+          {
+            "name": "Text",
+            "variants": ["body", "caption", "overline", "monospace"],
+            "props": {
+              "size": "xs|sm|md|lg|xl",
+              "color": "token reference",
+              "weight": "light|normal|medium|semibold|bold",
+              "decoration": "none|underline|line-through"
+            }
+          },
+          {
+            "name": "Label",
+            "variants": ["default", "required", "disabled"],
+            "props": {
+              "htmlFor": "string",
+              "required": "boolean",
+              "disabled": "boolean"
+            }
+          },
+          {
+            "name": "Code",
+            "variants": ["inline", "block"],
+            "props": {
+              "language": "javascript|typescript|solidity|json",
+              "showLineNumbers": "boolean",
+              "maxHeight": "string"
+            }
+          }
+        ],
+        "layout_components": [
+          {
+            "name": "Box",
+            "description": "Primitive layout component with spacing and styling props",
+            "props": {
+              "padding": "spacing token",
+              "margin": "spacing token",
+              "display": "CSS display values",
+              "flexDirection": "row|column|row-reverse|column-reverse",
+              "alignItems": "flex-start|center|flex-end|stretch|baseline",
+              "justifyContent": "flex-start|center|flex-end|space-between|space-around|space-evenly"
+            }
+          },
+          {
+            "name": "Container",
+            "description": "Responsive container with max-width constraints",
+            "props": {
+              "size": "sm|md|lg|xl|fluid",
+              "padding": "spacing token",
+              "center": "boolean"
+            },
+            "max_widths": {
+              "sm": "640px",
+              "md": "768px",
+              "lg": "1024px",
+              "xl": "1280px",
+              "fluid": "100%"
+            }
+          },
+          {
+            "name": "Flex",
+            "description": "Flexbox layout component",
+            "props": {
+              "gap": "spacing token",
+              "wrap": "nowrap|wrap|wrap-reverse",
+              "basis": "CSS flex-basis",
+              "grow": "CSS flex-grow",
+              "shrink": "CSS flex-shrink"
+            }
+          },
+          {
+            "name": "Grid",
+            "description": "CSS Grid layout component",
+            "props": {
+              "columns": "number or template",
+              "rows": "number or template",
+              "gap": "spacing token",
+              "areas": "grid template areas",
+              "autoFlow": "row|column|dense"
+            }
+          },
+          {
+            "name": "Stack",
+            "description": "Vertical or horizontal stack with consistent spacing",
+            "props": {
+              "direction": "vertical|horizontal",
+              "spacing": "spacing token",
+              "align": "start|center|end|stretch",
+              "divider": "boolean or component"
+            }
+          }
+        ],
+        "feedback_components": [
+          {
+            "name": "Spinner",
+            "variants": ["dots", "ring", "bars", "pulse"],
+            "props": {
+              "size": "xs|sm|md|lg|xl",
+              "color": "token reference",
+              "speed": "fast|normal|slow",
+              "label": "string (for screen readers)"
+            }
+          },
+          {
+            "name": "ProgressBar",
+            "variants": ["linear", "circular", "steps"],
+            "props": {
+              "value": "number (0-100)",
+              "max": "number",
+              "indeterminate": "boolean",
+              "showValue": "boolean",
+              "size": "xs|sm|md|lg|xl"
+            }
+          },
+          {
+            "name": "Skeleton",
+            "variants": ["text", "circle", "rectangle", "card"],
+            "props": {
+              "width": "string",
+              "height": "string",
+              "radius": "border radius token",
+              "animation": "pulse|wave|none"
+            }
+          }
+        ]
+      },
+      "input_components": {
+        "text_inputs": [
+          {
+            "component_name": "TextField",
+            "variants": ["outlined", "filled", "standard"],
+            "states": ["default", "hover", "focus", "error", "disabled", "readonly"],
+            "specifications": {
+              "height": {
+                "sm": "32px",
+                "md": "40px",
+                "lg": "48px"
+              },
+              "padding": {
+                "sm": "8px 12px",
+                "md": "10px 14px",
+                "lg": "12px 16px"
+              },
+              "border_radius": "md (8px)",
+              "typography": "body_medium",
+              "icon_size": "20px",
+              "icon_spacing": "8px"
+            },
+            "accessibility": {
+              "aria_labels": {
+                "required": true,
+                "error_message": "aria-describedby on error",
+                "helper_text": "aria-describedby"
+              },
+              "keyboard_navigation": {
+                "tab_index": 0,
+                "enter_submits": false,
+                "escape_clears": true
+              },
+              "error_announcement": {
+                "live_region": "polite",
+                "timeout": 5000
+              }
+            },
+            "validation": {
+              "real_time": true,
+              "debounce": 300,
+              "patterns": {
+                "email": "/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/",
+                "phone": "/^\\+?[1-9]\\d{1,14}$/",
+                "wallet": "/^0x[a-fA-F0-9]{40}$/"
+              }
+            }
+          },
+          {
+            "component_name": "TextArea",
+            "variants": ["outlined", "filled"],
+            "specifications": {
+              "min_rows": 3,
+              "max_rows": 10,
+              "resize": "vertical",
+              "padding": "12px 16px"
+            }
+          }
+        ],
+        "selection_components": [
+          {
+            "component_name": "Checkbox",
+            "states": ["unchecked", "checked", "indeterminate", "disabled"],
+            "specifications": {
+              "size": "16px",
+              "border_radius": "xs (2px)",
+              "checkmark_size": "12px",
+              "spacing": "8px"
+            },
+            "group_variant": "vertical|horizontal"
+          },
+          {
+            "component_name": "Radio",
+            "states": ["unselected", "selected", "disabled"],
+            "specifications": {
+              "size": "20px",
+              "dot_size": "10px",
+              "spacing": "8px"
+            },
+            "group_required": true
+          },
+          {
+            "component_name": "Toggle",
+            "states": ["off", "on", "disabled"],
+            "specifications": {
+              "width": "44px",
+              "height": "24px",
+              "thumb_size": "20px",
+              "transition": "200ms ease-in-out"
+            }
+          },
+          {
+            "component_name": "Select",
+            "variants": ["outlined", "filled", "standard"],
+            "specifications": {
+              "height": "40px",
+              "min_width": "120px",
+              "max_height": "300px",
+              "option_height": "40px"
+            },
+            "features": ["search", "multi_select", "virtual_scroll"]
+          },
+          {
+            "component_name": "Autocomplete",
+            "specifications": {
+              "debounce": 300,
+              "min_chars": 2,
+              "max_suggestions": 10,
+              "loading_delay": 200
+            }
+          }
+        ],
+        "button_components": [
+          {
+            "component_name": "Button",
+            "variants": ["primary", "secondary", "tertiary", "danger", "ghost", "link"],
+            "sizes": ["xs", "sm", "md", "lg", "xl"],
+            "states": ["default", "hover", "active", "focus", "disabled", "loading"],
+            "specifications": {
+              "min_width": {
+                "xs": "64px",
+                "sm": "72px",
+                "md": "80px",
+                "lg": "96px",
+                "xl": "120px"
+              },
+              "height_per_size": {
+                "xs": "28px",
+                "sm": "32px",
+                "md": "40px",
+                "lg": "48px",
+                "xl": "56px"
+              },
+              "padding_per_size": {
+                "xs": "4px 12px",
+                "sm": "6px 16px",
+                "md": "8px 20px",
+                "lg": "10px 24px",
+                "xl": "12px 32px"
+              },
+              "icon_positioning": {
+                "icon_only": {
+                  "padding": "square aspect ratio",
+                  "min_width": "equal to height"
+                },
+                "icon_left": {
+                  "margin_right": "8px",
+                  "icon_size": "0.875em"
+                },
+                "icon_right": {
+                  "margin_left": "8px",
+                  "icon_size": "0.875em"
+                }
+              },
+              "border_radius": {
+                "xs": "sm (4px)",
+                "sm": "md (8px)",
+                "md": "md (8px)",
+                "lg": "lg (12px)",
+                "xl": "lg (12px)"
+              }
+            },
+            "interaction": {
+              "transition": "all 150ms ease-in-out",
+              "active_transform": "scale(0.98)",
+              "focus_ring": "0 0 0 3px rgba(76, 175, 80, 0.3)"
+            }
+          },
+          {
+            "component_name": "IconButton",
+            "specifications": {
+              "sizes": ["xs", "sm", "md", "lg"],
+              "aspect_ratio": "1:1",
+              "icon_size_ratio": 0.6
+            }
+          },
+          {
+            "component_name": "ButtonGroup",
+            "variants": ["segmented", "attached"],
+            "specifications": {
+              "spacing": "0px",
+              "border_radius": "first and last child only"
+            }
+          }
+        ]
+      },
+      "surface_components": {
+        "cards": [
+          {
+            "component_name": "Card",
+            "variants": ["elevated", "outlined", "filled"],
+            "parts": ["header", "content", "actions", "media"],
+            "specifications": {
+              "spacing_internal": "lg (16px)",
+              "header_padding": "lg lg 0 lg",
+              "content_padding": "lg",
+              "actions_padding": "0 lg lg lg",
+              "media_max_height": "240px"
+            },
+            "elevation": {
+              "elevated": "level_2",
+              "outlined": "level_0 with border",
+              "filled": "level_0 with background"
+            }
+          },
+          {
+            "component_name": "LoanCard",
+            "description": "Specialized card for loan marketplace",
+            "specifications": {
+              "width": "320px",
+              "height": "280px",
+              "aspect_ratio": "4:3.5",
+              "critical_info": ["amount", "score", "status", "farm_thumbnail"]
+            }
+          }
+        ],
+        "dialogs": [
+          {
+            "component_name": "Modal",
+            "variants": ["center", "side", "fullscreen"],
+            "specifications": {
+              "backdrop_opacity": 0.5,
+              "animation_duration": 300,
+              "max_width": {
+                "sm": "400px",
+                "md": "600px",
+                "lg": "800px",
+                "xl": "1000px"
+              },
+              "close_button": {
+                "size": "32px",
+                "position": "top-right",
+                "icon_size": "20px"
+              }
+            },
+            "accessibility": {
+              "focus_trap": true,
+              "aria_modal": true,
+              "close_on_escape": true,
+              "close_on_backdrop": true
+            }
+          },
+          {
+            "component_name": "Drawer",
+            "variants": ["left", "right", "top", "bottom"],
+            "specifications": {
+              "width": {
+                "left": "320px",
+                "right": "320px",
+                "top": "100vh",
+                "bottom": "100vh"
+              },
+              "height": {
+                "top": "80vh",
+                "bottom": "80vh"
+              }
+            }
+          },
+          {
+            "component_name": "Popover",
+            "specifications": {
+              "trigger": ["click", "hover", "focus"],
+              "placement": ["top", "bottom", "left", "right"],
+              "offset": 8,
+              "arrow": true
+            }
+          },
+          {
+            "component_name": "Tooltip",
+            "specifications": {
+              "delay": [300, 0],
+              "max_width": "240px",
+              "placement": "top"
+            }
+          },
+          {
+            "component_name": "Toast",
+            "variants": ["success", "error", "warning", "info"],
+            "specifications": {
+              "duration": 5000,
+              "max_visible": 3,
+              "position": ["top-right", "bottom-right", "top-left", "bottom-left"]
+            }
+          }
+        ],
+        "navigation_components": [
+          {
+            "component_name": "AppBar",
+            "variants": ["static", "fixed", "sticky"],
+            "specifications": {
+              "height": "64px",
+              "elevation": "level_1",
+              "padding": "0 lg",
+              "z_index": "sticky (1020)"
+            },
+            "sections": ["logo", "navigation", "search", "actions", "user_menu"]
+          },
+          {
+            "component_name": "Sidebar",
+            "variants": ["collapsed", "expanded", "floating"],
+            "specifications": {
+              "width_expanded": "240px",
+              "width_collapsed": "64px",
+              "transition_duration": 200
+            },
+            "navigation_items": {
+              "height": "48px",
+              "padding": "md lg",
+              "icon_size": "20px",
+              "active_indicator": "left border 4px"
+            }
+          },
+          {
+            "component_name": "BottomNavigation",
+            "specifications": {
+              "height": "56px",
+              "item_count": "3-5",
+              "icon_size": "24px",
+              "active_scale": 1.1
+            }
+          },
+          {
+            "component_name": "Breadcrumbs",
+            "specifications": {
+              "separator": "›",
+              "max_items": 5,
+              "collapse_after": 3
+            }
+          },
+          {
+            "component_name": "Pagination",
+            "variants": ["numbered", "simple", "compact"],
+            "specifications": {
+              "page_size_options": [10, 25, 50, 100],
+              "visible_page_count": 7,
+              "ellipsis_threshold": 2
+            }
+          }
+        ]
+      },
+      "data_display_components": [
+        {
+          "component_name": "Table",
+          "variants": ["striped", "bordered", "compact", "hoverable"],
+          "specifications": {
+            "row_height": "56px",
+            "header_height": "48px",
+            "cell_padding": "md",
+            "border": "1px solid neutral-200"
+          },
+          "features": ["sorting", "filtering", "row_selection", "virtual_scroll"]
+        },
+        {
+          "component_name": "DataGrid",
+          "specifications": {
+            "min_height": "400px",
+            "max_height": "600px",
+            "column_resize": true,
+            "column_reorder": true,
+            "row_grouping": true
+          }
+        },
+        {
+          "component_name": "List",
+          "variants": ["default", "borderless", "divided"],
+          "specifications": {
+            "item_height": "48px",
+            "item_padding": "md",
+            "avatar_size": "32px"
+          }
+        },
+        {
+          "component_name": "Tree",
+          "specifications": {
+            "indent_size": "24px",
+            "icon_size": "16px",
+            "transition_duration": 200
+          }
+        },
+        {
+          "component_name": "Chart",
+          "types": ["line", "bar", "pie", "scatter", "radar"],
+          "specifications": {
+            "responsive": true,
+            "maintain_aspect_ratio": false,
+            "animation_duration": 1000
+          }
+        },
+        {
+          "component_name": "Calendar",
+          "variants": ["month", "week", "day", "agenda"],
+          "specifications": {
+            "header_height": "60px",
+            "day_height": "100px",
+            "event_height": "24px"
+          }
+        }
+      ],
+      "feedback_components": [
+        {
+          "component_name": "Alert",
+          "variants": ["success", "error", "warning", "info"],
+          "specifications": {
+            "padding": "md",
+            "border_radius": "md",
+            "icon_size": "20px",
+            "dismissible": true
+          }
+        },
+        {
+          {
+            "component_name": "Snackbar",
+            "specifications": {
+              "max_width": "600px",
+              "auto_hide_duration": 6000,
+              "stackable": true,
+              "prevent_duplicate": true
+            }
+          },
+          {
+            "component_name": "ProgressIndicator",
+            "variants": ["linear", "circular", "steps"],
+            "specifications": {
+              "height": "4px",
+              "radius": "full",
+              "transition": "width 300ms ease"
+            }
+          },
+          {
+            "component_name": "SkeletonLoader",
+            "specifications": {
+              "speed": "1.5s",
+              "wave_width": "100px",
+              "gradient": "linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%)"
+            }
+          }
+        ]
+      },
+      "layout_templates": {
+        "page_layouts": {
+          "dashboard_layout": {
+            "structure": {
+              "grid_template": "'sidebar header' 'sidebar main' 'sidebar footer' / auto 1fr",
+              "grid_areas": ["header", "sidebar", "main", "footer"],
+              "min_height": "100vh"
+            },
+            "regions": {
+              "header": {
+                "height": "64px",
+                "background": "surface.default",
+                "border_bottom": "1px solid neutral-200"
+              },
+              "sidebar": {
+                "width": "240px",
+                "background": "surface.elevated",
+                "border_right": "1px solid neutral-200"
+              },
+              "main": {
+                "padding": "xl",
+                "background": "background.secondary",
+                "overflow": "auto"
+              },
+              "footer": {
+                "height": "48px",
+                "background": "surface.default",
+                "border_top": "1px solid neutral-200"
+              }
+            },
+            "responsive_behavior": {
+              "mobile": {
+                "grid_template": "'header' 'main' 'footer' / 1fr",
+                "sidebar": "transforms to bottom navigation",
+                "main_padding": "md"
+              },
+              "tablet": {
+                "grid_template": "'header header' 'sidebar main' 'sidebar footer' / 200px 1fr",
+                "sidebar_width": "200px"
+              },
+              "desktop": {
+                "grid_template": "'sidebar header' 'sidebar main' 'sidebar footer' / 240px 1fr"
+              }
+            }
+          },
+          "auth_layout": {
+            "structure": {
+              "display": "flex",
+              "align_items": "center",
+              "justify_content": "center",
+              "min_height": "100vh",
+              "padding": "xl"
+            },
+            "max_width": "480px",
+            "background_pattern": {
+              "light": "linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%)",
+              "dark": "linear-gradient(135deg, #1B5E20 0%, #2E7D32 100%)"
+            },
+            "card_specifications": {
+              "padding": "xl",
+              "border_radius": "lg",
+              "elevation": "level_3",
+              "width": "100%"
+            }
+          },
+          "landing_page_layout": {
+            "structure": {
+              "display": "block",
+              "width": "100%"
+            },
+            "section_spacing": {
+              "between_sections": "6xl",
+              "within_section": "3xl"
+            },
+            "container_widths": {
+              "sm": "100%",
+              "md": "720px",
+              "lg": "960px",
+              "xl": "1140px",
+              "xxl": "1320px"
+            },
+            "hero_section": {
+              "min_height": "80vh",
+              "padding_top": "4xl",
+              "padding_bottom": "4xl"
+            }
+          },
+          "wizard_layout": {
+            "structure": {
+              "display": "flex",
+              "flex_direction": "column",
+              "min_height": "100vh"
+            },
+            "steps_indicator": {
+              "height": "72px",
+              "step_count": 4,
+              "active_color": "primary-500",
+              "completed_color": "primary-300"
+            },
+            "content_area": {
+              "flex": 1,
+              "padding": "xl",
+              "max_width": "800px",
+              "margin": "0 auto"
+            },
+            "navigation": {
+              "height": "80px",
+              "justify_content": "space-between",
+              "padding": "0 xl"
+            }
+          }
+        },
+        "grid_system": {
+          "breakpoints": {
+            "xs": {
+              "min": "0px",
+              "max": "599px",
+              "columns": 4,
+              "gutter": "16px",
+              "margin": "16px",
+              "prefix": "xs"
+            },
+            "sm": {
+              "min": "600px",
+              "max": "959px",
+              "columns": 8,
+              "gutter": "16px",
+              "margin": "24px",
+              "prefix": "sm"
+            },
+            "md": {
+              "min": "960px",
+              "max": "1279px",
+              "columns": 12,
+              "gutter": "24px",
+              "margin": "32px",
+              "prefix": "md"
+            },
+            "lg": {
+              "min": "1280px",
+              "max": "1919px",
+              "columns": 12,
+              "gutter": "24px",
+              "margin": "auto 5%",
+              "prefix": "lg"
+            },
+            "xl": {
+              "min": "1920px",
+              "max": "infinity",
+              "columns": 12,
+              "gutter": "24px",
+              "margin": "auto 10%",
+              "prefix": "xl"
+            }
+          },
+          "grid_utility_classes": [
+            {
+              "class": ".grid",
+              "properties": "display: grid"
+            },
+            {
+              "class": ".grid-cols-{n}",
+              "properties": "grid-template-columns: repeat({n}, 1fr)"
+            },
+            {
+              "class": ".col-span-{n}",
+              "properties": "grid-column: span {n}"
+            },
+            {
+              "class": ".col-start-{n}",
+              "properties": "grid-column-start: {n}"
+            },
+            {
+              "class": ".gap-{size}",
+              "properties": "gap: {spacing token}"
+            },
+            {
+              "class": ".justify-items-{value}",
+              "properties": "justify-items: {value}"
+            },
+            {
+              "class": ".align-items-{value}",
+              "properties": "align-items: {value}"
+            }
+          ],
+          "layout_regions": {
+            "full_bleed": {
+              "grid_column": "1 / -1",
+              "margin": "0 calc(-1 * var(--gutter))"
+            },
+            "main_content": {
+              "grid_column": "2 / -2",
+              "min_height": "calc(100vh - 200px)"
+            },
+            "sidebar": {
+              "grid_column": "1 / 3",
+              "sticky": "top 0"
+            }
+          }
+        }
+      }
+    },
+    "page_specifications": {
+      "total_pages": 14,
+      "page_hierarchy": {
+        "public_pages": ["/", "/login", "/register", "/help", "/privacy", "/terms", "/marketplace/public"],
+        "protected_pages": [
+          "/dashboard",
+          "/apply",
+          "/marketplace",
+          "/loan/[id]",
+          "/portfolio",
+          "/profile",
+          "/farms",
+          "/carbon"
+        ],
+        "admin_pages": ["/admin", "/admin/oracle", "/admin/disputes", "/admin/analytics", "/admin/users"]
+      },
+      "pages": [
+        {
+          "page_id": "home",
+          "page_name": "Landing Page",
+          "page_route": "/",
+          "page_type": "public",
+          "meta_information": {
+            "title": "AgriCredit Africa - AI + Blockchain Farmer Finance",
+            "description": "Instant microloans for African smallholder farmers using satellite data and blockchain technology. Apply for loans, earn carbon credits, and access fair financing.",
+            "keywords": ["microloans Africa", "farmer finance", "blockchain lending", "carbon credits", "agriculture technology"],
+            "og_tags": {
+              "og:title": "AgriCredit Africa - Transforming Farmer Finance",
+              "og:description": "Get instant loans using AI credit scoring. Earn carbon credits from sustainable farming.",
+              "og:image": "/og-image.jpg",
+              "og:type": "website",
+              "og:locale": "en_US"
+            }
+          },
+          "layout_template": "landing_page_layout",
+          "components": [
+            {
+              "component_id": "hero",
+              "component_type": "Hero",
+              "component_name": "LandingHero",
+              "props_configuration": {
+                "title": "AgriCredit Africa",
+                "subtitle": "AI + Blockchain for Farmer Finance",
+                "primary_cta": {
+                  "text": "Apply as Farmer",
+                  "href": "/register?role=farmer"
+                },
+                "secondary_cta": {
+                  "text": "Invest Now",
+                  "href": "/register?role=investor"
+                },
+                "background_image": "/hero-background.jpg",
+                "overlay_opacity": 0.4
+              },
+              "positioning": {
+                "grid_area": "full-bleed",
+                "height": "80vh",
+                "z_index": 0
+              },
+              "data_dependencies": {
+                "api_endpoints": [],
+                "loading_state": "Hero skeleton with placeholder text",
+                "error_state": "Fallback static hero",
+                "empty_state": "Not applicable"
+              },
+              "interactions": [
+                {
+                  "type": "scroll",
+                  "action": "Parallax effect on background",
+                  "intensity": 0.5
+                },
+                {
+                  "type": "click",
+                  "action": "CTA button press animation",
+                  "feedback": "Scale down 0.95"
+                }
+              ],
+              "animations": [
+                {
+                  "type": "fade_in",
+                  "duration": 800,
+                  "delay": 200,
+                  "easing": "ease-out"
+                },
+                {
+                  "type": "slide_up",
+                  "duration": 600,
+                  "delay": 400,
+                  "distance": "20px"
+                }
+              ]
+            },
+            {
+              "component_id": "impact_metrics",
+              "component_type": "MetricsStrip",
+              "component_name": "ImpactMetrics",
+              "props_configuration": {
+                "metrics": [
+                  {
+                    "label": "Farmers Reached",
+                    "value": "10,000+",
+                    "icon": "users",
+                    "trend": "up"
+                  },
+                  {
+                    "label": "Loans Disbursed",
+                    "value": "$2.5M+",
+                    "icon": "loan",
+                    "trend": "up"
+                  },
+                  {
+                    "label": "Carbon Credits",
+                    "value": "50,000+",
+                    "icon": "leaf",
+                    "trend": "up"
+                  },
+                  {
+                    "label": "Repayment Rate",
+                    "value": "92%",
+                    "icon": "check-circle",
+                    "trend": "stable"
+                  }
+                ],
+                "animated": true,
+                "duration": 2000
+              },
+              "positioning": {
+                "grid_area": "main",
+                "margin_top": "-40px",
+                "z_index": 10
+              },
+              "data_dependencies": {
+                "api_endpoints": ["/api/v1/metrics/public"],
+                "loading_state": "Four metric skeletons",
+                "error_state": "Static metrics with last known values",
+                "empty_state": "Placeholder metrics with zero values"
+              }
+            },
+            {
+              "component_id": "how_it_works",
+              "component_type": "FeatureSection",
+              "component_name": "HowItWorks",
+              "props_configuration": {
+                "title": "How AgriCredit Works",
+                "steps": [
+                  {
+                    "title": "Create Profile",
+                    "description": "Register with phone or wallet, create your digital identity (DID)",
+                    "icon": "user-plus",
+                    "color": "primary-500"
+                  },
+                  {
+                    "title": "Add Farm Details",
+                    "description": "Geolocate your farm, add crops, and grant satellite data access",
+                    "icon": "map-pin",
+                    "color": "primary-600"
+                  },
+                  {
+                    "title": "Get AI Credit Score",
+                    "description": "Our AI analyzes satellite, weather, and mobile data for instant scoring",
+                    "icon": "brain",
+                    "color": "primary-700"
+                  },
+                  {
+                    "title": "Receive Loan",
+                    "description": "Get funded in hours through smart contracts",
+                    "icon": "coins",
+                    "color": "primary-800"
+                  }
+                ],
+                "layout": "horizontal"
+              },
+              "positioning": {
+                "grid_area": "main",
+                "margin_top": "6xl",
+                "padding": "xl"
+              }
+            }
+          ],
+          "responsive_breakpoints": {
+            "mobile": {
+              "visible_components": ["hero", "impact_metrics", "how_it_works"],
+              "hidden_components": ["investor_testimonials"],
+              "layout_adaptations": {
+                "hero": {
+                  "height": "60vh",
+                  "title_size": "2rem",
+                  "subtitle_size": "1.125rem"
+                },
+                "impact_metrics": {
+                  "layout": "grid-cols-2",
+                  "gap": "md"
+                },
+                "how_it_works": {
+                  "layout": "vertical",
+                  "step_padding": "md"
+                }
+              }
+            },
+            "tablet": {
+              "visible_components": ["hero", "impact_metrics", "how_it_works", "farmer_stories"],
+              "hidden_components": [],
+              "layout_adaptations": {
+                "hero": {
+                  "height": "70vh"
+                },
+                "impact_metrics": {
+                  "layout": "grid-cols-4",
+                  "gap": "lg"
+                }
+              }
+            },
+            "desktop": {
+              "visible_components": ["hero", "impact_metrics", "how_it_works", "farmer_stories", "investor_testimonials", "cta_section"],
+              "hidden_components": [],
+              "layout_adaptations": {
+                "hero": {
+                  "height": "80vh",
+                  "title_size": "3.5rem",
+                  "subtitle_size": "1.5rem"
+                },
+                "how_it_works": {
+                  "layout": "horizontal",
+                  "max_width": "1200px"
+                }
+              }
+            }
+          },
+          "loading_sequence": {
+            "initial_load": ["hero", "impact_metrics", "how_it_works", "farmer_stories", "investor_testimonials"],
+            "skeleton_screens": ["hero", "impact_metrics"],
+            "progressive_hydration": {
+              "priority": ["hero", "impact_metrics"],
+              "deferred": ["farmer_stories", "investor_testimonials"],
+              "strategy": "Intersection Observer with 200px threshold"
+            }
+          },
+          "page_transitions": {
+            "enter_animation": "fade",
+            "exit_animation": "fade",
+            "duration": 300,
+            "easing": "ease-in-out"
+          }
+        },
+        {
+          "page_id": "farmer_dashboard",
+          "page_name": "Farmer Dashboard",
+          "page_route": "/dashboard",
+          "page_type": "protected",
+          "meta_information": {
+            "title": "Dashboard - AgriCredit Africa",
+            "description": "Your farming dashboard: view loans, credit score, carbon credits, and farm performance.",
+            "keywords": ["farmer dashboard", "loan status", "credit score", "carbon credits"],
+            "og_tags": {
+              "og:title": "Farmer Dashboard - AgriCredit Africa",
+              "og:description": "Manage your loans and farm performance",
+              "og:image": "/dashboard-preview.jpg"
+            }
+          },
+          "layout_template": "dashboard_layout",
+          "components": [
+            {
+              "component_id": "credit_score_widget",
+              "component_type": "Widget",
+              "component_name": "CreditScoreWidget",
+              "props_configuration": {
+                "title": "Your Credit Score",
+                "show_confidence": true,
+                "show_history": true,
+                "refresh_interval": 300000,
+                "interactive": true,
+                "size": "medium"
+              },
+              "positioning": {
+                "grid_area": "col-span-4",
+                "order_mobile": 1,
+                "order_desktop": 1
+              },
+              "data_dependencies": {
+                "api_endpoints": ["/api/v1/credit-score", "/api/v1/credit-history"],
+                "loading_state": "Circular skeleton with shimmer",
+                "error_state": "Error card with retry button",
+                "empty_state": "No score yet - apply for first loan"
+              },
+              "interactions": [
+                {
+                  "type": "hover",
+                  "action": "Show detailed breakdown tooltip"
+                },
+                {
+                  "type": "click",
+                  "action": "Expand to full score report modal"
+                }
+              ]
+            },
+            {
+              "component_id": "active_loans",
+              "component_type": "DataTable",
+              "component_name": "ActiveLoansTable",
+              "props_configuration": {
+                "title": "Active Loans",
+                "columns": [
+                  { "field": "id", "header": "Loan ID", "width": "120px" },
+                  { "field": "amount", "header": "Amount", "width": "100px", "format": "currency" },
+                  { "field": "status", "header": "Status", "width": "100px", "badge": true },
+                  { "field": "due_date", "header": "Due Date", "width": "120px", "format": "date" },
+                  { "field": "actions", "header": "Actions", "width": "150px" }
+                ],
+                "page_size": 5,
+                "sortable": true,
+                "row_actions": ["view", "repay", "extend"]
+              },
+              "positioning": {
+                "grid_area": "col-span-8",
+                "order_mobile": 2,
+                "order_desktop": 2
+              },
+              "data_dependencies": {
+                "api_endpoints": ["/api/v1/loans/active"],
+                "loading_state": "Table skeleton with 5 rows",
+                "error_state": "Error message with contact support",
+                "empty_state": "No active loans - apply for your first loan"
+              }
+            },
+            {
+              "component_id": "farm_map",
+              "component_type": "Map",
+              "component_name": "FarmMapWidget",
+              "props_configuration": {
+                "title": "Your Farms",
+                "zoom": 12,
+                "show_boundaries": true,
+                "show_ndvi": true,
+                "interactive": true,
+                "height": "300px"
+              },
+              "positioning": {
+                "grid_area": "col-span-6",
+                "order_mobile": 3,
+                "order_desktop": 3
+              },
+              "data_dependencies": {
+                "api_endpoints": ["/api/v1/farms", "/api/v1/ndvi/latest"],
+                "loading_state": "Map skeleton with grid",
+                "error_state": "Static map image fallback",
+                "empty_state": "No farms added - add your first farm"
+              }
+            },
+            {
+              "component_id": "carbon_widget",
+              "component_type": "Widget",
+              "component_name": "CarbonCreditWidget",
+              "props_configuration": {
+                "title": "Carbon Credits",
+                "show_balance": true,
+                "show_market_value": true,
+                "token_symbol": "CARBT",
+                "actions": ["view", "sell", "retire"]
+              },
+              "positioning": {
+                "grid_area": "col-span-6",
+                "order_mobile": 4,
+                "order_desktop": 4
+              },
+              "data_dependencies": {
+                "api_endpoints": ["/api/v1/carbon/balance", "/api/v1/carbon/market-price"],
+                "loading_state": "Balance skeleton",
+                "error_state": "Error retrieving carbon data",
+                "empty_state": "No carbon credits yet - enable sustainable practices"
+              }
+            },
+            {
+              "component_id": "quick_actions",
+              "component_type": "ButtonGroup",
+              "component_name": "QuickActions",
+              "props_configuration": {
+                "actions": [
+                  {
+                    "label": "Apply for Loan",
+                    "icon": "plus-circle",
+                    "href": "/apply",
+                    "variant": "primary"
+                  },
+                  {
+                    "label": "Add Farm",
+                    "icon": "map-pin",
+                    "href": "/farms/add",
+                    "variant": "secondary"
+                  },
+                  {
+                    "label": "View Marketplace",
+                    "icon": "store",
+                    "href": "/marketplace",
+                    "variant": "tertiary"
+                  }
+                ],
+                "layout": "horizontal",
+                "responsive": "stack on mobile"
+              },
+              "positioning": {
+                "grid_area": "col-span-12",
+                "order_mobile": 5,
+                "order_desktop": 5,
+                "sticky": "bottom 24px"
+              }
+            }
+          ],
+          "responsive_breakpoints": {
+            "mobile": {
+              "visible_components": ["credit_score_widget", "active_loans", "quick_actions"],
+              "hidden_components": ["farm_map", "carbon_widget"],
+              "layout_adaptations": {
+                "grid": "single column",
+                "component_order": [1, 2, 5],
+                "spacing": "md between components"
+              }
+            },
+            "tablet": {
+              "visible_components": ["credit_score_widget", "active_loans", "farm_map", "carbon_widget", "quick_actions"],
+              "hidden_components": [],
+              "layout_adaptations": {
+                "grid": "two columns",
+                "credit_score_widget": "col-span-6",
+                "active_loans": "col-span-6",
+                "farm_map": "col-span-6",
+                "carbon_widget": "col-span-6"
+              }
+            },
+            "desktop": {
+              "visible_components": ["credit_score_widget", "active_loans", "farm_map", "carbon_widget", "quick_actions"],
+              "hidden_components": [],
+              "layout_adaptations": {
+                "grid": "12 columns",
+                "credit_score_widget": "col-span-4",
+                "active_loans": "col-span-8",
+                "farm_map": "col-span-6",
+                "carbon_widget": "col-span-6",
+                "quick_actions": "col-span-12"
+              }
+            }
+          },
+          "loading_sequence": {
+            "initial_load": ["credit_score_widget", "active_loans", "farm_map", "carbon_widget"],
+            "skeleton_screens": ["credit_score_widget", "active_loans"],
+            "progressive_hydration": {
+              "priority": ["credit_score_widget", "active_loans"],
+              "deferred": ["farm_map", "carbon_widget"],
+              "parallel_loading": 2
+            }
+          },
+          "page_transitions": {
+            "enter_animation": "slide-right",
+            "exit_animation": "slide-left",
+            "duration": 250,
+            "easing": "ease-out"
+          }
+        },
+        {
+          "page_id": "loan_application",
+          "page_name": "Loan Application Wizard",
+          "page_route": "/apply",
+          "page_type": "protected",
+          "meta_information": {
+            "title": "Apply for Loan - AgriCredit Africa",
+            "description": "Apply for an instant microloan using AI credit scoring. Simple 4-step process.",
+            "keywords": ["apply for loan", "farm loan", "microloan application", "agriculture loan"],
+            "og_tags": {
+              "og:title": "Apply for Loan - AgriCredit Africa",
+              "og:description": "Get funded in hours with our AI-powered loan application"
+            }
+          },
+          "layout_template": "wizard_layout",
+          "components": [
+            {
+              "component_id": "wizard_steps",
+              "component_type": "Stepper",
+              "component_name": "LoanApplicationStepper",
+              "props_configuration": {
+                "steps": [
+                  { "label": "Farm Details", "icon": "farm" },
+                  { "label": "Loan Amount", "icon": "coins" },
+                  { "label": "Consent & Data", "icon": "shield" },
+                  { "label": "Review & Submit", "icon": "check-circle" }
+                ],
+                "current_step": 1,
+                "editable": true,
+                "show_labels": true,
+                "responsive": "collapse labels on mobile"
+              },
+              "positioning": {
+                "grid_area": "header",
+                "height": "72px",
+                "padding": "0 lg"
+              }
+            },
+            {
+              "component_id": "step_content",
+              "component_type": "WizardStep",
+              "component_name": "StepContent",
+              "props_configuration": {
+                "step": 1,
+                "validation_schema": "loan_application_step_1",
+                "auto_save": true,
+                "save_debounce": 1000
+              },
+              "positioning": {
+                "grid_area": "main",
+                "max_width": "800px",
+                "margin": "0 auto",
+                "padding": "xl"
+              },
+              "data_dependencies": {
+                "api_endpoints": ["/api/v1/farms", "/api/v1/crops", "/api/v1/regions"],
+                "loading_state": "Form skeleton with field placeholders",
+                "error_state": "Error loading form data - retry button",
+                "empty_state": "No farms found - add farm first"
+              }
+            },
+            {
+              "component_id": "wizard_navigation",
+              "component_type": "WizardNavigation",
+              "component_name": "LoanWizardNavigation",
+              "props_configuration": {
+                "show_back": true,
+                "back_label": "Back",
+                "next_label": "Continue",
+                "submit_label": "Submit Application",
+                "show_progress": true,
+                "disable_next_on_invalid": true
+              },
+              "positioning": {
+                "grid_area": "footer",
+                "height": "80px",
+                "padding": "0 xl",
+                "sticky": "bottom 0"
+              }
+            },
+            {
+              "component_id": "ai_preview",
+              "component_type": "Preview",
+              "component_name": "AIScorePreview",
+              "props_configuration": {
+                "visible_from_step": 3,
+                "show_explainability": true,
+                "show_factors": ["ndvi_trend", "weather_risk", "mobile_activity"],
+                "interactive": true
+              },
+              "positioning": {
+                "grid_area": "sidebar",
+                "width": "320px",
+                "sticky": "top 100px",
+                "display": ["lg", "xl"]
+              }
+            }
+          ],
+          "responsive_breakpoints": {
+            "mobile": {
+              "visible_components": ["wizard_steps", "step_content", "wizard_navigation"],
+              "hidden_components": ["ai_preview"],
+              "layout_adaptations": {
+                "wizard_steps": {
+                  "show_icons_only": true,
+                  "spacing": "evenly"
+                },
+                "step_content": {
+                  "padding": "md",
+                  "max_width": "100%"
+                }
+              }
+            },
+            "tablet": {
+              "visible_components": ["wizard_steps", "step_content", "wizard_navigation", "ai_preview"],
+              "hidden_components": [],
+              "layout_adaptations": {
+                "ai_preview": {
+                  "position": "below content",
+                  "width": "100%"
+                }
+              }
+            },
+            "desktop": {
+              "visible_components": ["wizard_steps", "step_content", "wizard_navigation", "ai_preview"],
+              "hidden_components": [],
+              "layout_adaptations": {
+                "grid_template": "'header header' 'main sidebar' 'footer footer' / 1fr 320px",
+                "ai_preview": {
+                  "position": "sidebar",
+                  "sticky": true
+                }
+              }
+            }
+          },
+          "loading_sequence": {
+            "initial_load": ["wizard_steps", "step_content", "wizard_navigation"],
+            "skeleton_screens": ["step_content"],
+            "progressive_hydration": {
+              "priority": ["step_content"],
+              "deferred": ["ai_preview"],
+              "conditional": "ai_preview loads on step 3"
+            }
+          },
+          "page_transitions": {
+            "enter_animation": "fade",
+            "exit_animation": "fade",
+            "duration": 200,
+            "easing": "ease-in-out"
+          }
+        },
+        {
+          "page_id": "marketplace",
+          "page_name": "Loan Marketplace",
+          "page_route": "/marketplace",
+          "page_type": "protected",
+          "meta_information": {
+            "title": "Loan Marketplace - AgriCredit Africa",
+            "description": "Browse and fund vetted loan requests from African farmers. AI-scored, blockchain-secured.",
+            "keywords": ["loan marketplace", "impact investing", "fund farmers", "agriculture investment"],
+            "og_tags": {
+              "og:title": "Loan Marketplace - AgriCredit Africa",
+              "og:description": "Invest in AI-scored farmer loans with blockchain transparency"
+            }
+          },
+          "layout_template": "dashboard_layout",
+          "components": [
+            {
+              "component_id": "marketplace_filters",
+              "component_type": "FilterPanel",
+              "component_name": "MarketplaceFilters",
+              "props_configuration": {
+                "filters": [
+                  {
+                    "field": "region",
+                    "type": "multi_select",
+                    "label": "Region",
+                    "options": ["West Africa", "East Africa", "Southern Africa"],
+                    "default": []
+                  },
+                  {
+                    "field": "crop_type",
+                    "type": "multi_select",
+                    "label": "Crop Type",
+                    "options": ["Maize", "Rice", "Coffee", "Cocoa", "Cassava"],
+                    "default": []
+                  },
+                  {
+                    "field": "score_range",
+                    "type": "range_slider",
+                    "label": "AI Score",
+                    "min": 0,
+                    "max": 100,
+                    "step": 5,
+                    "default": [60, 100]
+                  },
+                  {
+                    "field": "loan_amount",
+                    "type": "range_slider",
+                    "label": "Loan Amount",
+                    "min": 50,
+                    "max": 5000,
+                    "step": 50,
+                    "format": "currency",
+                    "default": [100, 1000]
+                  },
+                  {
+                    "field": "term_days",
+                    "type": "multi_select",
+                    "label": "Loan Term",
+                    "options": ["30 days", "60 days", "90 days", "180 days"],
+                    "default": []
+                  }
+                ],
+                "collapsible": true,
+                "show_count": true,
+                "apply_on_change": false
+              },
+              "positioning": {
+                "grid_area": "sidebar",
+                "width": "280px",
+                "sticky": "top 80px",
+                "display": ["lg", "xl"]
+              },
+              "data_dependencies": {
+                "api_endpoints": ["/api/v1/marketplace/filter-options"],
+                "loading_state": "Filter skeleton with placeholders",
+                "error_state": "Basic filters without dynamic options",
+                "empty_state": "No filter options available"
+              }
+            },
+            {
+              "component_id": "marketplace_header",
+              "component_type": "PageHeader",
+              "component_name": "MarketplaceHeader",
+              "props_configuration": {
+                "title": "Loan Marketplace",
+                "subtitle": "Fund vetted farmer loans with AI scoring",
+                "stats": [
+                  { "label": "Active Loans", "value": 245 },
+                  { "label": "Avg. Score", "value": 78 },
+                  { "label": "Avg. Return", "value": "12.5%" }
+                ],
+                "actions": [
+                  {
+                    "label": "Advanced Filters",
+                    "icon": "filter",
+                    "variant": "outline",
+                    "mobile_only": true
+                  },
+                  {
+                    "label": "Create Pool",
+                    "icon": "plus",
+                    "variant": "primary"
+                  }
+                ]
+              },
+              "positioning": {
+                "grid_area": "header",
+                "padding": "xl 0"
+              }
+            },
+            {
+              "component_id": "loan_cards",
+              "component_type": "CardGrid",
+              "component_name": "LoanCardGrid",
+              "props_configuration": {
+                "columns": {
+                  "mobile": 1,
+                  "tablet": 2,
+                  "desktop": 3,
+                  "large_desktop": 4
+                },
+                "gap": "lg",
+                "card_component": "LoanCard",
+                "infinite_scroll": true,
+                "page_size": 12,
+                "sort_options": [
+                  { "label": "Score: High to Low", "value": "-score" },
+                  { "label": "Amount: Low to High", "value": "amount" },
+                  { "label": "Term: Short to Long", "value": "term" },
+                  { "label": "Newest First", "value": "-created_at" }
+                ],
+                "default_sort": "-score"
+              },
+              "positioning": {
+                "grid_area": "main",
+                "min_height": "600px"
+              },
+              "data_dependencies": {
+                "api_endpoints": ["/api/v1/marketplace/loans"],
+                "loading_state": "Grid of 12 loan card skeletons",
+                "error_state": "Error message with retry and contact support",
+                "empty_state": "No loans match your filters - try different criteria"
+              },
+              "interactions": [
+                {
+                  "type": "hover",
+                  "action": "Card elevation increase (level_2 to level_3)",
+                  "duration": 150
+                },
+                {
+                  "type": "click",
+                  "action": "Navigate to loan detail page",
+                  "transition": "slide-left"
+                },
+                {
+                  "type": "scroll",
+                  "action": "Infinite scroll loading",
+                  "threshold": "200px from bottom"
+                }
+              ]
+            },
+            {
+              "component_id": "map_overlay",
+              "component_type": "Map",
+              "component_name": "MarketplaceMap",
+              "props_configuration": {
+                "visible": false,
+                "show_loan_locations": true,
+                "cluster_points": true,
+                "zoom": 4,
+                "height": "500px",
+                "interactive": true
+              },
+              "positioning": {
+                "grid_area": "full-bleed",
+                "position": "fixed",
+                "top": 0,
+                "left": 0,
+                "z_index": 1000,
+                "display": "none"
+              }
+            }
+          ],
+          "responsive_breakpoints": {
+            "mobile": {
+              "visible_components": ["marketplace_header", "loan_cards"],
+              "hidden_components": ["marketplace_filters", "map_overlay"],
+              "layout_adaptations": {
+                "loan_cards": {
+                  "columns": 1,
+                  "gap": "md"
+                },
+                "filters": {
+                  "location": "modal overlay",
+                  "trigger": "floating action button"
+                }
+              }
+            },
+            "tablet": {
+              "visible_components": ["marketplace_header", "loan_cards", "marketplace_filters"],
+              "hidden_components": ["map_overlay"],
+              "layout_adaptations": {
+                "loan_cards": {
+                  "columns": 2,
+                  "gap": "lg"
+                },
+                "marketplace_filters": {
+                  "position": "above cards",
+                  "collapsed": true
+                }
+              }
+            },
+            "desktop": {
+              "visible_components": ["marketplace_header", "marketplace_filters", "loan_cards"],
+              "hidden_components": [],
+              "layout_adaptations": {
+                "grid_template": "'header header' 'sidebar main' / 280px 1fr",
+                "loan_cards": {
+                  "columns": 3,
+                  "gap": "xl"
+                }
+              }
+            },
+            "large_desktop": {
+              "visible_components": ["marketplace_header", "marketplace_filters", "loan_cards"],
+              "hidden_components": [],
+              "layout_adaptations": {
+                "loan_cards": {
+                  "columns": 4,
+                  "gap": "xl"
+                }
+              }
+            }
+          },
+          "loading_sequence": {
+            "initial_load": ["marketplace_header", "loan_cards"],
+            "skeleton_screens": ["loan_cards (12 skeletons)"],
+            "progressive_hydration": {
+              "priority": ["marketplace_header", "first 6 loan cards"],
+              "deferred": ["marketplace_filters", "remaining loan cards"],
+              "incremental": "Load 6 cards at a time on scroll"
+            }
+          },
+          "page_transitions": {
+            "enter_animation": "fade",
+            "exit_animation": "fade",
+            "duration": 200,
+            "easing": "ease-in-out"
+          }
+        }
+      ],
+      "page_transitions_global": {
+        "transition_type": "fade",
+        "duration": 200,
+        "easing": "cubic-bezier(0.4, 0, 0.2, 1)",
+        "prevention_strategy": {
+          "timeout": 10000,
+          "fallback": "instant navigation",
+          "loading_indicator": "top progress bar"
+        }
+      }
+    },
+    "user_interactions": {
+      "gesture_support": {
+        "touch_gestures": [
+          {
+            "gesture": "tap",
+            "action": "primary action (buttons, links)",
+            "min_target": "44px square",
+            "feedback": "visual press state"
+          },
+          {
+            "gesture": "double_tap",
+            "action": "zoom in/out (maps, images)",
+            "threshold": "300ms between taps",
+            "feedback": "scale animation"
+          },
+          {
+            "gesture": "long_press",
+            "action": "context menu / secondary actions",
+            "duration": "500ms",
+            "feedback": "haptic (if available) + visual pulse"
+          },
+          {
+            "gesture": "swipe",
+            "action": "navigate/cancel/dismiss",
+            "directions": ["left", "right", "up", "down"],
+            "threshold": "50px distance",
+            "feedback": "follow motion with element"
+          },
+          {
+            "gesture": "pinch",
+            "action": "zoom (maps, images)",
+            "feedback": "smooth scale transform"
+          }
+        ],
+        "mouse_interactions": [
+          {
+            "interaction": "hover",
+            "action": "reveal tooltips, show previews",
+            "delay": "300ms before showing",
+            "hide_delay": "150ms after leaving"
+          },
+          {
+            "interaction": "click",
+            "action": "primary selection",
+            "feedback": "CSS active state"
+          },
+          {
+            "interaction": "right_click",
+            "action": "context menu",
+            "prevent_default": false,
+            "custom_menu": true
+          },
+          {
+            "interaction": "drag",
+            "action": "reorder elements, upload files",
+            "feedback": "visual drag state with opacity"
+          },
+          {
+            "interaction": "scroll",
+            "action": "navigate content",
+            "behavior": "smooth by default",
+            "inertia": "native browser behavior"
+          }
+        ],
+        "keyboard_interactions": [
+          {
+            "key": "Tab",
+            "action": "move focus forward",
+            "cycle": "wrap around page",
+            "skip_hidden": true
+          },
+          {
+            "key": "Shift+Tab",
+            "action": "move focus backward",
+            "cycle": "wrap around page"
+          },
+          {
+            "key": "Enter",
+            "action": "activate focused element",
+            "context": "buttons, links, form submit"
+          },
+          {
+            "key": "Space",
+            "action": "activate/toggle",
+            "context": "checkboxes, buttons, expand/collapse"
+          },
+          {
+            "key": "Arrow keys",
+            "action": "navigate within components",
+            "context": "lists, menus, radio groups, sliders"
+          },
+          {
+            "key": "Escape",
+            "action": "close/dismiss/cancel",
+            "context": "modals, dropdowns, search, fullscreen"
+          },
+          {
+            "key": "Ctrl/Cmd + K",
+            "action": "focus search",
+            "global": true,
+            "prevent_default": true
+          }
+        ]
+      },
+      "micro_interactions": [
+        {
+          "interaction_name": "button_press",
+          "trigger": "mouse_down/touch_start",
+          "animation": {
+            "type": "scale",
+            "from": 1,
+            "to": 0.95,
+            "duration": 100,
+            "easing": "ease-out"
+          },
+          "sound_feedback": false,
+          "haptic_feedback": "light (on supported devices)"
+        },
+        {
+          "interaction_name": "success_feedback",
+          "trigger": "successful_action",
+          "animation": {
+            "type": "confetti",
+            "particle_count": 50,
+            "duration": 2000,
+            "colors": ["#4CAF50", "#2E7D32", "#81C784"]
+          },
+          "sound_feedback": {
+            "enabled": true,
+            "sound": "soft_chime.mp3",
+            "volume": 0.3
+          },
+          "haptic_feedback": "success pattern"
+        },
+        {
+          "interaction_name": "error_feedback",
+          "trigger": "error_state",
+          "animation": {
+            "type": "shake",
+            "distance": "8px",
+            "duration": 500,
+            "iterations": 3
+          },
+          "sound_feedback": {
+            "enabled": false
+          },
+          "visual_feedback": "red border pulse"
+        },
+        {
+          "interaction_name": "loading_transition",
+          "trigger": "async_operation_start",
+          "animation": {
+            "type": "pulse",
+            "target": "loading_indicator",
+            "duration": 1500,
+            "iterations": "infinite"
+          },
+          "progress_indication": true
+        },
+        {
+          "interaction_name": "toast_notification",
+          "trigger": "system_notification",
+          "animation": {
+            "enter": "slide-in-from-right",
+            "exit": "fade-out",
+            "duration": 300
+          },
+          "auto_dismiss": 5000
+        }
+      ],
+      "form_interactions": {
+        "validation_feedback": {
+          "real_time_validation": {
+            "enabled": true,
+            "debounce": 500,
+            "fields": ["email", "phone", "wallet_address", "amount"]
+          },
+          "error_message_display": {
+            "location": "inline below field",
+            "format": "icon + message",
+            "aria_live": "polite",
+            "clear_on_fix": true
+          },
+          "success_confirmation": {
+            "enabled": true,
+            "visual": "green checkmark icon",
+            "aria_live": "polite"
+          }
+        },
+        "auto_save": {
+          "enabled": true,
+          "debounce_time": 1000,
+          "save_indicator": {
+            "visual": "small dot changing color",
+            "text": "Saving... / Saved",
+            "position": "top-right of form",
+            "duration": 2000
+          },
+          "recovery": {
+            "enabled": true,
+            "prompt": "Restore unsaved changes?",
+            "lifetime": "7 days"
+          }
+        },
+        "field_dependencies": {
+          "enabled": true,
+          "show_hide": "Based on previous field values",
+          "enable_disable": "Based on selections",
+          "clear_on_hide": true
+        }
+      },
+      "infinite_scrolling": {
+        "threshold": "200px from bottom",
+        "loading_indicator": {
+          "type": "skeleton",
+          "count": 6,
+          "variant": "card"
+        },
+        "error_retry": {
+          "enabled": true,
+          "max_retries": 3,
+          "backoff": "exponential (1s, 2s, 4s)"
+        },
+        "performance": {
+          "virtualization": true,
+          "overscan": 3,
+          "max_items": 1000
+        }
+      },
+      "drag_and_drop": {
+        "supported_elements": [
+          {
+            "element": "file_upload",
+            "feedback": "highlight drop zone",
+            "preview": "file list with thumbnails"
+          },
+          {
+            "element": "loan_card_reorder",
+            "feedback": "visual reorder with placeholder",
+            "constraints": "vertical only"
+          }
+        ],
+        "visual_feedback": {
+          "drag_start": "opacity: 0.7, elevation: level_4",
+          "drag_over": "border: 2px dashed primary-500, background: primary-50",
+          "drop_zone": "pulse animation, background: primary-100"
+        },
+        "accessibility_alternative": {
+          "keyboard_reorder": "arrow keys + space to pick up",
+          "screen_reader_announcements": true,
+          "skip_drag": "alternative UI for non-drag users"
+        }
+      },
+      "search_interactions": {
+        "typeahead_search": {
+          "enabled": true,
+          "min_chars": 2,
+          "debounce": 300,
+          "max_results": 10
+        },
+        "search_filters": {
+          "persistent": true,
+          "save_to_url": true,
+          "clear_all": true
+        }
+      }
+    },
+    "accessibility_specifications": {
+      "keyboard_navigation": {
+        "tab_order": {
+          "strategy": "logical DOM order",
+          "skip_content": {
+            "enabled": true,
+            "targets": ["main", "navigation", "search"],
+            "visible": true,
+            "position": "first focusable element"
+          },
+          "focus_traps": {
+            "enabled": true,
+            "elements": ["Modal", "Drawer", "Dropdown", "Dialog"],
+            "escape_exit": true
+          }
+        },
+        "shortcut_keys": {
+          "enabled": true,
+          "documentation": "accessible via help menu",
+          "common_shortcuts": [
+            { "key": "?", "action": "show keyboard shortcuts" },
+            { "key": "/", "action": "focus search" },
+            { "key": "g then h", "action": "go to home" },
+            { "key": "g then d", "action": "go to dashboard" }
+          ]
+        }
+      },
+      "screen_reader_support": {
+        "aria_labels": {
+          "required_for": [
+            "all interactive elements",
+            "icons without text",
+            "form inputs",
+            "images with meaning",
+            "buttons with icons only"
+          ],
+          "dynamic_updates": {
+            "live_regions": ["polite", "assertive"],
+            "context": ["loading states", "error messages", "success notifications", "form validation"]
+          }
+        },
+        "landmark_roles": {
+          "banner": true,
+          "navigation": true,
+          "main": true,
+          "complementary": true,
+          "contentinfo": true,
+          "search": true,
+          "form": true
+        },
+        "heading_hierarchy": {
+          "single_h1": true,
+          "sequential_order": true,
+          "no_skipping": true,
+          "aria_level": "for dynamic content"
+        },
+        "text_alternatives": {
+          "images": "descriptive alt text",
+          "charts": "data table alternative",
+          "icons": "descriptive aria-label",
+          "decorative_images": "empty alt"
+        }
+      },
+      "color_contrast": {
+        "minimum_ratio": {
+          "normal_text": "4.5:1",
+          "large_text": "3:1",
+          "graphical_objects": "3:1",
+          "ui_components": "3:1"
+        },
+        "testing_methodology": {
+          "automated": "axe-core integration in CI",
+          "manual": "regular audits with color contrast tools",
+          "tools": ["Chrome DevTools", "axe DevTools", "Color Contrast Analyzer"]
+        },
+        "color_blind_friendly": {
+          "enabled": true,
+          "patterns": "use patterns with colors",
+          "testing": "simulate various color vision deficiencies"
+        }
+      },
+      "reduced_motion": {
+        "respect_preference": true,
+        "detection": "@media (prefers-reduced-motion: reduce)",
+        "alternative_animations": {
+          "fade_instead_of_slide": true,
+          "disable_parallax": true,
+          "simpler_transitions": true
+        },
+        "disable_autoplay": {
+          "videos": true,
+          "carousels": true,
+          "animations": true
+        }
+      },
+      "focus_management": {
+        "focus_restoration": {
+          "on_route_change": "restore to top of page",
+          "on_modal_close": "return to triggering element",
+          "on_form_submit": "focus on success message"
+        },
+        "programmatic_focus": {
+          "on_error": "focus first error field",
+          "on_success": "focus success notification",
+          "on_loading_complete": "focus newly loaded content"
+        },
+        "visible_focus_indicators": {
+          "style": "2px solid primary-500 with 1px offset",
+          "high_visibility": "3px solid #000000",
+          "never_remove": true,
+          "custom_styles": "for custom components"
+        }
+      },
+      "screen_reader_only": {
+        "class": ".sr-only",
+        "properties": "position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;",
+        "usage": "visually hidden but accessible content"
+      }
+    },
+    "performance_requirements": {
+      "core_web_vitals_targets": {
+        "lcp": {
+          "target": "2.5s",
+          "p75_target": "4.0s",
+          "measurement": "largest contentful paint",
+          "optimization_strategies": ["priority image loading", "critical CSS extraction", "preload key requests"]
+        },
+        "fid": {
+          "target": "100ms",
+          "p75_target": "300ms",
+          "measurement": "first input delay",
+          "optimization_strategies": ["code splitting", "minimal main thread work", "optimized event handlers"]
+        },
+        "cls": {
+          "target": "0.1",
+          "p75_target": "0.25",
+          "measurement": "cumulative layout shift",
+          "optimization_strategies": ["dimension attributes on media", "reserved space for ads", "stable layout"]
+        }
+      },
+      "bundle_size_limits": {
+        "initial_load": {
+          "target": "100kb",
+          "gzipped": true,
+          "components": ["critical CSS", "app shell", "initial route"]
+        },
+        "total_js": {
+          "target": "300kb",
+          "gzipped": true,
+          "strategy": "code splitting by route"
+        },
+        "total_css": {
+          "target": "50kb",
+          "gzipped": true,
+          "strategy": "purge unused CSS"
+        },
+        "vendor_chunk": {
+          "target": "150kb",
+          "gzipped": true,
+          "splitting": "by package category"
+        },
+        "monitoring": {
+          "budget_failing": "10% over target",
+          "warning": "5% over target"
+        }
+      },
+      "caching_strategy": {
+        "static_assets": {
+          "cache_control": "public, max-age=31536000, immutable",
+          "includes": ["JS chunks", "CSS", "fonts", "versioned images"]
+        },
+        "api_responses": {
+          "cache_control": "private, max-age=60, stale-while-revalidate=300",
+          "vary": "Authorization, Accept-Language"
+        },
+        "service_worker": {
+          "enabled": true,
+          "strategy": "stale-while-revalidate",
+          "precache": ["app shell", "critical assets"],
+          "runtime_caching": ["images", "API calls"]
+        },
+        "cdn_configuration": {
+          "enabled": true,
+          "provider": "Cloudflare",
+          "edge_caching": true,
+          "http2_push": "critical assets"
+        }
+      },
+      "loading_performance": {
+        "first_contentful_paint": {
+          "target": "1.8s",
+          "optimizations": ["server-side rendering", "critical CSS", "font preloading"]
+        },
+        "largest_contentful_paint": {
+          "target": "2.5s",
+          "optimizations": ["image optimization", "lazy loading", "resource hints"]
+        },
+        "time_to_interactive": {
+          "target": "3.5s",
+          "optimizations": ["code splitting", "minimal JavaScript", "efficient hydration"]
+        },
+        "speed_index": {
+          "target": "3.4s",
+          "measurement": "perceived load speed"
+        }
+      },
+      "runtime_performance": {
+        "memory_usage": {
+          "max_heap": "100MB",
+          "monitoring": "memory leaks in development"
+        },
+        "cpu_idle": {
+          "target": "50% idle time",
+          "optimizations": ["web workers for heavy tasks", "debounced handlers", "virtualization"]
+        },
+        "animation_performance": {
+          "target": "60fps",
+          "optimizations": ["use transform/opacity", "avoid layout thrashing", "will-change hints"]
+        }
+      }
+    },
+    "development_configuration": {
+      "project_structure": {
+        "src_structure": {
+          "components": {
+            "atomic": ["atoms/", "molecules/"],
+            "composite": ["organisms/", "templates/"],
+            "pages": ["app/", "pages/"],
+            "layouts": ["layouts/"],
+            "shared": ["ui/", "forms/", "charts/", "maps/"]
+          },
+          "hooks": ["useAuth/", "useLoans/", "useCarbon/", "useWallet/", "useForm/"],
+          "utils": {
+            "helpers": ["formatting/", "validation/", "calculations/"],
+            "constants": ["routes/", "config/", "blockchain/"],
+            "formatters": ["currency/", "date/", "numbers/"]
+          },
+          "services": {
+            "api": ["client/", "endpoints/", "interceptors/"],
+            "auth": ["providers/", "session/"],
+            "analytics": ["tracking/", "events/"],
+            "blockchain": ["contracts/", "wallet/", "transactions/"]
+          },
+          "store": {
+            "slices": ["authSlice/", "loanSlice/", "uiSlice/"],
+            "actions": ["asyncActions/"],
+            "selectors": ["derivedSelectors/"]
+          },
+          "styles": {
+            "tokens": ["colors/", "typography/", "spacing/"],
+            "global": ["reset.css", "fonts.css", "utilities.css"],
+            "mixins": ["breakpoints/", "animations/"]
+          },
+          "assets": {
+            "images": ["icons/", "illustrations/", "logos/"],
+            "fonts": ["woff2/", "woff/"],
+            "icons": ["svg/", "sprite/"]
+          },
+          "tests": {
+            "unit": ["components/", "hooks/", "utils/"],
+            "integration": ["pages/", "flows/"],
+            "e2e": ["specs/", "fixtures/"]
+          }
+        },
+        "naming_conventions": {
+          "components": "PascalCase (Button, LoanCard)",
+          "hooks": "useCamelCase (useAuth, useFormValidation)",
+          "utils": "camelCase (formatCurrency, validateEmail)",
+          "files": {
+            "components": "ComponentName.component.tsx",
+            "styles": "ComponentName.module.css",
+            "tests": "ComponentName.test.tsx",
+            "stories": "ComponentName.stories.tsx"
+          },
+          "css_classes": "kebab-case (loan-card, primary-button)",
+          "constants": "UPPER_SNAKE_CASE (API_BASE_URL, ROUTES)"
+        },
+        "import_aliases": {
+          "@": "src/",
+          "@components": "src/components/",
+          "@hooks": "src/hooks/",
+          "@utils": "src/utils/",
+          "@services": "src/services/",
+          "@styles": "src/styles/",
+          "@assets": "src/assets/"
+        }
+      },
+      "build_configuration": {
+        "bundler": "Next.js 14.1.0 (built-in with Turbopack for dev)",
+        "transpiler": "TypeScript 5.3.0 with SWC",
+        "plugins": [
+          {
+            "name": "@next/bundle-analyzer",
+            "purpose": "Bundle size analysis",
+            "config": { "enabled": "process.env.ANALYZE === 'true'" }
+          },
+          {
+            "name": "next-pwa",
+            "version": "5.6.0",
+            "purpose": "PWA support",
+            "config": { "dest": "public", "disable: process.env.NODE_ENV === 'development'" }
+          },
+          {
+            "name": "next-i18next",
+            "version": "13.2.0",
+            "purpose": "Internationalization"
+          }
+        ],
+        "optimizations": {
+          "tree_shaking": {
+            "enabled": true,
+            "side_effects": "package.json sideEffects field"
+          },
+          "minification": {
+            "javascript": "Terser with default settings",
+            "css": "CSSNano with preset advanced"
+          },
+          "compression": {
+            "gzip": true,
+            "brotli": true,
+            "compression_level": 6
+          },
+          "image_optimization": {
+            "enabled": true,
+            "formats": ["webp", "avif"],
+            "quality": 75
+          }
+        },
+        "environment_variables": {
+          "required": [
+            "NEXT_PUBLIC_API_BASE_URL",
+            "NEXT_PUBLIC_AUTH_DOMAIN",
+            "NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID"
+          ],
+          "optional": [
+            "NEXT_PUBLIC_SENTRY_DSN",
+            "NEXT_PUBLIC_GA_ID",
+            "NEXT_PUBLIC_MIXPANEL_TOKEN"
+          ],
+          "validation": "zod schema at build time"
+        }
+      },
+      "testing_setup": {
+        "unit_testing": {
+          "framework": "Jest 29.7.0",
+          "testing_library": "React Testing Library 14.1.2",
+          "coverage_threshold": {
+            "statements": 80,
+            "branches": 70,
+            "functions": 80,
+            "lines": 80
+          },
+          "setup_files": ["jest.setup.js", "jest-dom-extended"],
+          "transform": {
+            "typescript": "swc-jest",
+            "css": "identity-obj-proxy"
+          }
+        },
+        "component_testing": {
+          "framework": "Storybook 7.6.0",
+          "addons": [
+            "@storybook/addon-essentials",
+            "@storybook/addon-interactions",
+            "@storybook/addon-a11y",
+            "@storybook/addon-viewport"
+          ],
+          "documentation": "auto-generated from TypeScript props",
+          "chromatic": {
+            "enabled": true,
+            "visual_testing": true
+          }
+        },
+        "e2e_testing": {
+          "framework": "Playwright 1.40.0",
+          "test_scenarios": [
+            "Farmer onboarding flow",
+            "Loan application and funding",
+            "Investor portfolio management",
+            "Admin oracle management"
+          ],
+          "browsers": ["chromium", "firefox", "webkit"],
+          "devices": ["Desktop Chrome", "iPhone 12", "iPad Pro"]
+        },
+        "visual_regression": {
+          "enabled": true,
+          "tool": "Loki",
+          "reference_screenshots": "stored in repository",
+          "approval_process": "PR-based review"
+        }
+      },
+      "tooling_configuration": {
+        "linting": {
+          "eslint_config": {
+            "extends": [
+              "next/core-web-vitals",
+              "airbnb",
+              "airbnb-typescript",
+              "plugin:@typescript-eslint/recommended"
+            ],
+            "parser": "@typescript-eslint/parser",
+            "plugins": ["@typescript-eslint", "react-hooks", "jsx-a11y"],
+            "rules": {
+              "react/react-in-jsx-scope": "off",
+              "import/prefer-default-export": "off",
+              "react/require-default-props": "off",
+              "jsx-a11y/anchor-is-valid": "off"
+            }
+          },
+          "commit_linting": {
+            "enabled": true,
+            "config": "@commitlint/config-conventional"
+          }
+        },
+        "formatting": {
+          "prettier_config": {
+            "semi": true,
+            "trailingComma": "es5",
+            "singleQuote": true,
+            "printWidth": 100,
+            "tabWidth": 2,
+            "useTabs": false
+          },
+          "pre_commit_hooks": {
+            "enabled": true,
+            "tools": ["husky", "lint-staged"],
+            "tasks": ["lint-staged", "type-check", "unit-tests"]
+          }
+        },
+        "code_quality": {
+          "static_analysis": {
+            "sonarqube": {
+              "enabled": true,
+              "project_key": "agricredit-africa-frontend"
+            },
+            "typescript": {
+              "strict": true,
+              "noImplicitAny": true,
+              "strictNullChecks": true
+            }
+          },
+          "dependency_checking": {
+            "dependabot": {
+              "enabled": true,
+              "schedule": "weekly",
+              "groups": {
+                "dependencies": { "update_types": ["minor", "patch"] },
+                "devDependencies": { "update_types": ["minor", "patch"] }
+              }
+            },
+            "npm_audit": {
+              "enabled": true,
+              "level": "critical",
+              "ci_fail": true
+            }
+          },
+          "bundle_analysis": {
+            "enabled": true,
+            "tool": "webpack-bundle-analyzer",
+            "thresholds": "enforced in CI"
+          }
+        }
+      }
+    },
+    "deployment_requirements": {
+      "hosting_platform": "Vercel (Primary) with AWS S3 + CloudFront backup",
+      "cdn_configuration": {
+        "primary": "Vercel Edge Network",
+        "fallback": "CloudFront with S3 origin",
+        "regions": ["North America", "Europe", "Africa (Johannesburg)"],
+        "edge_functions": {
+          "enabled": true,
+          "uses": ["A/B testing", "geolocation routing", "API caching"]
+        }
+      },
+      "environment_variables": {
+        "required": [
+          {
+            "name": "NEXT_PUBLIC_API_BASE_URL",
+            "description": "Base URL for backend API",
+            "production": "https://api.agricredit.africa/v1",
+            "staging": "https://api.staging.agricredit.africa/v1",
+            "development": "http://localhost:3001/v1"
+          },
+          {
+            "name": "NEXT_PUBLIC_AUTH_DOMAIN",
+            "description": "Auth0 or custom auth domain",
+            "production": "auth.agricredit.africa",
+            "staging": "auth.staging.agricredit.africa"
+          },
+          {
+            "name": "NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID",
+            "description": "WalletConnect cloud project ID",
+            "secret": true
+          }
+        ],
+        "optional": [
+          {
+            "name": "NEXT_PUBLIC_SENTRY_DSN",
+            "description": "Sentry error tracking DSN",
+            "secret": true
+          },
+          {
+            "name": "NEXT_PUBLIC_GA_ID",
+            "description": "Google Analytics measurement ID",
+            "value": "G-XXXXXXXXXX"
+          },
+          {
+            "name": "NEXT_PUBLIC_MIXPANEL_TOKEN",
+            "description": "Mixpanel project token",
+            "secret": true
+          }
+        ],
+        "management": "Vercel Environment Variables dashboard"
+      },
+      "monitoring_integration": {
+        "error_tracking": {
+          "primary": "Sentry",
+          "config": {
+            "dsn": "${NEXT_PUBLIC_SENTRY_DSN}",
+            "environment": "${VERCEL_ENV}",
+            "release": "${VERCEL_GIT_COMMIT_SHA}",
+            "traces_sample_rate": 0.1,
+            "replay_sample_rate": 0.1
+          },
+          "features": ["error tracking", "performance monitoring", "session replay"]
+        },
+        "analytics": {
+          "primary": "Google Analytics 4",
+          "secondary": "Mixpanel",
+          "events": {
+            "page_views": true,
+            "custom_events": ["loan_application_started", "loan_funded", "wallet_connected"],
+            "user_properties": ["role", "region", "loan_count"]
+          }
+        },
+        "performance_monitoring": {
+          "tools": [
+            {
+              "name": "Lighthouse CI",
+              "purpose": "Automated performance audits",
+              "thresholds": {
+                "performance": 90,
+                "accessibility": 90,
+                "best_practices": 90,
+                "seo": 90
+              }
+            },
+            {
+              "name": "Web Vitals",
+              "purpose": "Real user monitoring",
+              "reporting": "Google Analytics + Sentry"
+            }
+          ],
+          "synthetic_monitoring": {
+            "enabled": true,
+            "provider": "Checkly",
+            "checks": ["Critical user journeys", "API health", "Page load times"]
+          }
+        },
+        "logging": {
+          "client_side": {
+            "enabled": true,
+            "level": "error",
+            "sanitization": "Remove PII before logging"
+          },
+          "server_side": {
+            "enabled": true,
+            "provider": "Vercel Log Drain + Datadog",
+            "retention": "30 days"
+          }
+        }
+      },
+      "deployment_pipeline": {
+        "environments": {
+          "development": {
+            "branch": "develop",
+            "url": "https://dev.agricredit.africa",
+            "auto_deploy": true,
+            "preview_urls": "per PR"
+          },
+          "staging": {
+            "branch": "staging",
+            "url": "https://staging.agricredit.africa",
+            "auto_deploy": false,
+            "approval_required": true
+          },
+          "production": {
+            "branch": "main",
+            "url": "https://agricredit.africa",
+            "auto_deploy": false,
+            "approval_required": true,
+            "canary_releases": true
+          }
+        },
+        "rollback_strategy": {
+          "automatic": {
+            "enabled": true,
+            "conditions": ["error rate > 5%", "core web vitals degradation"],
+            "window": "5 minutes"
+          },
+          "manual": {
+            "one_click": true,
+            "previous_versions": "10 versions retained",
+            "database_migrations": "backward compatible"
+          }
+        },
+        "health_checks": {
+          "endpoint": "/api/health",
+          "frequency": "1 minute",
+          "regions": ["us-east-1", "eu-west-1", "af-south-1"],
+          "alerts": ["Slack", "PagerDuty"]
+        }
+      },
+      "security_headers": {
+        "content_security_policy": "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.google-analytics.com; style-src 'self' 'unsafe-inline';",
+        "strict_transport_security": "max-age=31536000; includeSubDomains; preload",
+        "x_frame_options": "DENY",
+        "x_content_type_options": "nosniff",
+        "referrer_policy": "strict-origin-when-cross-origin"
+      }
+    }
+  }
+}

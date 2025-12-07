@@ -1,15 +1,42 @@
 {
-  "name": "AgriCredit",
+  "name": "AgriCredit Africa",
   "short_name": "AgriCredit",
-  "description": "Decentralized agricultural credit platform for smallholder farmers",
+  "description": "AI + Blockchain platform providing instant microloans, tokenized carbon incentives, and marketplace for African smallholder farmers",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#22c55e",
+  "theme_color": "#4CAF50",
   "orientation": "portrait-primary",
   "scope": "/",
   "lang": "en",
   "dir": "ltr",
-
-  "categories": ["finance", "agriculture", "productivity"]
+  "categories": ["finance", "agriculture", "productivity"],
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshot-mobile.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "/screenshot-desktop.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide"
+    }
+  ]
 }
