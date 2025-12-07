@@ -83,13 +83,13 @@ function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
-      <body className="font-sans antialiased bg-paper-white text-slate-gray">
+      <body className="font-sans antialiased bg-background text-foreground">
         <Providers>
           <a href="#main-content" className="skip-link sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2">
             Skip to main content
           </a>
           <Navbar />
-          <main id="main-content" className="min-h-screen pt-16">
+          <main id="main-content" className="min-h-screen pt-20">
             {children}
           </main>
           <Footer />

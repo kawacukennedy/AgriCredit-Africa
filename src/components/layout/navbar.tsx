@@ -23,6 +23,8 @@ export function Navbar() {
   const themeRef = useRef<HTMLDivElement>(null);
   const langRef = useRef<HTMLDivElement>(null);
 
+
+
   // Close dropdowns when clicking outside or pressing Escape
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -90,7 +92,7 @@ export function Navbar() {
   const currentLang = languageOptions.find(lang => lang.code === i18n.language) || languageOptions[0];
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-b border-border shadow-level1">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border shadow-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
@@ -135,7 +137,7 @@ export function Navbar() {
                 placeholder="Search..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-64 pl-10 pr-4 py-2 bg-muted/5 border-border focus:border-agri-green focus:ring-agri-green/20 rounded-full"
+                className="w-40 pl-10 pr-4 py-2 bg-muted/5 border-border focus:border-agri-green focus:ring-agri-green/20 rounded-full"
               />
             </div>
 
@@ -157,7 +159,7 @@ export function Navbar() {
 
               {showLangMenu && (
                 <div
-                  className="absolute right-0 mt-2 w-40 bg-paper-white border border-border rounded-xl shadow-level3 z-50"
+                  className="absolute right-0 mt-2 w-40 bg-background border border-border rounded-xl shadow-level3 z-50"
                   role="menu"
                   aria-label="Language selection menu"
                 >
@@ -201,7 +203,7 @@ export function Navbar() {
 
               {showThemeMenu && (
                 <div
-                  className="absolute right-0 mt-2 w-36 bg-paper-white border border-border rounded-xl shadow-level3 z-50"
+                  className="absolute right-0 mt-2 w-36 bg-background border border-border rounded-xl shadow-level3 z-50"
                   role="menu"
                   aria-label="Theme selection menu"
                 >
@@ -249,7 +251,7 @@ export function Navbar() {
                 {/* Notifications Dropdown */}
                 {showNotifications && (
                   <div
-                    className="absolute right-0 mt-2 w-80 bg-paper-white border border-border rounded-xl shadow-level3 z-50"
+                    className="absolute right-0 mt-2 w-80 bg-background border border-border rounded-xl shadow-level3 z-50"
                     role="menu"
                     aria-label="Notifications menu"
                   >
@@ -331,7 +333,7 @@ export function Navbar() {
 
         {/* Mobile Navigation */}
         {isMobileMenuOpen && (
-          <div className="md:hidden border-t border-border/10 bg-paper-white/95 backdrop-blur-md animate-slideDown">
+          <div className="md:hidden border-t border-border bg-background animate-slideDown">
             <div className="px-4 py-6 space-y-4">
               {/* Mobile Search */}
               <div className="relative">
