@@ -1,18 +1,120 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
+// Mock data for when backend is not available
+const mockData = {
+  loans: [
+    {
+      id: '1',
+      amount: 2500,
+      ai_score: 785,
+      status: 'funded',
+      farmer_name: 'John Doe',
+      location: 'Nairobi, Kenya',
+      crop_type: 'Maize',
+      interest_rate: 8.5,
+      term_days: 365,
+      funded_amount: 875,
+      created_at: '2024-01-15T00:00:00Z'
+    },
+    {
+      id: '2',
+      amount: 1800,
+      ai_score: 742,
+      status: 'active',
+      farmer_name: 'Jane Smith',
+      location: 'Lagos, Nigeria',
+      crop_type: 'Cassava',
+      interest_rate: 9.2,
+      term_days: 270,
+      funded_amount: 1800,
+      created_at: '2024-01-20T00:00:00Z'
+    }
+  ],
+  marketplace: {
+    data: [
+      {
+        id: '1',
+        amount: 2500,
+        ai_score: 785,
+        farmer: 'John Doe',
+        location: 'Nairobi, Kenya',
+        crop: 'Maize',
+        interest_rate: 8.5,
+        term_months: 12,
+        funded_percentage: 35,
+        risk_level: 'Low',
+        farm_size: 5.2,
+        ndvi: 0.78,
+        description: 'Experienced maize farmer seeking capital for expansion'
+      },
+      {
+        id: '2',
+        amount: 1800,
+        ai_score: 742,
+        farmer: 'Sarah Johnson',
+        location: 'Lagos, Nigeria',
+        crop: 'Cassava',
+        interest_rate: 9.2,
+        term_months: 8,
+        funded_percentage: 0,
+        risk_level: 'Medium',
+        farm_size: 3.8,
+        ndvi: 0.72,
+        description: 'Sustainable cassava farming with organic practices'
+      }
+    ]
+  }
+};
+
+const baseQueryWithFallback = async (args: any, api: any, extraOptions: any) => {
+  try {
+    const result = await fetchBaseQuery({
+      baseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
+      prepareHeaders: (headers, { getState }) => {
+        const token = (getState() as any).auth.token;
+        if (token) {
+          headers.set('authorization', `Bearer ${token}`);
+        }
+        return headers;
+      },
+    })(args, api, extraOptions);
+
+    return result;
+  } catch (error) {
+    // If backend is not available, return mock data based on the endpoint
+    console.warn('Backend not available, using mock data for:', args.url);
+
+    // Mock responses based on endpoint
+    if (args.url?.includes('/loans') && args.method !== 'POST') {
+      return {
+        data: {
+          data: mockData.loans,
+          total: mockData.loans.length,
+          success: true
+        }
+      };
+    }
+
+    if (args.url?.includes('/marketplace/listings')) {
+      return {
+        data: mockData.marketplace
+      };
+    }
+
+    // For other endpoints, return empty success response
+    return {
+      data: {
+        success: true,
+        data: [],
+        message: 'Mock data - backend not available'
+      }
+    };
+  }
+};
+
 export const apiSlice = createApi({
   reducerPath: 'api',
-  baseQuery: fetchBaseQuery({
-    baseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
-    prepareHeaders: (headers, { getState }) => {
-      // Add auth token if available
-      const token = (getState() as any).auth.token;
-      if (token) {
-        headers.set('authorization', `Bearer ${token}`);
-      }
-      return headers;
-    },
-  }),
+  baseQuery: baseQueryWithFallback,
   endpoints: (builder) => ({
     // Authentication endpoints
     login: builder.mutation({

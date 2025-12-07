@@ -25,7 +25,7 @@ export const metadata: Metadata = {
   publisher: 'AgriCredit Africa',
   manifest: '/manifest.json',
   icons: {
-    icon: '/favicon.ico',
+    icon: '/favicon.svg',
     apple: '/apple-touch-icon.png',
   },
   openGraph: {
