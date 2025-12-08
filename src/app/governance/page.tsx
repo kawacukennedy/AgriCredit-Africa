@@ -8,6 +8,7 @@ import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useTranslation } from 'react-i18next';
 import { useGetGovernanceProposalsQuery, useVoteOnProposalMutation } from '@/store/apiSlice';
+import { SkeletonLoader } from '@/components/ui/skeleton-loader';
 import {
   Vote,
   Users,
@@ -288,20 +289,55 @@ export default function GovernancePage() {
 
           {/* Proposals Tab */}
           <TabsContent value="proposals" className="space-y-6">
-            {/* Create Proposal Button */}
-            <div className="flex justify-between items-center">
-              <div>
-                <h2 className="text-2xl font-bold text-slate-gray mb-2">Active Proposals</h2>
-                <p className="text-slate-gray/70">Vote on proposals that will shape the platform's future</p>
-              </div>
-              <Button className="btn-primary">
-                <Plus className="w-4 h-4 mr-2" />
-                Create Proposal
-              </Button>
-            </div>
+             {/* Create Proposal Button */}
+             <div className="flex justify-between items-center">
+               <div>
+                 <h2 className="text-2xl font-bold text-slate-gray mb-2">Active Proposals</h2>
+                 <p className="text-slate-gray/70">Vote on proposals that will shape the platform's future</p>
+               </div>
+               <Button className="btn-primary">
+                 <Plus className="w-4 h-4 mr-2" />
+                 Create Proposal
+               </Button>
+             </div>
 
-            {/* Proposals List */}
-            <div className="space-y-6">
+             {/* Loading State */}
+             {isLoading && (
+               <div className="space-y-6">
+                 {[1, 2, 3].map((i) => (
+                   <Card key={i} className="shadow-level2 border-0 overflow-hidden">
+                     <CardContent className="p-6">
+                       <div className="flex items-start justify-between mb-4">
+                         <div className="flex-1">
+                           <SkeletonLoader variant="text" width="60%" height="24px" className="mb-2" />
+                           <SkeletonLoader variant="text" width="80%" height="16px" className="mb-3" />
+                           <div className="flex items-center space-x-4 text-sm mb-4">
+                             <SkeletonLoader variant="text" width="100px" height="14px" />
+                             <SkeletonLoader variant="text" width="80px" height="14px" />
+                             <SkeletonLoader variant="text" width="90px" height="14px" />
+                           </div>
+                           <div className="flex flex-wrap gap-1 mb-4">
+                             {[1, 2, 3].map((j) => (
+                               <SkeletonLoader key={j} variant="rectangle" width="60px" height="24px" borderRadius="12px" />
+                             ))}
+                           </div>
+                         </div>
+                         <SkeletonLoader variant="rectangle" width="80px" height="32px" borderRadius="16px" />
+                       </div>
+                       <SkeletonLoader variant="text" width="100%" height="14px" className="mb-4" />
+                       <div className="flex space-x-2">
+                         <SkeletonLoader variant="rectangle" width="100px" height="36px" borderRadius="6px" />
+                         <SkeletonLoader variant="rectangle" width="100px" height="36px" borderRadius="6px" />
+                       </div>
+                     </CardContent>
+                   </Card>
+                 ))}
+               </div>
+             )}
+
+             {/* Proposals List */}
+             {!isLoading && (
+               <div className="space-y-6">
               {displayProposals.map((proposal: any) => {
                 const statusConfig = getStatusConfig(proposal.status);
                 const StatusIcon = statusConfig.icon;
@@ -422,9 +458,10 @@ export default function GovernancePage() {
                     </CardContent>
                   </Card>
                 );
-              })}
-            </div>
-          </TabsContent>
+               })}
+               </div>
+             )}
+           </TabsContent>
 
           {/* Treasury Tab */}
           <TabsContent value="treasury" className="space-y-6">

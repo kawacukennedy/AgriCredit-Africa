@@ -3,6 +3,7 @@
 import { Provider } from 'react-redux';
 import { store } from '@/store';
 import { ThemeProvider } from '@/components/theme-provider';
+import { NotificationProvider } from '@/components/ui/notification';
 import '../i18n';
 
 interface ProvidersProps {
@@ -13,7 +14,9 @@ export function Providers({ children }: ProvidersProps) {
   return (
     <Provider store={store}>
       <ThemeProvider>
-        {children}
+        <NotificationProvider>
+          {children}
+        </NotificationProvider>
       </ThemeProvider>
     </Provider>
   );

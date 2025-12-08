@@ -47,9 +47,13 @@ export default function MarketplacePage() {
 
   const { data: listings, isLoading, error } = useGetMarketplaceListingsQuery({
     crop_type: filters.crop !== 'all' ? filters.crop : undefined,
-    region: filters.region !== 'all' ? filters.region : undefined,
+    location: filters.region !== 'all' ? filters.region : undefined,
     min_score: filters.scoreRange !== 'all' ? parseInt(filters.scoreRange.split('-')[0]) : undefined,
     max_score: filters.scoreRange !== 'all' ? parseInt(filters.scoreRange.split('-')[1]) : undefined,
+    min_price: filters.amountRange !== 'all' ? parseInt(filters.amountRange.split('-')[0]) : undefined,
+    max_price: filters.amountRange !== 'all' ? (filters.amountRange.includes('+') ? undefined : parseInt(filters.amountRange.split('-')[1])) : undefined,
+    search: searchQuery || undefined,
+    sort_by: filters.sortBy,
   });
 
   const handleFundLoan = async (loanId: string) => {
@@ -117,6 +121,74 @@ export default function MarketplacePage() {
   ];
 
   const displayLoans = listings?.data?.length > 0 ? listings.data : mockLoans;
+
+  // Client-side filtering and sorting
+  const filteredLoans = displayLoans.filter((loan: any) => {
+    const amount = loan.amount || loan.principal_cents / 100 || 0;
+    const score = loan.aiScore || loan.score || 750;
+    const location = loan.location || '';
+    const crop = loan.crop || '';
+
+    // Search filter
+    if (searchQuery) {
+      const searchLower = searchQuery.toLowerCase();
+      if (!loan.farmer?.toLowerCase().includes(searchLower) &&
+          !location.toLowerCase().includes(searchLower) &&
+          !crop.toLowerCase().includes(searchLower)) {
+        return false;
+      }
+    }
+
+    // Amount range filter
+    if (filters.amountRange !== 'all') {
+      if (filters.amountRange === '5000+') {
+        if (amount < 5000) return false;
+      } else {
+        const [min, max] = filters.amountRange.split('-').map(Number);
+        if (amount < min || amount > max) return false;
+      }
+    }
+
+    // Score range filter (already handled by API, but for mock data)
+    if (filters.scoreRange !== 'all') {
+      const [min, max] = filters.scoreRange.split('-').map(Number);
+      if (score < min || score > max) return false;
+    }
+
+    // Crop filter (already handled by API, but for mock data)
+    if (filters.crop !== 'all' && crop.toLowerCase() !== filters.crop.toLowerCase()) {
+      return false;
+    }
+
+    // Region filter (already handled by API, but for mock data)
+    if (filters.region !== 'all' && !location.toLowerCase().includes(filters.region.toLowerCase())) {
+      return false;
+    }
+
+    return true;
+  });
+
+  // Sorting
+  const sortedLoans = [...filteredLoans].sort((a: any, b: any) => {
+    const aAmount = a.amount || a.principal_cents / 100 || 0;
+    const bAmount = b.amount || b.principal_cents / 100 || 0;
+    const aScore = a.aiScore || a.score || 750;
+    const bScore = b.aiScore || b.score || 750;
+    const aInterest = a.interestRate || 8.5;
+    const bInterest = b.interestRate || 8.5;
+
+    switch (filters.sortBy) {
+      case 'amount':
+        return aAmount - bAmount;
+      case 'interest':
+        return aInterest - bInterest;
+      case 'newest':
+        return (b.id || 0) - (a.id || 0); // Assuming higher id is newer
+      case 'score':
+      default:
+        return bScore - aScore;
+    }
+  });
 
   const getRiskBadgeColor = (risk: string) => {
     switch (risk.toLowerCase()) {
@@ -215,7 +287,7 @@ export default function MarketplacePage() {
 
             <div className="flex items-center space-x-2">
               <span className="text-sm text-slate-gray/60">
-                {displayLoans.length} loans available
+                {sortedLoans.length} loans available
               </span>
               <div className="flex border border-slate-gray/20 rounded-lg">
                 <Button
@@ -336,7 +408,7 @@ export default function MarketplacePage() {
                     Clear Filters
                   </Button>
                   <span className="text-sm text-slate-gray/60">
-                    {displayLoans.length} results found
+                    {sortedLoans.length} results found
                   </span>
                 </div>
               </CardContent>
@@ -345,12 +417,12 @@ export default function MarketplacePage() {
         </div>
 
         {/* Loan Cards */}
-        {displayLoans.length > 0 ? (
+        {sortedLoans.length > 0 ? (
           <div className={viewMode === 'grid'
             ? "grid md:grid-cols-2 lg:grid-cols-3 gap-6"
             : "space-y-4"
           }>
-            {displayLoans.map((loan: any) => (
+            {sortedLoans.map((loan: any) => (
               <Card key={loan.id} className="shadow-level2 border-0 overflow-hidden hover:shadow-level3 transition-all duration-300 group">
                 {viewMode === 'grid' && (
                   <div className="aspect-video bg-gradient-to-br from-agri-green/10 to-sky-teal/10 relative overflow-hidden">
