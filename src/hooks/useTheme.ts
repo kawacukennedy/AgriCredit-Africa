@@ -1,43 +1,69 @@
-import { useState, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { useEffect, useCallback } from 'react';
+import { RootState } from '@/store';
+import { setTheme } from '@/store/slices/uiSlice';
 
 type Theme = 'light' | 'dark' | 'system';
 
 export function useTheme() {
-  const [theme, setTheme] = useState<Theme>('system');
-  const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('light');
+  const dispatch = useDispatch();
+  const theme = useSelector((state: RootState) => state.ui.theme);
+
+  const setThemeValue = useCallback((newTheme: Theme) => {
+    localStorage.setItem('theme', newTheme);
+    dispatch(setTheme(newTheme));
+  }, [dispatch]);
+
+  const toggleTheme = useCallback(() => {
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+    setThemeValue(newTheme);
+  }, [theme, setThemeValue]);
+
+  // Get the actual theme to use (resolves 'system' to 'light' or 'dark')
+  const resolvedTheme = theme === 'system'
+    ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+    : theme;
 
   useEffect(() => {
-    // Get initial theme from localStorage or system
-    const stored = localStorage.getItem('theme') as Theme;
-    if (stored) {
-      setTheme(stored);
-    }
-  }, []);
+    const root = document.documentElement;
 
-  useEffect(() => {
-    const root = window.document.documentElement;
+    // Remove previous theme classes
     root.classList.remove('light', 'dark');
 
-    let effectiveTheme: 'light' | 'dark';
+    // Add current theme class
+    root.classList.add(resolvedTheme);
 
-    if (theme === 'system') {
-      effectiveTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    } else {
-      effectiveTheme = theme;
+    // Update meta theme-color
+    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+    if (metaThemeColor) {
+      metaThemeColor.setAttribute(
+        'content',
+        resolvedTheme === 'dark' ? '#1f2937' : '#ffffff'
+      );
     }
+  }, [resolvedTheme]);
 
-    root.classList.add(effectiveTheme);
-    setResolvedTheme(effectiveTheme);
+  // Listen for system theme changes when theme is 'system'
+  useEffect(() => {
+    if (theme !== 'system') return;
+
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = () => {
+      const root = document.documentElement;
+      const newResolvedTheme = mediaQuery.matches ? 'dark' : 'light';
+
+      root.classList.remove('light', 'dark');
+      root.classList.add(newResolvedTheme);
+    };
+
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
   }, [theme]);
-
-  const setThemeValue = (newTheme: Theme) => {
-    localStorage.setItem('theme', newTheme);
-    setTheme(newTheme);
-  };
 
   return {
     theme,
     resolvedTheme,
     setTheme: setThemeValue,
+    toggleTheme,
   };
 }
