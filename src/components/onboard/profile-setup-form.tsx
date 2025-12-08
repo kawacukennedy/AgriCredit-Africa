@@ -17,7 +17,7 @@ interface ProfileSetupFormProps {
   initialData?: any;
 }
 
-export function ProfileSetupForm({ onNext, onPrev, initialData }: ProfileSetupFormProps) {
+function ProfileSetupForm({ onNext, onPrev, initialData }: ProfileSetupFormProps) {
   const { t } = useTranslation();
   const [completeProfile, { isLoading: isSubmitting }] = useCompleteProfileMutation();
   const [formData, setFormData] = useState({
@@ -235,3 +235,5 @@ export function ProfileSetupForm({ onNext, onPrev, initialData }: ProfileSetupFo
     </div>
   );
 }
+
+export default ProfileSetupForm;

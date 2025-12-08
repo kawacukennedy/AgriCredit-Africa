@@ -11,7 +11,7 @@ interface OnboardingCompleteProps {
   profileData: any;
 }
 
-export function OnboardingComplete({ onComplete, profileData }: OnboardingCompleteProps) {
+function OnboardingComplete({ onComplete, profileData }: OnboardingCompleteProps) {
   const { t } = useTranslation();
 
   return (
@@ -148,3 +148,5 @@ export function OnboardingComplete({ onComplete, profileData }: OnboardingComple
     </div>
   );
 }
+
+export default OnboardingComplete;

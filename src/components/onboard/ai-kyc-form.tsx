@@ -18,7 +18,7 @@ interface AIKYCFormProps {
   initialData?: any;
 }
 
-export function AIKYCForm({ onNext, onPrev, initialData }: AIKYCFormProps) {
+function AIKYCForm({ onNext, onPrev, initialData }: AIKYCFormProps) {
   const { t } = useTranslation();
   const [verificationProgress, setVerificationProgress] = useState(0);
   const [verificationStatus, setVerificationStatus] = useState<'idle' | 'verifying' | 'success' | 'failed'>('idle');
@@ -559,3 +559,5 @@ export function AIKYCForm({ onNext, onPrev, initialData }: AIKYCFormProps) {
     </div>
   );
 }
+
+export default AIKYCForm;

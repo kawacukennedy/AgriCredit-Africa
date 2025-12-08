@@ -16,7 +16,7 @@ interface DIDCreationFormProps {
   initialData?: any;
 }
 
-export function DIDCreationForm({ onNext, initialData }: DIDCreationFormProps) {
+function DIDCreationForm({ onNext, initialData }: DIDCreationFormProps) {
   const { t } = useTranslation();
   const { address, isConnected, connect, isConnecting, error: walletError } = useWallet();
   const [did, setDid] = useState(initialData?.did || '');
@@ -323,3 +323,5 @@ export function DIDCreationForm({ onNext, initialData }: DIDCreationFormProps) {
     </div>
   );
 }
+
+export default DIDCreationForm;
