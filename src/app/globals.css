@@ -114,63 +114,120 @@
 
 /* Dark theme only - according to frontend-specs.json */
 .dark {
+  /* Dark theme according to frontend-specs.json with AgriCredit brand colors */
   --background: 0 0% 7%; /* #121212 */
   --foreground: 0 0% 100%; /* #FFFFFF */
   --card: 0 0% 11%; /* #1E1E1E */
   --card-foreground: 0 0% 100%;
   --popover: 0 0% 11%;
   --popover-foreground: 0 0% 100%;
-  --primary: 0 0% 100%;
-  --primary-foreground: 0 0% 0%;
-  --secondary: 0 0% 16%; /* #242424 */
-  --secondary-foreground: 0 0% 100%;
+  --primary: 142 71% 45%; /* #2E7D32 - Agri Green */
+  --primary-foreground: 0 0% 100%; /* White text on green */
+  --secondary: 51 100% 50%; /* #FFD700 - Harvest Gold */
+  --secondary-foreground: 0 0% 0%; /* Black text on gold */
   --muted: 0 0% 16%;
   --muted-foreground: 0 0% 70%; /* #BDBDBD */
-  --accent: 0 0% 16%;
-  --accent-foreground: 0 0% 100%;
+  --accent: 51 100% 50%; /* #FFD700 - Harvest Gold */
+  --accent-foreground: 0 0% 0%;
   --destructive: 0 84% 45%;
   --destructive-foreground: 0 0% 100%;
   --border: 0 0% 27%; /* #424242 */
   --input: 0 0% 16%;
-  --ring: 0 0% 70%;
+  --ring: 142 71% 45%; /* #2E7D32 - Agri Green */
 
-  /* AgriCredit dark mode colors according to specs */
+  /* AgriCredit brand colors for dark mode */
+  --agri-green: 142 71% 45%; /* #2E7D32 */
+  --agri-green-light: 142 71% 65%;
+  --agri-green-dark: 142 71% 25%;
+  --harvest-gold: 51 100% 50%; /* #FFD700 */
+  --harvest-gold-light: 51 100% 70%;
+  --harvest-gold-dark: 51 100% 30%;
+  --earth-brown: 16 25% 35%; /* #6D4C41 */
+  --earth-brown-light: 16 25% 55%;
+  --earth-brown-dark: 16 25% 15%;
+  --sky-teal: 152 100% 35%; /* #00C853 */
+  --sky-teal-light: 152 100% 55%;
+  --sky-teal-dark: 152 100% 15%;
+
+  /* Paper white and slate gray for dark mode */
   --paper-white: 0 0% 100%;
   --paper-white-soft: 0 0% 11%;
   --slate-gray: 0 0% 100%;
   --slate-gray-light: 0 0% 70%;
   --slate-gray-dark: 0 0% 16%;
+
+  /* Semantic colors for dark mode */
+  --success: 152 100% 35%; /* #00C853 */
+  --success-light: 152 100% 92%;
+  --success-dark: 152 100% 15%;
+  --warning: 51 100% 50%; /* #FFB300 */
+  --warning-light: 51 100% 92%;
+  --warning-dark: 51 100% 25%;
+  --error: 0 84% 45%; /* #D32F2F */
+  --error-light: 0 84% 92%;
+  --error-dark: 0 84% 45%;
+  --info: 217 91% 35%; /* #1976D2 */
+  --info-light: 217 91% 92%;
+  --info-dark: 217 91% 35%;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    /* Dark theme according to frontend-specs.json */
+    /* Dark theme according to frontend-specs.json with AgriCredit brand colors */
     --background: 0 0% 7%; /* #121212 */
     --foreground: 0 0% 100%; /* #FFFFFF */
     --card: 0 0% 11%; /* #1E1E1E */
     --card-foreground: 0 0% 100%;
     --popover: 0 0% 11%;
     --popover-foreground: 0 0% 100%;
-    --primary: 0 0% 100%;
-    --primary-foreground: 0 0% 0%;
-    --secondary: 0 0% 16%; /* #242424 */
-    --secondary-foreground: 0 0% 100%;
+    --primary: 142 71% 45%; /* #2E7D32 - Agri Green */
+    --primary-foreground: 0 0% 100%; /* White text on green */
+    --secondary: 51 100% 50%; /* #FFD700 - Harvest Gold */
+    --secondary-foreground: 0 0% 0%; /* Black text on gold */
     --muted: 0 0% 16%;
     --muted-foreground: 0 0% 70%; /* #BDBDBD */
-    --accent: 0 0% 16%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 51 100% 50%; /* #FFD700 - Harvest Gold */
+    --accent-foreground: 0 0% 0%;
     --destructive: 0 84% 45%;
     --destructive-foreground: 0 0% 100%;
     --border: 0 0% 27%; /* #424242 */
     --input: 0 0% 16%;
-    --ring: 0 0% 70%;
+    --ring: 142 71% 45%; /* #2E7D32 - Agri Green */
 
-    /* AgriCredit dark mode colors according to specs */
+    /* AgriCredit brand colors for dark mode */
+    --agri-green: 142 71% 45%; /* #2E7D32 */
+    --agri-green-light: 142 71% 65%;
+    --agri-green-dark: 142 71% 25%;
+    --harvest-gold: 51 100% 50%; /* #FFD700 */
+    --harvest-gold-light: 51 100% 70%;
+    --harvest-gold-dark: 51 100% 30%;
+    --earth-brown: 16 25% 35%; /* #6D4C41 */
+    --earth-brown-light: 16 25% 55%;
+    --earth-brown-dark: 16 25% 15%;
+    --sky-teal: 152 100% 35%; /* #00C853 */
+    --sky-teal-light: 152 100% 55%;
+    --sky-teal-dark: 152 100% 15%;
+
+    /* Paper white and slate gray for dark mode */
     --paper-white: 0 0% 100%;
     --paper-white-soft: 0 0% 11%;
     --slate-gray: 0 0% 100%;
     --slate-gray-light: 0 0% 70%;
     --slate-gray-dark: 0 0% 16%;
+
+    /* Semantic colors for dark mode */
+    --success: 152 100% 35%; /* #00C853 */
+    --success-light: 152 100% 92%;
+    --success-dark: 152 100% 15%;
+    --warning: 51 100% 50%; /* #FFB300 */
+    --warning-light: 51 100% 92%;
+    --warning-dark: 51 100% 25%;
+    --error: 0 84% 45%; /* #D32F2F */
+    --error-light: 0 84% 92%;
+    --error-dark: 0 84% 45%;
+    --info: 217 91% 35%; /* #1976D2 */
+    --info-light: 217 91% 92%;
+    --info-dark: 217 91% 35%;
   }
 }
 

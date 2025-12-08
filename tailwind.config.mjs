@@ -13,6 +13,58 @@ export default {
     },
     extend: {
       colors: {
+        // AgriCredit Brand Colors from specs.json
+        'agri-green': {
+          50: '#E8F5E9',
+          100: '#C8E6C9',
+          200: '#A5D6A7',
+          300: '#81C784',
+          400: '#66BB6A',
+          500: '#4CAF50',
+          600: '#43A047',
+          700: '#388E3C',
+          800: '#2E7D32',
+          900: '#1B5E20',
+        },
+        'harvest-gold': {
+          50: '#FFFDE7',
+          100: '#FFF9C4',
+          200: '#FFF59D',
+          300: '#FFF176',
+          400: '#FFEE58',
+          500: '#FFD700',
+          600: '#FBC02D',
+          700: '#F9A825',
+          800: '#F57F17',
+          900: '#FF6F00',
+        },
+        'earth-brown': {
+          50: '#EFEBE9',
+          100: '#D7CCC8',
+          200: '#BCAAA4',
+          300: '#A1887F',
+          400: '#8D6E63',
+          500: '#795548',
+          600: '#6D4C41',
+          700: '#5D4037',
+          800: '#4E342E',
+          900: '#3E2723',
+        },
+        'sky-teal': {
+          50: '#E8F5E8',
+          100: '#C8E6C9',
+          200: '#A5D6A7',
+          300: '#81C784',
+          400: '#66BB6A',
+          500: '#4CAF50',
+          600: '#43A047',
+          700: '#388E3C',
+          800: '#2E7D32',
+          900: '#1B5E20',
+        },
+        'paper-white': '#FDFCF9',
+        'slate-gray': '#1E1E1E',
+
         // Design System Colors from frontend-specs.json
         primary: {
           50: '#E8F5E9',
