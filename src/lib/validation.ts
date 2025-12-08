@@ -88,7 +88,7 @@ export const proposalSchema = z.object({
   category: z.enum(['loans', 'carbon', 'governance', 'technical']),
   votingPeriod: z.number().min(1).max(30, 'Voting period must be between 1-30 days'),
   executionDelay: z.number().min(0).max(7, 'Execution delay must be between 0-7 days'),
-  parameters: z.record(z.any()).optional(),
+  parameters: z.object({}).catchall(z.any()).optional(),
 });
 
 export const voteSchema = z.object({
@@ -103,7 +103,7 @@ export const nftMintingSchema = z.object({
   description: z.string().min(10, 'Description must be at least 10 characters').max(500),
   rarity: z.enum(['common', 'rare', 'epic', 'legendary']),
   farmingReward: z.number().min(0).max(100),
-  attributes: z.record(z.any()),
+  attributes: z.object({}).catchall(z.any()),
   image: z.string().url('Valid image URL is required'),
 });
 

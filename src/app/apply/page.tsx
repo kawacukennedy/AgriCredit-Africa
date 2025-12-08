@@ -5,10 +5,23 @@ import { AuthGuard } from '@/components/auth/AuthGuard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTranslation } from 'react-i18next';
-import { FarmDetailsForm } from '@/components/apply/farm-details-form';
-import { DocumentsForm } from '@/components/apply/documents-form';
-import { ConsentForm } from '@/components/apply/consent-form';
-import { AIResults } from '@/components/apply/ai-results';
+import dynamic from 'next/dynamic';
+
+const FarmDetailsForm = dynamic(() => import('@/components/apply/farm-details-form'), {
+  loading: () => <div className="animate-pulse p-8 bg-slate-gray/5 rounded-lg">Loading farm details form...</div>
+});
+
+const DocumentsForm = dynamic(() => import('@/components/apply/documents-form'), {
+  loading: () => <div className="animate-pulse p-8 bg-slate-gray/5 rounded-lg">Loading documents form...</div>
+});
+
+const ConsentForm = dynamic(() => import('@/components/apply/consent-form'), {
+  loading: () => <div className="animate-pulse p-8 bg-slate-gray/5 rounded-lg">Loading consent form...</div>
+});
+
+const AIResults = dynamic(() => import('@/components/apply/ai-results'), {
+  loading: () => <div className="animate-pulse p-8 bg-slate-gray/5 rounded-lg">Loading AI results...</div>
+});
 import { useApplyForLoanMutation } from '@/store/apiSlice';
 import { useRouter } from 'next/navigation';
 

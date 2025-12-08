@@ -6,10 +6,23 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { useTranslation } from 'react-i18next';
-import { DIDCreationForm } from '@/components/onboard/did-creation-form';
-import { AIKYCForm } from '@/components/onboard/ai-kyc-form';
-import { ProfileSetupForm } from '@/components/onboard/profile-setup-form';
-import { OnboardingComplete } from '@/components/onboard/onboarding-complete';
+import dynamic from 'next/dynamic';
+
+const DIDCreationForm = dynamic(() => import('@/components/onboard/did-creation-form'), {
+  loading: () => <div className="animate-pulse p-8 bg-slate-gray/5 rounded-lg">Loading DID creation...</div>
+});
+
+const AIKYCForm = dynamic(() => import('@/components/onboard/ai-kyc-form'), {
+  loading: () => <div className="animate-pulse p-8 bg-slate-gray/5 rounded-lg">Loading AI KYC...</div>
+});
+
+const ProfileSetupForm = dynamic(() => import('@/components/onboard/profile-setup-form'), {
+  loading: () => <div className="animate-pulse p-8 bg-slate-gray/5 rounded-lg">Loading profile setup...</div>
+});
+
+const OnboardingComplete = dynamic(() => import('@/components/onboard/onboarding-complete'), {
+  loading: () => <div className="animate-pulse p-8 bg-slate-gray/5 rounded-lg">Loading completion...</div>
+});
 import { useRouter } from 'next/navigation';
 import { CheckCircle, Shield, User, FileText, Trophy, ArrowRight, ArrowLeft, Sparkles, Clock } from 'lucide-react';
 

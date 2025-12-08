@@ -68,9 +68,16 @@ function FarmerDashboardContent() {
 
   return (
     <div className="bg-paper-white">
+      {/* Skip to main content link for accessibility */}
+      <a
+        href="#dashboard-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-agri-green text-white px-4 py-2 rounded-md z-50"
+      >
+        Skip to main content
+      </a>
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-agri-green to-sky-teal text-white py-12">
+      <header className="bg-gradient-to-r from-agri-green to-sky-teal text-white py-12" role="banner">
         <div className="container">
           <div className="flex items-center justify-between">
             <div>
@@ -93,9 +100,9 @@ function FarmerDashboardContent() {
             </div>
           </div>
         </div>
-      </section>
+      </header>
 
-      <div className="container py-8">
+      <main id="dashboard-content" className="container py-8">
         {/* Quick Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {quickStats.map((stat, index) => (
@@ -207,7 +214,7 @@ function FarmerDashboardContent() {
             </Card>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

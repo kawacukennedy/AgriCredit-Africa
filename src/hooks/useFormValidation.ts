@@ -34,16 +34,17 @@ export function useFormValidation<T extends Record<string, any>>({
 
   const validateField = useCallback((field: keyof T, value: any) => {
     try {
-      const fieldSchema = schema.pick({ [field]: true } as any);
-      fieldSchema.parse({ [field]: value });
+      // For field-level validation, we'll validate the entire form but only return field-specific errors
+      schema.parse({ ...state.data, [field]: value });
       return null;
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return error.errors[0]?.message || 'Invalid value';
+        const fieldError = error.issues.find(err => err.path[0] === field);
+        return fieldError?.message || 'Invalid value';
       }
       return 'Validation error';
     }
-  }, [schema]);
+  }, [schema, state.data]);
 
   const validateForm = useCallback((data: T = state.data) => {
     try {
@@ -52,7 +53,7 @@ export function useFormValidation<T extends Record<string, any>>({
     } catch (error) {
       if (error instanceof z.ZodError) {
         const errors: Record<string, string> = {};
-        error.errors.forEach((err) => {
+        error.issues.forEach((err) => {
           const path = err.path.join('.');
           errors[path] = err.message;
         });

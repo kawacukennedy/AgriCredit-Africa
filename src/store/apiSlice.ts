@@ -208,9 +208,47 @@ export const apiSlice = createApi({
       }),
     }),
 
+    // Farms endpoints
+    getUserFarms: builder.query({
+      query: () => '/farms',
+    }),
+    createFarm: builder.mutation({
+      query: (farmData) => ({
+        url: '/farms',
+        method: 'POST',
+        body: farmData,
+      }),
+    }),
+    updateFarm: builder.mutation({
+      query: ({ id, ...updates }) => ({
+        url: `/farms/${id}`,
+        method: 'PUT',
+        body: updates,
+      }),
+    }),
+    getFarmNDVI: builder.query({
+      query: (farmId) => `/farms/${farmId}/ndvi`,
+    }),
+
     // Carbon credits
     getCarbonCredits: builder.query({
       query: () => '/carbon-credits',
+    }),
+    getUserCarbonCredits: builder.query({
+      query: () => '/carbon-credits/user',
+    }),
+    mintCarbonCredit: builder.mutation({
+      query: (creditData) => ({
+        url: '/carbon-credits/mint',
+        method: 'POST',
+        body: creditData,
+      }),
+    }),
+    retireCarbonCredit: builder.mutation({
+      query: (creditId) => ({
+        url: `/carbon-credits/${creditId}/retire`,
+        method: 'POST',
+      }),
     }),
 
     // Marketplace
@@ -225,6 +263,12 @@ export const apiSlice = createApi({
         url: '/marketplace/listings',
         method: 'POST',
         body: listingData,
+      }),
+    }),
+    getMarketplaceLoans: builder.query({
+      query: (params) => ({
+        url: '/marketplace/loans',
+        params,
       }),
     }),
 
@@ -271,10 +315,65 @@ export const apiSlice = createApi({
         body: voteData,
       }),
     }),
+    getTreasuryBalance: builder.query({
+      query: () => '/governance/treasury',
+    }),
 
     // NFT endpoints
     getNFTs: builder.query({
       query: () => '/nfts',
+    }),
+    getUserNFTs: builder.query({
+      query: () => '/nfts/user',
+    }),
+    mintNFT: builder.mutation({
+      query: (nftData) => ({
+        url: '/nfts/mint',
+        method: 'POST',
+        body: nftData,
+      }),
+    }),
+    listNFT: builder.mutation({
+      query: ({ id, ...listingData }) => ({
+        url: `/nfts/${id}/list`,
+        method: 'POST',
+        body: listingData,
+      }),
+    }),
+    leaseNFT: builder.mutation({
+      query: ({ id, ...leaseData }) => ({
+        url: `/nfts/${id}/lease`,
+        method: 'POST',
+        body: leaseData,
+      }),
+    }),
+
+    // Yield farming endpoints
+    getYieldPools: builder.query({
+      query: () => '/yield/pools',
+    }),
+    getUserYieldPositions: builder.query({
+      query: () => '/yield/positions',
+    }),
+    stakeInPool: builder.mutation({
+      query: ({ poolId, ...stakeData }) => ({
+        url: `/yield/pools/${poolId}/stake`,
+        method: 'POST',
+        body: stakeData,
+      }),
+    }),
+    unstakeFromPool: builder.mutation({
+      query: ({ poolId, ...unstakeData }) => ({
+        url: `/yield/pools/${poolId}/unstake`,
+        method: 'POST',
+        body: unstakeData,
+      }),
+    }),
+    claimRewards: builder.mutation({
+      query: (poolId) => ({
+        url: `/yield/pools/${poolId}/claim`,
+        method: 'POST',
+      }),
     }),
 
     // Notifications
@@ -313,9 +412,17 @@ export const {
   useGetClimateAnalysisMutation,
   useGetUserProfileQuery,
   useUpdateUserProfileMutation,
+  useGetUserFarmsQuery,
+  useCreateFarmMutation,
+  useUpdateFarmMutation,
+  useGetFarmNDVIQuery,
   useGetCarbonCreditsQuery,
+  useGetUserCarbonCreditsQuery,
+  useMintCarbonCreditMutation,
+  useRetireCarbonCreditMutation,
   useGetMarketplaceListingsQuery,
   useCreateMarketplaceListingMutation,
+  useGetMarketplaceLoansQuery,
   useRegisterIoTDeviceMutation,
   useGetIoTDevicesQuery,
   useGetSensorDataQuery,
@@ -323,7 +430,17 @@ export const {
   useGetGovernanceProposalsQuery,
   useCreateProposalMutation,
   useVoteOnProposalMutation,
+  useGetTreasuryBalanceQuery,
   useGetNFTsQuery,
+  useGetUserNFTsQuery,
+  useMintNFTMutation,
+  useListNFTMutation,
+  useLeaseNFTMutation,
+  useGetYieldPoolsQuery,
+  useGetUserYieldPositionsQuery,
+  useStakeInPoolMutation,
+  useUnstakeFromPoolMutation,
+  useClaimRewardsMutation,
   useGetNotificationsQuery,
   useMarkNotificationReadMutation,
   useGetOraclePriceQuery,

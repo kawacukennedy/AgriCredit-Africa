@@ -13,12 +13,9 @@ export default {
     },
     extend: {
       colors: {
-        // Enhanced AgriCredit Design System Colors
-        'agri-green': {
-          DEFAULT: '#2E7D32',
-          light: '#4CAF50',
-          dark: '#1B5E20',
-          50: '#E8F5E8',
+        // Design System Colors from frontend-specs.json
+        primary: {
+          50: '#E8F5E9',
           100: '#C8E6C9',
           200: '#A5D6A7',
           300: '#81C784',
@@ -29,56 +26,12 @@ export default {
           800: '#2E7D32',
           900: '#1B5E20',
         },
-        'harvest-gold': {
-          DEFAULT: '#FFD700',
-          light: '#FFEB3B',
-          dark: '#F57F17',
+        secondary: {
           50: '#FFFDE7',
-          100: '#FFF9C4',
-          200: '#FFF59D',
-          300: '#FFF176',
-          400: '#FFEE58',
-          500: '#FFEB3B',
-          600: '#FDD835',
-          700: '#F9A825',
-          800: '#F57F17',
-          900: '#EF6C00',
+          500: '#FFD700',
+          900: '#FF6F00',
         },
-        'earth-brown': {
-          DEFAULT: '#6D4C41',
-          light: '#8D6E63',
-          dark: '#4E342E',
-          50: '#EFEBE9',
-          100: '#D7CCC8',
-          200: '#BCAAA4',
-          300: '#A1887F',
-          400: '#8D6E63',
-          500: '#795548',
-          600: '#6D4C41',
-          700: '#5D4037',
-          800: '#4E342E',
-          900: '#3E2723',
-        },
-        'sky-teal': {
-          DEFAULT: '#00C853',
-          light: '#00E676',
-          dark: '#00BFA5',
-          50: '#E8F5E8',
-          100: '#B9F6CA',
-          200: '#69F0AE',
-          300: '#00E676',
-          400: '#00C853',
-          500: '#00BF72',
-          600: '#00BFA5',
-          700: '#00A085',
-          800: '#00897B',
-          900: '#00695C',
-        },
-        'paper-white': '#FDFCF9',
-        'slate-gray': {
-          DEFAULT: '#1E1E1E',
-          light: '#424242',
-          dark: '#121212',
+        neutral: {
           50: '#FAFAFA',
           100: '#F5F5F5',
           200: '#EEEEEE',
@@ -90,43 +43,29 @@ export default {
           800: '#424242',
           900: '#212121',
         },
-
-        // Enhanced Semantic colors
         success: {
-          DEFAULT: '#00C853',
-          light: '#B9F6CA',
-          dark: '#00A085',
+          light: '#00C853',
+          dark: '#00E676',
         },
         warning: {
-          DEFAULT: '#FFB300',
-          light: '#FFF9C4',
-          dark: '#F57F17',
+          light: '#FFB300',
+          dark: '#FFCA28',
         },
         error: {
-          DEFAULT: '#D32F2F',
-          light: '#FFCDD2',
-          dark: '#B71C1C',
+          light: '#D32F2F',
+          dark: '#F44336',
         },
         info: {
-          DEFAULT: '#1976D2',
-          light: '#BBDEFB',
-          dark: '#0D47A1',
+          light: '#1976D2',
+          dark: '#2196F3',
         },
 
-        // Shadcn/ui compatible colors with enhanced AgriCredit theme
+        // Shadcn/ui compatible colors with AgriCredit theme
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
-        primary: {
-          DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
-        },
-        secondary: {
-          DEFAULT: "hsl(var(--secondary))",
-          foreground: "hsl(var(--secondary-foreground))",
-        },
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))",
@@ -154,17 +93,18 @@ export default {
         mono: ['JetBrains Mono', 'monospace'],
       },
       fontSize: {
-        // Type scale from specs.json
-        'xs': ['12px', { lineHeight: '16px' }],
-        'sm': ['14px', { lineHeight: '20px' }],
-        'base': ['16px', { lineHeight: '24px' }],
-        'lg': ['18px', { lineHeight: '28px' }],
-        'xl': ['20px', { lineHeight: '28px' }],
-        '2xl': ['24px', { lineHeight: '32px' }],
-        '3xl': ['30px', { lineHeight: '36px' }],
-        '4xl': ['36px', { lineHeight: '40px' }],
-        '5xl': ['48px', { lineHeight: '1' }],
-        '6xl': ['60px', { lineHeight: '1' }],
+        // Typography scale from frontend-specs.json
+        h1: ['3rem', { lineHeight: '1.167', letterSpacing: '-0.01562em', fontWeight: '700' }],
+        h2: ['2.25rem', { lineHeight: '1.2', letterSpacing: '-0.00833em', fontWeight: '600' }],
+        h3: ['1.875rem', { lineHeight: '1.167', letterSpacing: '0em', fontWeight: '600' }],
+        h4: ['1.5rem', { lineHeight: '1.235', letterSpacing: '0.00735em', fontWeight: '500' }],
+        h5: ['1.25rem', { lineHeight: '1.334', letterSpacing: '0em', fontWeight: '500' }],
+        h6: ['1.125rem', { lineHeight: '1.6', letterSpacing: '0.0075em', fontWeight: '500' }],
+        body_large: ['1.125rem', { lineHeight: '1.556', letterSpacing: '0.00938em', fontWeight: '400' }],
+        body_medium: ['1rem', { lineHeight: '1.5', letterSpacing: '0.00938em', fontWeight: '400' }],
+        body_small: ['0.875rem', { lineHeight: '1.429', letterSpacing: '0.01071em', fontWeight: '400' }],
+        caption: ['0.75rem', { lineHeight: '1.333', letterSpacing: '0.03333em', fontWeight: '400' }],
+        overline: ['0.625rem', { lineHeight: '1.6', letterSpacing: '0.08333em', fontWeight: '500' }],
       },
       fontWeight: {
         thin: '100',
@@ -178,36 +118,28 @@ export default {
         black: '900',
       },
       spacing: {
-        // Spacing system from specs.json (base unit: 8px)
-        '0': '0',
-        '1': '8px',
-        '2': '16px',
-        '3': '24px',
-        '4': '32px',
-        '5': '40px',
-        '6': '48px',
-        '8': '64px',
-        '10': '80px',
-        '12': '96px',
-        '16': '128px',
-        '20': '160px',
-        '24': '192px',
-        '32': '256px',
-        // Custom spacing
-        '18': '4.5rem',
-        '88': '22rem',
-        '112': '28rem',
-        '128': '32rem',
-      },
-      borderRadius: {
-        // Border radius from specs.json
-        'none': '0',
-        'sm': '4px',
-        'md': '8px',
-        'lg': '12px',
+        // Spacing scale from frontend-specs.json (base unit: 8px)
+        '0': '0px',
+        'xs': '4px',
+        'sm': '8px',
+        'md': '12px',
+        'lg': '16px',
         'xl': '24px',
         '2xl': '32px',
         '3xl': '48px',
+        '4xl': '64px',
+        '5xl': '96px',
+        '6xl': '128px',
+      },
+      borderRadius: {
+        // Border radius scale from frontend-specs.json
+        'none': '0px',
+        'xs': '2px',
+        'sm': '4px',
+        'md': '8px',
+        'lg': '12px',
+        'xl': '16px',
+        '2xl': '24px',
         'full': '9999px',
         // Shadcn compatibility
         lg: "var(--radius)",
@@ -215,70 +147,72 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       boxShadow: {
-        // Shadow system from specs.json
-        'none': 'none',
-        'level1': '0 1px 2px rgba(0,0,0,0.05)',
-        'level2': '0 4px 8px rgba(0,0,0,0.08)',
-        'level3': '0 8px 24px rgba(0,0,0,0.12)',
-        'level4': '0 8px 32px rgba(0,0,0,0.16)',
-        'level5': '0 16px 64px rgba(0,0,0,0.24)',
+        // Elevation levels from frontend-specs.json
+        'level_0': 'none',
+        'level_1': '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+        'level_2': '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
+        'level_3': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+        'level_4': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+        'level_5': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
       },
       animation: {
-        // Animations from specs.json
-        'fadeIn': 'fadeIn 0.5s ease-in-out',
-        'slideUp': 'slideUp 0.3s ease-out',
-        'slideDown': 'slideDown 0.3s ease-out',
-        'slideLeft': 'slideLeft 0.3s ease-out',
-        'slideRight': 'slideRight 0.3s ease-out',
-        'scaleIn': 'scaleIn 0.2s ease-out',
-        'scaleOut': 'scaleOut 0.2s ease-out',
-        'bounceIn': 'bounceIn 0.6s ease-out',
-        'pulse': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-        'spin': 'spin 1s linear infinite',
+        // Motion from frontend-specs.json
+        'instant': '0ms',
+        'fast': '100ms',
+        'normal': '200ms',
+        'slow': '300ms',
+        'slower': '500ms',
+        'deliberate': '1000ms',
+        // Animation types
+        'fade': 'fade 200ms ease-out',
+        'slide_up': 'slideUp 200ms ease-out',
+        'slide_down': 'slideDown 200ms ease-out',
+        'scale': 'scale 200ms ease-out',
+        'rotate': 'rotate 200ms ease-out',
         // Micro animations
-        'ai-score-pulse': 'aiScorePulse 600ms ease-in-out infinite',
+        'ai-score-pulse': 'aiScorePulse 600ms ease-in-out',
         'button-press': 'buttonPress 100ms ease-out',
         // Page transitions
-        'fade-slide': 'fadeIn 300ms ease-out, slideUp 300ms ease-out',
+        'fade-slide': 'fadeSlide 300ms ease-out',
         'holo-swap': 'holoSwap 600ms ease-out',
         // Loading animations
         'data-shimmer': 'dataShimmer 1400ms ease-in-out infinite',
         'map-pulse': 'mapPulse 2000ms ease-in-out infinite',
       },
+      zIndex: {
+        // Z-index scale from frontend-specs.json
+        'base': 0,
+        'dropdown': 1000,
+        'sticky': 1020,
+        'fixed': 1030,
+        'modal_backdrop': 1040,
+        'modal': 1050,
+        'popover': 1060,
+        'tooltip': 1070,
+        'toast': 1080,
+        'notification': 1090,
+        'max': 9999,
+      },
       keyframes: {
-        fadeIn: {
+        fade: {
           '0%': { opacity: '0' },
           '100%': { opacity: '1' },
         },
         slideUp: {
-          '0%': { transform: 'translateY(10px)', opacity: '0' },
-          '100%': { transform: 'translateY(0)', opacity: '1' },
+          '0%': { transform: 'translateY(8px)' },
+          '100%': { transform: 'translateY(0)' },
         },
         slideDown: {
-          '0%': { transform: 'translateY(-10px)', opacity: '0' },
-          '100%': { transform: 'translateY(0)', opacity: '1' },
+          '0%': { transform: 'translateY(-8px)' },
+          '100%': { transform: 'translateY(0)' },
         },
-        slideLeft: {
-          '0%': { transform: 'translateX(10px)', opacity: '0' },
-          '100%': { transform: 'translateX(0)', opacity: '1' },
+        scale: {
+          '0%': { transform: 'scale(0.95)' },
+          '100%': { transform: 'scale(1)' },
         },
-        slideRight: {
-          '0%': { transform: 'translateX(-10px)', opacity: '0' },
-          '100%': { transform: 'translateX(0)', opacity: '1' },
-        },
-        scaleIn: {
-          '0%': { transform: 'scale(0.95)', opacity: '0' },
-          '100%': { transform: 'scale(1)', opacity: '1' },
-        },
-        scaleOut: {
-          '0%': { transform: 'scale(1.05)', opacity: '0' },
-          '100%': { transform: 'scale(1)', opacity: '1' },
-        },
-        bounceIn: {
-          '0%': { transform: 'scale(0.3)', opacity: '0' },
-          '50%': { transform: 'scale(1.05)' },
-          '70%': { transform: 'scale(0.9)' },
-          '100%': { transform: 'scale(1)', opacity: '1' },
+        rotate: {
+          '0%': { transform: 'rotate(0deg)' },
+          '100%': { transform: 'rotate(360deg)' },
         },
         aiScorePulse: {
           '0%, 100%': { transform: 'scale(0.98)' },
@@ -288,6 +222,10 @@ export default {
           '0%': { transform: 'translateY(0)', boxShadow: 'var(--tw-shadow-level1)' },
           '50%': { transform: 'translateY(2px)', boxShadow: 'var(--tw-shadow-level2)' },
           '100%': { transform: 'translateY(0)', boxShadow: 'var(--tw-shadow-level1)' },
+        },
+        fadeSlide: {
+          '0%': { opacity: '0', transform: 'translateY(8px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
         },
         holoSwap: {
           '0%': { opacity: '0', transform: 'scale(0.8)', filter: 'hue-rotate(0deg) brightness(1)' },
@@ -307,12 +245,12 @@ export default {
         },
       },
       screens: {
-        'xs': '475px',
-        'sm': '640px',
-        'md': '768px',
-        'lg': '1024px',
-        'xl': '1280px',
-        '2xl': '1536px',
+        // Grid system breakpoints from frontend-specs.json
+        'xs': { 'min': '0px', 'max': '599px' },
+        'sm': { 'min': '600px', 'max': '959px' },
+        'md': { 'min': '960px', 'max': '1279px' },
+        'lg': { 'min': '1280px', 'max': '1919px' },
+        'xl': { 'min': '1920px', 'max': 'infinity' },
       },
     },
   },

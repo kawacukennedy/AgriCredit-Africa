@@ -1,5 +1,6 @@
 'use client';
 
+import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -8,7 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { useRunCreditScoringMutation } from '@/store/apiSlice';
 import { TrendingUp, TrendingDown, BarChart3, RefreshCw, CheckCircle, AlertTriangle, Info } from 'lucide-react';
 
-export function CreditScoreWidget() {
+export const CreditScoreWidget = React.memo(function CreditScoreWidget() {
   const { t } = useTranslation();
   const [runCreditScoring, { data: creditData, isLoading, error }] = useRunCreditScoringMutation();
 
@@ -32,9 +33,11 @@ export function CreditScoreWidget() {
     runCreditScoring(farmData);
   };
 
-  const creditScore = creditData?.data?.credit_score || 0;
-  const confidence = creditData?.data?.confidence ? Math.round(creditData.data.confidence * 100) : 0;
-  const riskLevel = creditData?.data?.risk_level || 'Unknown';
+  const creditMetrics = useMemo(() => ({
+    creditScore: creditData?.data?.credit_score || 0,
+    confidence: creditData?.data?.confidence ? Math.round(creditData.data.confidence * 100) : 0,
+    riskLevel: creditData?.data?.risk_level || 'Unknown',
+  }), [creditData]);
 
   const getScoreColor = (score: number) => {
     if (score >= 700) return 'text-sky-teal';
@@ -59,7 +62,7 @@ export function CreditScoreWidget() {
 
   return (
     <Card className="shadow-level2 border-0 overflow-hidden">
-      <div className={`h-1 bg-gradient-to-r ${getScoreGradient(creditScore)}`}></div>
+      <div className={`h-1 bg-gradient-to-r ${getScoreGradient(creditMetrics.creditScore)}`}></div>
       <CardHeader className="pb-4">
         <CardTitle className="flex items-center text-slate-gray">
           <BarChart3 className="w-5 h-5 mr-2 text-agri-green" />
@@ -67,17 +70,17 @@ export function CreditScoreWidget() {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        {creditScore > 0 ? (
+        {creditMetrics.creditScore > 0 ? (
           <>
              {/* Score Display */}
              <div className="text-center space-y-4">
-               <div className={`text-5xl font-black ${getScoreColor(creditScore)} animate-ai-score-pulse`}>
-                 {creditScore}
-               </div>
-              <div className="flex items-center justify-center space-x-2">
-                <Badge className={getRiskBadgeColor(riskLevel)}>
-                  {riskLevel} Risk
-                </Badge>
+                <div className={`text-5xl font-black ${getScoreColor(creditMetrics.creditScore)} animate-ai-score-pulse`}>
+                  {creditMetrics.creditScore}
+                </div>
+               <div className="flex items-center justify-center space-x-2">
+                 <Badge className={getRiskBadgeColor(creditMetrics.riskLevel)}>
+                   {creditMetrics.riskLevel} Risk
+                 </Badge>
                 <Badge variant="outline" className="border-slate-gray/20">
                   <CheckCircle className="w-3 h-3 mr-1" />
                   Verified
@@ -89,9 +92,9 @@ export function CreditScoreWidget() {
             <div className="space-y-3">
               <div className="flex justify-between items-center">
                 <span className="text-sm font-medium text-slate-gray">AI Confidence</span>
-                <span className="text-sm font-bold text-agri-green">{confidence}%</span>
+                <span className="text-sm font-bold text-agri-green">{creditMetrics.confidence}%</span>
               </div>
-              <Progress value={confidence} className="h-3" />
+              <Progress value={creditMetrics.confidence} className="h-3" />
               <p className="text-xs text-slate-gray/60 text-center">
                 Based on satellite data, repayment history, and market factors
               </p>
@@ -198,4 +201,4 @@ export function CreditScoreWidget() {
       </CardContent>
     </Card>
   );
-}
+});
