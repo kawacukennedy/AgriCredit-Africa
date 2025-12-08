@@ -5,7 +5,7 @@ export default {
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
     './src/**/*.{js,ts,jsx,tsx,mdx}',
   ],
-  darkMode: 'class',
+  darkMode: ['class', '[data-theme="dark"]', '[data-theme="high-contrast"]'],
   theme: {
     container: {
       center: true,

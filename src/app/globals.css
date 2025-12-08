@@ -113,62 +113,94 @@
 }
 
 .dark {
-  --background: 0 0% 4%;
-  --foreground: 0 0% 93%;
-  --card: 222.2 84% 4.9%;
-  --card-foreground: 210 40% 98%;
-  --popover: 222.2 84% 4.9%;
-  --popover-foreground: 210 40% 98%;
-  --primary: 210 40% 98%;
-  --primary-foreground: 222.2 47.4% 11.2%;
-  --secondary: 217.2 32.6% 17.5%;
-  --secondary-foreground: 210 40% 98%;
-  --muted: 217.2 32.6% 17.5%;
-  --muted-foreground: 215 20.2% 65.1%;
-  --accent: 217.2 32.6% 17.5%;
-  --accent-foreground: 210 40% 98%;
-  --destructive: 0 62.8% 30.6%;
-  --destructive-foreground: 210 40% 98%;
-  --border: 217.2 32.6% 17.5%;
-  --input: 217.2 32.6% 17.5%;
-  --ring: 212.7 26.8% 83.9%;
+  /* Dark theme according to frontend-specs.json */
+  --background: 0 0% 7%; /* #121212 */
+  --foreground: 0 0% 100%; /* #FFFFFF */
+  --card: 0 0% 11%; /* #1E1E1E */
+  --card-foreground: 0 0% 100%;
+  --popover: 0 0% 11%;
+  --popover-foreground: 0 0% 100%;
+  --primary: 0 0% 100%;
+  --primary-foreground: 0 0% 0%;
+  --secondary: 0 0% 16%; /* #242424 */
+  --secondary-foreground: 0 0% 100%;
+  --muted: 0 0% 16%;
+  --muted-foreground: 0 0% 70%; /* #BDBDBD */
+  --accent: 0 0% 16%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 84% 45%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 0 0% 27%; /* #424242 */
+  --input: 0 0% 16%;
+  --ring: 0 0% 70%;
 
-  /* AgriCredit dark mode colors */
-  --paper-white: 0 0% 93%;
-  --paper-white-soft: 0 0% 4%;
-  --slate-gray: 0 0% 93%;
-  --slate-gray-light: 0 0% 75%;
-  --slate-gray-dark: 0 0% 15%;
+  /* AgriCredit dark mode colors according to specs */
+  --paper-white: 0 0% 100%;
+  --paper-white-soft: 0 0% 11%;
+  --slate-gray: 0 0% 100%;
+  --slate-gray-light: 0 0% 70%;
+  --slate-gray-dark: 0 0% 16%;
+}
+
+.high-contrast {
+  /* High contrast theme according to frontend-specs.json */
+  --background: 0 0% 0%; /* #000000 */
+  --foreground: 0 0% 100%; /* #FFFFFF */
+  --card: 0 0% 0%;
+  --card-foreground: 0 0% 100%;
+  --popover: 0 0% 0%;
+  --popover-foreground: 0 0% 100%;
+  --primary: 120 100% 50%; /* #00FF00 */
+  --primary-foreground: 0 0% 0%;
+  --secondary: 60 100% 50%; /* #FFFF00 */
+  --secondary-foreground: 0 0% 0%;
+  --muted: 0 0% 5%; /* #0A0A0A */
+  --muted-foreground: 0 0% 80%; /* #CCCCCC */
+  --accent: 60 100% 50%;
+  --accent-foreground: 0 0% 0%;
+  --destructive: 0 100% 50%; /* #FF0000 */
+  --destructive-foreground: 0 0% 100%;
+  --border: 0 0% 20%; /* #333333 */
+  --input: 0 0% 0%;
+  --ring: 120 100% 50%;
+
+  /* AgriCredit high contrast colors according to specs */
+  --paper-white: 0 0% 100%;
+  --paper-white-soft: 0 0% 0%;
+  --slate-gray: 0 0% 100%;
+  --slate-gray-light: 0 0% 80%;
+  --slate-gray-dark: 0 0% 5%;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root:not(.light) {
-    --background: 0 0% 4%;
-    --foreground: 0 0% 93%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+  :root:not(.light):not(.high-contrast) {
+    /* Dark theme according to frontend-specs.json */
+    --background: 0 0% 7%; /* #121212 */
+    --foreground: 0 0% 100%; /* #FFFFFF */
+    --card: 0 0% 11%; /* #1E1E1E */
+    --card-foreground: 0 0% 100%;
+    --popover: 0 0% 11%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 0 0% 100%;
+    --primary-foreground: 0 0% 0%;
+    --secondary: 0 0% 16%; /* #242424 */
+    --secondary-foreground: 0 0% 100%;
+    --muted: 0 0% 16%;
+    --muted-foreground: 0 0% 70%; /* #BDBDBD */
+    --accent: 0 0% 16%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 45%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 27%; /* #424242 */
+    --input: 0 0% 16%;
+    --ring: 0 0% 70%;
 
-    /* AgriCredit dark mode colors */
-    --paper-white: 0 0% 93%;
-    --paper-white-soft: 0 0% 4%;
-    --slate-gray: 0 0% 93%;
-    --slate-gray-light: 0 0% 75%;
-    --slate-gray-dark: 0 0% 15%;
+    /* AgriCredit dark mode colors according to specs */
+    --paper-white: 0 0% 100%;
+    --paper-white-soft: 0 0% 11%;
+    --slate-gray: 0 0% 100%;
+    --slate-gray-light: 0 0% 70%;
+    --slate-gray-dark: 0 0% 16%;
   }
 }
 

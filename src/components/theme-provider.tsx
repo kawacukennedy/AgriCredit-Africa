@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState } from 'react';
 
-type Theme = 'dark' | 'light' | 'system';
+type Theme = 'dark' | 'light' | 'high-contrast' | 'system';
 
 type ThemeProviderProps = {
   children: React.ReactNode;
@@ -12,7 +12,7 @@ type ThemeProviderProps = {
 
 type ThemeProviderState = {
   theme: Theme;
-  resolvedTheme: 'light' | 'dark';
+  resolvedTheme: 'light' | 'dark' | 'high-contrast';
   setTheme: (theme: Theme) => void;
 };
 
@@ -31,7 +31,7 @@ export function ThemeProvider({
   ...props
 }: ThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>(defaultTheme);
-  const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('light');
+  const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark' | 'high-contrast'>('light');
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -47,9 +47,9 @@ export function ThemeProvider({
 
     const root = window.document.documentElement;
 
-    root.classList.remove('light', 'dark');
+    root.classList.remove('light', 'dark', 'high-contrast');
 
-    let actualTheme: 'light' | 'dark';
+    let actualTheme: 'light' | 'dark' | 'high-contrast';
 
     if (theme === 'system') {
       actualTheme = window.matchMedia('(prefers-color-scheme: dark)')

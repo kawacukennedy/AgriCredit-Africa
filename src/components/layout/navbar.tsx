@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { useAppSelector } from '@/store/hooks';
 import { useTheme } from '@/components/theme-provider';
-import { Menu, X, Leaf, Wallet, User, BarChart3, ShoppingCart, Coins, HelpCircle, Settings, Bell, ChevronDown, CheckCircle, AlertCircle, Zap, Search, Sun, Moon, Monitor, Globe } from 'lucide-react';
+import { Menu, X, Leaf, Wallet, User, BarChart3, ShoppingCart, Coins, HelpCircle, Settings, Bell, ChevronDown, CheckCircle, AlertCircle, Zap, Search, Sun, Moon, Monitor, Globe, Eye } from 'lucide-react';
 
 export function Navbar() {
   const { t, i18n } = useTranslation();
@@ -78,6 +78,7 @@ export function Navbar() {
   const themeOptions = [
     { value: 'light', label: 'Light', icon: Sun },
     { value: 'dark', label: 'Dark', icon: Moon },
+    { value: 'high-contrast', label: 'High Contrast', icon: Eye },
     { value: 'system', label: 'System', icon: Monitor },
   ];
 
@@ -192,11 +193,13 @@ export function Navbar() {
                 aria-expanded={showThemeMenu}
                 aria-haspopup="menu"
               >
-                {resolvedTheme === 'dark' ? (
-                  <Moon className="w-4 h-4 text-foreground" />
-                ) : (
-                  <Sun className="w-4 h-4 text-foreground" />
-                )}
+                 {resolvedTheme === 'dark' ? (
+                   <Moon className="w-4 h-4 text-foreground" />
+                 ) : resolvedTheme === 'high-contrast' ? (
+                   <Eye className="w-4 h-4 text-foreground" />
+                 ) : (
+                   <Sun className="w-4 h-4 text-foreground" />
+                 )}
                 <ChevronDown className="w-3 h-3 text-foreground" />
               </Button>
 
@@ -387,11 +390,13 @@ export function Navbar() {
                     onClick={() => setShowThemeMenu(!showThemeMenu)}
                     className="flex-1 border-border hover:border-agri-green hover:text-agri-green"
                   >
-                    {resolvedTheme === 'dark' ? (
-                      <Moon className="w-4 h-4 mr-2" />
-                    ) : (
-                      <Sun className="w-4 h-4 mr-2" />
-                    )}
+                     {resolvedTheme === 'dark' ? (
+                       <Moon className="w-4 h-4 mr-2" />
+                     ) : resolvedTheme === 'high-contrast' ? (
+                       <Eye className="w-4 h-4 mr-2" />
+                     ) : (
+                       <Sun className="w-4 h-4 mr-2" />
+                     )}
                     Theme
                   </Button>
                 </div>
