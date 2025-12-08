@@ -112,8 +112,8 @@
   --radius: 12px;
 }
 
+/* Dark theme only - according to frontend-specs.json */
 .dark {
-  /* Dark theme according to frontend-specs.json */
   --background: 0 0% 7%; /* #121212 */
   --foreground: 0 0% 100%; /* #FFFFFF */
   --card: 0 0% 11%; /* #1E1E1E */
@@ -142,38 +142,8 @@
   --slate-gray-dark: 0 0% 16%;
 }
 
-.high-contrast {
-  /* High contrast theme according to frontend-specs.json */
-  --background: 0 0% 0%; /* #000000 */
-  --foreground: 0 0% 100%; /* #FFFFFF */
-  --card: 0 0% 0%;
-  --card-foreground: 0 0% 100%;
-  --popover: 0 0% 0%;
-  --popover-foreground: 0 0% 100%;
-  --primary: 120 100% 50%; /* #00FF00 */
-  --primary-foreground: 0 0% 0%;
-  --secondary: 60 100% 50%; /* #FFFF00 */
-  --secondary-foreground: 0 0% 0%;
-  --muted: 0 0% 5%; /* #0A0A0A */
-  --muted-foreground: 0 0% 80%; /* #CCCCCC */
-  --accent: 60 100% 50%;
-  --accent-foreground: 0 0% 0%;
-  --destructive: 0 100% 50%; /* #FF0000 */
-  --destructive-foreground: 0 0% 100%;
-  --border: 0 0% 20%; /* #333333 */
-  --input: 0 0% 0%;
-  --ring: 120 100% 50%;
-
-  /* AgriCredit high contrast colors according to specs */
-  --paper-white: 0 0% 100%;
-  --paper-white-soft: 0 0% 0%;
-  --slate-gray: 0 0% 100%;
-  --slate-gray-light: 0 0% 80%;
-  --slate-gray-dark: 0 0% 5%;
-}
-
 @media (prefers-color-scheme: dark) {
-  :root:not(.light):not(.high-contrast) {
+  :root {
     /* Dark theme according to frontend-specs.json */
     --background: 0 0% 7%; /* #121212 */
     --foreground: 0 0% 100%; /* #FFFFFF */

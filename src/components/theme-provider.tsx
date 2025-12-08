@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState } from 'react';
 
-type Theme = 'dark' | 'light' | 'high-contrast' | 'system';
+type Theme = 'dark';
 
 type ThemeProviderProps = {
   children: React.ReactNode;
@@ -12,13 +12,13 @@ type ThemeProviderProps = {
 
 type ThemeProviderState = {
   theme: Theme;
-  resolvedTheme: 'light' | 'dark' | 'high-contrast';
+  resolvedTheme: 'dark';
   setTheme: (theme: Theme) => void;
 };
 
 const initialState: ThemeProviderState = {
-  theme: 'system',
-  resolvedTheme: 'light',
+  theme: 'dark',
+  resolvedTheme: 'dark',
   setTheme: () => null,
 };
 
@@ -26,21 +26,19 @@ const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
 
 export function ThemeProvider({
   children,
-  defaultTheme = 'system',
+  defaultTheme = 'dark',
   storageKey = 'agricredit-ui-theme',
   ...props
 }: ThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>(defaultTheme);
-  const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark' | 'high-contrast'>('light');
+  const [resolvedTheme, setResolvedTheme] = useState<'dark'>('dark');
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    const stored = localStorage.getItem(storageKey) as Theme;
-    if (stored) {
-      setTheme(stored);
-    }
-  }, [storageKey]);
+    // Always use dark theme
+    setTheme('dark');
+  }, []);
 
   useEffect(() => {
     if (!mounted) return;
@@ -48,28 +46,17 @@ export function ThemeProvider({
     const root = window.document.documentElement;
 
     root.classList.remove('light', 'dark', 'high-contrast');
+    root.classList.add('dark');
 
-    let actualTheme: 'light' | 'dark' | 'high-contrast';
-
-    if (theme === 'system') {
-      actualTheme = window.matchMedia('(prefers-color-scheme: dark)')
-        .matches
-        ? 'dark'
-        : 'light';
-    } else {
-      actualTheme = theme;
-    }
-
-    root.classList.add(actualTheme);
-    setResolvedTheme(actualTheme);
-  }, [theme, mounted]);
+    setResolvedTheme('dark');
+  }, [mounted]);
 
   const value = {
     theme,
     resolvedTheme,
     setTheme: (theme: Theme) => {
-      localStorage.setItem(storageKey, theme);
-      setTheme(theme);
+      // Always set to dark theme
+      setTheme('dark');
     },
   };
 

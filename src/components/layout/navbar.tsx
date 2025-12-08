@@ -7,20 +7,16 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { useAppSelector } from '@/store/hooks';
-import { useTheme } from '@/components/theme-provider';
-import { Menu, X, Leaf, Wallet, User, BarChart3, ShoppingCart, Coins, HelpCircle, Settings, Bell, ChevronDown, CheckCircle, AlertCircle, Zap, Search, Sun, Moon, Monitor, Globe, Eye } from 'lucide-react';
+import { Menu, X, Leaf, Wallet, User, BarChart3, ShoppingCart, Coins, HelpCircle, Settings, Bell, ChevronDown, CheckCircle, AlertCircle, Zap, Search, Globe } from 'lucide-react';
 
 export function Navbar() {
   const { t, i18n } = useTranslation();
   const { isAuthenticated, user } = useAppSelector((state) => state.auth);
-  const { theme, resolvedTheme, setTheme } = useTheme();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [showThemeMenu, setShowThemeMenu] = useState(false);
   const [showLangMenu, setShowLangMenu] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const notificationsRef = useRef<HTMLDivElement>(null);
-  const themeRef = useRef<HTMLDivElement>(null);
   const langRef = useRef<HTMLDivElement>(null);
 
   // Close dropdowns when clicking outside or pressing Escape
@@ -28,9 +24,6 @@ export function Navbar() {
     function handleClickOutside(event: MouseEvent) {
       if (notificationsRef.current && !notificationsRef.current.contains(event.target as Node)) {
         setShowNotifications(false);
-      }
-      if (themeRef.current && !themeRef.current.contains(event.target as Node)) {
-        setShowThemeMenu(false);
       }
       if (langRef.current && !langRef.current.contains(event.target as Node)) {
         setShowLangMenu(false);
@@ -40,7 +33,6 @@ export function Navbar() {
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
         setShowNotifications(false);
-        setShowThemeMenu(false);
         setShowLangMenu(false);
         setIsMobileMenuOpen(false);
       }
@@ -53,7 +45,7 @@ export function Navbar() {
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [showNotifications, showThemeMenu, showLangMenu]);
+  }, [showNotifications, showLangMenu]);
 
   // Mock notifications
   const notifications = [
@@ -75,12 +67,7 @@ export function Navbar() {
     { href: '/help', label: 'Help', icon: HelpCircle, badge: null },
   ];
 
-  const themeOptions = [
-    { value: 'light', label: 'Light', icon: Sun },
-    { value: 'dark', label: 'Dark', icon: Moon },
-    { value: 'high-contrast', label: 'High Contrast', icon: Eye },
-    { value: 'system', label: 'System', icon: Monitor },
-  ];
+  // Dark mode only - no theme switching
 
   const languageOptions = [
     { code: 'en', label: 'English', flag: '🇺🇸' },
@@ -182,51 +169,7 @@ export function Navbar() {
               )}
             </div>
 
-            {/* Theme Switcher */}
-            <div className="relative" ref={themeRef}>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowThemeMenu(!showThemeMenu)}
-                className="flex items-center space-x-2 px-3 py-2 hover:bg-muted/5 transition-colors"
-                aria-label="Select theme"
-                aria-expanded={showThemeMenu}
-                aria-haspopup="menu"
-              >
-                 {resolvedTheme === 'dark' ? (
-                   <Moon className="w-4 h-4 text-foreground" />
-                 ) : resolvedTheme === 'high-contrast' ? (
-                   <Eye className="w-4 h-4 text-foreground" />
-                 ) : (
-                   <Sun className="w-4 h-4 text-foreground" />
-                 )}
-                <ChevronDown className="w-3 h-3 text-foreground" />
-              </Button>
 
-              {showThemeMenu && (
-                <div
-                  className="absolute right-0 mt-2 w-36 bg-background border border-border rounded-xl shadow-lg z-50"
-                  role="menu"
-                  aria-label="Theme selection menu"
-                >
-                  {themeOptions.map((option) => (
-                    <button
-                      key={option.value}
-                      onClick={() => {
-                        setTheme(option.value as 'light' | 'dark' | 'system');
-                        setShowThemeMenu(false);
-                      }}
-                      className="w-full flex items-center space-x-3 px-4 py-3 text-left hover:bg-muted/5 transition-colors first:rounded-t-xl last:rounded-b-xl"
-                      role="menuitem"
-                    >
-                      <option.icon className="w-4 h-4 text-foreground" />
-                      <span className="text-sm text-foreground">{option.label}</span>
-                      {theme === option.value && <CheckCircle className="w-4 h-4 text-agri-green ml-auto" />}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
           </div>
 
           {/* Auth Section */}
@@ -383,22 +326,7 @@ export function Navbar() {
                     {currentLang.flag} {currentLang.label}
                   </Button>
 
-                  {/* Mobile Theme */}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowThemeMenu(!showThemeMenu)}
-                    className="flex-1 border-border hover:border-agri-green hover:text-agri-green"
-                  >
-                     {resolvedTheme === 'dark' ? (
-                       <Moon className="w-4 h-4 mr-2" />
-                     ) : resolvedTheme === 'high-contrast' ? (
-                       <Eye className="w-4 h-4 mr-2" />
-                     ) : (
-                       <Sun className="w-4 h-4 mr-2" />
-                     )}
-                    Theme
-                  </Button>
+
                 </div>
 
                 {/* Mobile Language Menu */}
@@ -421,25 +349,7 @@ export function Navbar() {
                   </div>
                 )}
 
-                {/* Mobile Theme Menu */}
-                {showThemeMenu && (
-                  <div className="bg-muted/5 rounded-lg p-2 space-y-1">
-                    {themeOptions.map((option) => (
-                      <button
-                        key={option.value}
-                        onClick={() => {
-                          setTheme(option.value as 'light' | 'dark' | 'system');
-                          setShowThemeMenu(false);
-                        }}
-                        className="w-full flex items-center space-x-3 px-3 py-2 rounded-md hover:bg-muted/10 transition-colors"
-                      >
-                        <option.icon className="w-4 h-4 text-foreground" />
-                        <span className="text-sm text-foreground">{option.label}</span>
-                        {theme === option.value && <CheckCircle className="w-4 h-4 text-agri-green ml-auto" />}
-                      </button>
-                    ))}
-                  </div>
-                )}
+
 
                 {/* Mobile Auth */}
                 <div className="border-t border-border/10 pt-4">

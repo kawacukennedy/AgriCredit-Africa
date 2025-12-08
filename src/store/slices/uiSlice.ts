@@ -8,7 +8,6 @@ interface Notification {
 }
 
 interface UiState {
-  theme: 'light' | 'dark' | 'high-contrast' | 'system';
   language: string;
   notifications: Notification[];
   sidebarOpen: boolean;
@@ -21,7 +20,6 @@ interface UiState {
 }
 
 const initialState: UiState = {
-  theme: 'system',
   language: 'en',
   notifications: [],
   sidebarOpen: false,
@@ -37,9 +35,6 @@ const uiSlice = createSlice({
   name: 'ui',
   initialState,
   reducers: {
-    setTheme: (state, action: PayloadAction<'light' | 'dark' | 'high-contrast' | 'system'>) => {
-      state.theme = action.payload;
-    },
     setLanguage: (state, action: PayloadAction<string>) => {
       state.language = action.payload;
     },
@@ -76,7 +71,6 @@ const uiSlice = createSlice({
 });
 
 export const {
-  setTheme,
   setLanguage,
   addNotification,
   removeNotification,
