@@ -69,7 +69,10 @@ const mockData = {
 const baseQueryWithFallback = async (args: any, api: any, extraOptions: any) => {
   try {
     const result = await fetchBaseQuery({
-      baseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
+      baseUrl: process.env.NEXT_PUBLIC_API_URL ||
+        (process.env.NEXT_PUBLIC_APP_ENV === 'production'
+          ? 'https://agricredit-backend.vercel.app'
+          : 'http://localhost:8000'),
       prepareHeaders: (headers, { getState }) => {
         const token = (getState() as any).auth.token;
         if (token) {
