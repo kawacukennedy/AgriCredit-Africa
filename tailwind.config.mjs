@@ -84,18 +84,18 @@ export default {
           900: '#FF6F00',
         },
         neutral: {
-           // Dark mode appropriate neutrals since app is always dark
-           50: '#242424', // tertiary background
-           100: '#1E1E1E', // secondary background
-           200: '#1E1E1E', // surface default
-           300: '#424242', // light border
-           400: '#616161', // medium border
-           500: '#9E9E9E', // heavy border
-           600: '#757575', // disabled text
-           700: '#BDBDBD', // secondary text
-           800: '#FFFFFF', // primary text
-           900: '#FFFFFF', // primary text
-         },
+            // Dark mode colors from frontend-specs.json
+            50: '#121212', // primary background
+            100: '#1E1E1E', // secondary background / surface default
+            200: '#242424', // tertiary background / surface elevated
+            300: '#424242', // light border
+            400: '#616161', // medium border
+            500: '#9E9E9E', // heavy border
+            600: '#757575', // disabled text
+            700: '#BDBDBD', // secondary text
+            800: '#FFFFFF', // primary text
+            900: '#FFFFFF', // primary text
+          },
         success: {
           light: '#00C853',
           dark: '#00E676',
