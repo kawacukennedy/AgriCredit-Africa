@@ -32,28 +32,28 @@ const steps = [
     title: 'DID Creation',
     description: 'Create your decentralized identity',
     icon: Shield,
-    color: 'from-blue-500 to-cyan-500'
+    color: 'from-blue-600 to-cyan-600'
   },
   {
     id: 2,
     title: 'AI KYC',
     description: 'Verify your identity with AI',
     icon: User,
-    color: 'from-green-500 to-emerald-500'
+    color: 'from-green-600 to-emerald-600'
   },
   {
     id: 3,
     title: 'Profile Setup',
     description: 'Complete your farmer profile',
     icon: FileText,
-    color: 'from-amber-500 to-orange-500'
+    color: 'from-amber-600 to-orange-600'
   },
   {
     id: 4,
     title: 'Complete',
     description: 'Welcome to AgriCredit Africa',
     icon: Trophy,
-    color: 'from-purple-500 to-pink-500'
+    color: 'from-purple-600 to-pink-600'
   },
 ];
 
@@ -183,7 +183,7 @@ export default function OnboardPage() {
       </section>
 
       <div className="container py-12">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-3xl mx-auto">
           {/* Progress Overview */}
           <div className="mb-12">
             <div className="flex items-center justify-between mb-6">
@@ -272,11 +272,11 @@ export default function OnboardPage() {
                     </div>
 
                     {/* Enhanced Connector Line */}
-                    {index < steps.length - 1 && (
-                       <div className={`absolute top-6 left-full w-full h-0.5 -translate-y-1/2 transition-all duration-500 ${
-                         isCompleted ? 'bg-gradient-to-r from-sky-teal to-teal-500' : 'bg-neutral-400'
-                       }`} style={{ width: 'calc(100% - 2.5rem)' }} />
-                     )}
+                     {index < steps.length - 1 && (
+                        <div className={`hidden md:block absolute top-6 left-full w-full h-0.5 -translate-y-1/2 transition-all duration-500 ${
+                          isCompleted ? 'bg-gradient-to-r from-sky-teal to-teal-500' : 'bg-neutral-400'
+                        }`} style={{ width: 'calc(100% - 2.5rem)' }} />
+                      )}
                    </div>
                  );
                })}
