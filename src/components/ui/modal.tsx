@@ -62,9 +62,9 @@ const Modal = React.forwardRef<HTMLDivElement, ModalProps>(
           {...props}
         >
           {(title || description) && (
-            <DialogHeader className="border-b border-neutral-200 p-lg">
+            <DialogHeader className="border-b border-border p-lg">
               {title && <DialogTitle className="text-h4">{title}</DialogTitle>}
-              {description && <DialogDescription className="text-body_small text-neutral-600">{description}</DialogDescription>}
+              {description && <DialogDescription className="text-body_small text-muted-foreground">{description}</DialogDescription>}
             </DialogHeader>
           )}
 

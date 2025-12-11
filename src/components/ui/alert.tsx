@@ -15,23 +15,23 @@ export interface AlertProps {
 
 const variantStyles = {
   success: {
-    container: 'bg-green-50 border-green-200 text-green-800',
-    icon: 'text-green-400',
+    container: 'bg-success/10 border-success/20 text-success',
+    icon: 'text-success',
     defaultIcon: '✓'
   },
   error: {
-    container: 'bg-red-50 border-red-200 text-red-800',
-    icon: 'text-red-400',
+    container: 'bg-destructive/10 border-destructive/20 text-destructive',
+    icon: 'text-destructive',
     defaultIcon: '✕'
   },
   warning: {
-    container: 'bg-yellow-50 border-yellow-200 text-yellow-800',
-    icon: 'text-yellow-400',
+    container: 'bg-warning/10 border-warning/20 text-warning',
+    icon: 'text-warning',
     defaultIcon: '⚠'
   },
   info: {
-    container: 'bg-blue-50 border-blue-200 text-blue-800',
-    icon: 'text-blue-400',
+    container: 'bg-info/10 border-info/20 text-info',
+    icon: 'text-info',
     defaultIcon: 'ℹ'
   }
 };
@@ -82,7 +82,7 @@ export function Alert({
       {dismissible && (
         <button
           onClick={handleDismiss}
-          className="flex-shrink-0 ml-3 p-1 rounded hover:bg-black hover:bg-opacity-10 transition-colors"
+          className="flex-shrink-0 ml-3 p-1 rounded hover:bg-muted transition-colors"
           aria-label="Dismiss alert"
         >
           <span className="text-lg">×</span>

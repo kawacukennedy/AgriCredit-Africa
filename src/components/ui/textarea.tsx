@@ -11,17 +11,17 @@ export interface TextareaProps
 const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
   ({ className, variant = 'outlined', error = false, helperText, ...props }, ref) => {
     const variantClasses = {
-      outlined: 'border border-neutral-300 bg-white focus:border-primary-500',
-      filled: 'border-0 bg-neutral-100 focus:bg-white focus:border focus:border-primary-500',
+      outlined: 'border border-input bg-background focus:border-ring',
+      filled: 'border-0 bg-muted focus:bg-background focus:border focus:border-ring',
     };
 
-    const errorClass = error ? 'border-error focus:border-error' : '';
+    const errorClass = error ? 'border-destructive focus:border-destructive' : '';
 
     return (
       <div className="relative">
         <textarea
           className={cn(
-            "flex min-h-[80px] w-full rounded-md bg-background px-4 py-3 text-sm ring-offset-background placeholder:text-neutral-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-colors resize-vertical",
+            "flex min-h-[80px] w-full rounded-md bg-background px-4 py-3 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-colors resize-vertical",
             variantClasses[variant],
             errorClass,
             className
@@ -32,7 +32,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
         {helperText && (
           <p className={cn(
             "mt-1 text-xs",
-            error ? "text-error" : "text-neutral-500"
+            error ? "text-destructive" : "text-muted-foreground"
           )}>
             {helperText}
           </p>

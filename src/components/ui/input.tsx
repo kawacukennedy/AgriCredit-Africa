@@ -30,25 +30,25 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     };
 
     const variantClasses = {
-      outlined: 'border border-neutral-300 bg-white focus:border-primary-500',
-      filled: 'border-0 bg-neutral-100 focus:bg-white focus:border focus:border-primary-500',
-      standard: 'border-0 border-b-2 border-neutral-300 bg-transparent rounded-none px-0 focus:border-primary-500',
+      outlined: 'border border-input bg-background focus:border-ring',
+      filled: 'border-0 bg-muted focus:bg-background focus:border focus:border-ring',
+      standard: 'border-0 border-b-2 border-input bg-transparent rounded-none px-0 focus:border-ring',
     };
 
-    const errorClass = error ? 'border-error focus:border-error' : '';
+    const errorClass = error ? 'border-destructive focus:border-destructive' : '';
 
     return (
       <div className="relative">
         <div className="relative">
           {startAdornment && (
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
               {startAdornment}
             </div>
           )}
           <input
             type={type}
             className={cn(
-              "flex w-full rounded-md bg-background text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-neutral-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-colors",
+              "flex w-full rounded-md bg-background text-foreground ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-colors",
               sizeClasses[inputSize || 'md'],
               variantClasses[variant],
               errorClass,
@@ -60,7 +60,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             {...props}
           />
           {endAdornment && (
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500">
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
               {endAdornment}
             </div>
           )}
@@ -68,7 +68,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         {helperText && (
           <p className={cn(
             "mt-1 text-xs",
-            error ? "text-error" : "text-neutral-500"
+            error ? "text-destructive" : "text-muted-foreground"
           )}>
             {helperText}
           </p>

@@ -9,15 +9,15 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
   ({ className, variant = 'elevated', ...props }, ref) => {
     const variantClasses = {
       elevated: 'shadow-level-2 hover:shadow-level-3',
-      outlined: 'border-2 border-neutral-200 shadow-none',
-      filled: 'bg-neutral-50 border-0 shadow-none',
+      outlined: 'border-2 border-border shadow-none',
+      filled: 'bg-muted border-0 shadow-none',
     }
 
     return (
       <div
         ref={ref}
         className={cn(
-          "rounded-lg bg-white text-neutral-900 transition-shadow",
+          "rounded-lg bg-card text-card-foreground transition-shadow",
           variantClasses[variant],
           className
         )}
@@ -61,7 +61,7 @@ const CardDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <p
     ref={ref}
-    className={cn("text-body_small text-neutral-600", className)}
+    className={cn("text-body_small text-muted-foreground", className)}
     {...props}
   />
 ))

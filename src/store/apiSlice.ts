@@ -117,7 +117,19 @@ const baseQueryWithFallback = async (args: any, api: any, extraOptions: any) => 
 
 export const apiSlice = createApi({
   reducerPath: 'api',
-  baseQuery: baseQueryWithFallback,
+  baseQuery: fetchBaseQuery({
+    baseUrl: process.env.NEXT_PUBLIC_API_URL ||
+      (process.env.NEXT_PUBLIC_APP_ENV === 'production'
+        ? 'https://agricredit-backend.vercel.app'
+        : 'http://localhost:8000'),
+    prepareHeaders: (headers, { getState }) => {
+      const token = (getState() as any).auth.token;
+      if (token) {
+        headers.set('authorization', `Bearer ${token}`);
+      }
+      return headers;
+    },
+  }),
   endpoints: (builder) => ({
     // Authentication endpoints
     login: builder.mutation({

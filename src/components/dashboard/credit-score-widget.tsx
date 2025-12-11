@@ -6,15 +6,31 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useTranslation } from 'react-i18next';
-import { useRunCreditScoringMutation } from '@/store/apiSlice';
+import { useRunCreditScoringMutation, useGetUserFarmsQuery } from '@/store/apiSlice';
 import { TrendingUp, TrendingDown, BarChart3, RefreshCw, CheckCircle, AlertTriangle, Info } from 'lucide-react';
 
 export const CreditScoreWidget = React.memo(function CreditScoreWidget() {
   const { t } = useTranslation();
   const [runCreditScoring, { data: creditData, isLoading, error }] = useRunCreditScoringMutation();
+  const { data: farmsData } = useGetUserFarmsQuery();
 
-  // Mock farm data for credit scoring - in real app, this would come from user profile
-  const farmData = {
+  // Use real farm data for credit scoring
+  const primaryFarm = farmsData?.data?.[0]; // Use first farm as primary
+  const farmData = primaryFarm ? {
+    farm_size: primaryFarm.size_hectares || 5.2,
+    historical_data: {
+      repayment_rate: primaryFarm.repayment_rate || 0.95,
+      satellite_ndvi: primaryFarm.ndvi_score || 0.75,
+      weather_risk: primaryFarm.weather_risk || 0.2,
+      loan_history: primaryFarm.loan_count || 2,
+      income_stability: primaryFarm.income_stability || 0.85,
+      location_risk: primaryFarm.location_risk || 0.1,
+      crop_diversity: primaryFarm.crop_types?.length || 3
+    },
+    mobile_money_usage: primaryFarm.mobile_money_usage || 150.0,
+    cooperative_membership: primaryFarm.cooperative_member || true
+  } : {
+    // Fallback to default values if no farm data
     farm_size: 5.2,
     historical_data: {
       repayment_rate: 0.95,
@@ -40,9 +56,9 @@ export const CreditScoreWidget = React.memo(function CreditScoreWidget() {
   }), [creditData]);
 
   const getScoreColor = (score: number) => {
-    if (score >= 700) return 'text-sky-teal';
-    if (score >= 600) return 'text-harvest-gold';
-    return 'text-red-500';
+    if (score >= 700) return 'text-success';
+    if (score >= 600) return 'text-warning';
+    return 'text-destructive';
   };
 
   const getScoreGradient = (score: number) => {
@@ -55,7 +71,7 @@ export const CreditScoreWidget = React.memo(function CreditScoreWidget() {
     switch (risk.toLowerCase()) {
       case 'low': return 'bg-sky-teal/10 text-sky-teal border-sky-teal/20';
       case 'medium': return 'bg-harvest-gold/10 text-harvest-gold border-harvest-gold/20';
-      case 'high': return 'bg-red-500/10 text-red-500 border-red-500/20';
+      case 'high': return 'bg-destructive/10 text-destructive border-destructive/20';
       default: return 'bg-slate-gray/10 text-slate-gray border-slate-gray/20';
     }
   };
@@ -173,12 +189,12 @@ export const CreditScoreWidget = React.memo(function CreditScoreWidget() {
             </Button>
 
             {error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
                 <div className="flex items-start space-x-3">
-                  <AlertTriangle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+                  <AlertTriangle className="w-5 h-5 text-destructive mt-0.5 flex-shrink-0" />
                   <div>
-                    <h5 className="font-medium text-red-800 mb-1">Analysis Failed</h5>
-                    <p className="text-sm text-red-700">
+                    <h5 className="font-medium text-destructive mb-1">Analysis Failed</h5>
+                    <p className="text-sm text-destructive/80">
                       Unable to calculate credit score. Please check your farm data and try again.
                     </p>
                   </div>

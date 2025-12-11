@@ -106,7 +106,7 @@ export function Navbar() {
                 <item.icon className="w-4 h-4 group-hover:scale-110 transition-transform" />
                 <span>{item.label}</span>
                 {item.badge && (
-                  <Badge className="bg-agri-green text-white text-xs px-1.5 py-0.5">
+                  <Badge className="bg-primary text-primary-foreground text-xs px-1.5 py-0.5">
                     {item.badge}
                   </Badge>
                 )}
@@ -187,7 +187,7 @@ export function Navbar() {
                 >
                   <Bell className="w-5 h-5 text-foreground" />
                   {unreadCount > 0 && (
-                    <Badge className="absolute -top-1 -right-1 w-5 h-5 p-0 bg-red-500 text-white text-xs flex items-center justify-center">
+                    <Badge variant="destructive" className="absolute -top-1 -right-1 w-5 h-5 p-0 text-xs flex items-center justify-center">
                       {unreadCount}
                     </Badge>
                   )}
@@ -304,7 +304,7 @@ export function Navbar() {
                     <item.icon className="w-5 h-5" />
                     <span className="font-medium">{item.label}</span>
                     {item.badge && (
-                      <Badge className="bg-agri-green text-white text-xs px-1.5 py-0.5 ml-auto">
+                      <Badge variant="primary" className="text-xs px-1.5 py-0.5 ml-auto">
                         {item.badge}
                       </Badge>
                     )}
