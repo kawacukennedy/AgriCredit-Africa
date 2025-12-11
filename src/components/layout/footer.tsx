@@ -70,7 +70,7 @@ export function Footer() {
   };
 
   return (
-    <footer className="bg-slate-gray text-paper-white mt-16">
+    <footer className="bg-neutral-50 text-neutral-800 mt-16">
       {/* Main Footer Content */}
       <div className="w-full px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8">
@@ -81,14 +81,14 @@ export function Footer() {
                 <Leaf className="w-7 h-7 text-white" />
               </div>
               <div>
-                <div className="font-black text-2xl text-paper-white group-hover:text-harvest-gold transition-colors">
+                <div className="font-black text-2xl text-neutral-800 group-hover:text-harvest-gold transition-colors">
                   AgriCredit
                 </div>
-                <div className="text-sm text-paper-white/60">Africa</div>
+                <div className="text-sm text-neutral-800/60">Africa</div>
               </div>
             </Link>
 
-            <p className="text-paper-white/80 mb-6 leading-relaxed">
+            <p className="text-neutral-800/80 mb-6 leading-relaxed">
               Empowering African farmers with AI-powered microfinance and blockchain technology.
               Transparent, fair, and sustainable agricultural finance for the future.
             </p>
@@ -117,7 +117,7 @@ export function Footer() {
                 <li key={link.name}>
                   <Link
                     href={link.href}
-                    className="text-paper-white/70 hover:text-harvest-gold transition-colors duration-200 flex items-center group"
+                    className="text-neutral-800/70 hover:text-harvest-gold transition-colors duration-200 flex items-center group"
                   >
                     {link.name}
                     <ExternalLink className="w-3 h-3 ml-1 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -135,7 +135,7 @@ export function Footer() {
                 <li key={link.name}>
                   <Link
                     href={link.href}
-                    className="text-paper-white/70 hover:text-harvest-gold transition-colors duration-200 flex items-center group"
+                    className="text-neutral-800/70 hover:text-harvest-gold transition-colors duration-200 flex items-center group"
                   >
                     {link.name}
                     <ExternalLink className="w-3 h-3 ml-1 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -153,7 +153,7 @@ export function Footer() {
                 <li key={link.name}>
                   <Link
                     href={link.href}
-                    className="text-paper-white/70 hover:text-harvest-gold transition-colors duration-200 flex items-center group"
+                    className="text-neutral-800/70 hover:text-harvest-gold transition-colors duration-200 flex items-center group"
                   >
                     {link.name}
                     <ExternalLink className="w-3 h-3 ml-1 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -169,7 +169,7 @@ export function Footer() {
             <div className="space-y-4">
               <div className="flex items-start space-x-3">
                 <MapPin className="w-5 h-5 text-harvest-gold mt-0.5 flex-shrink-0" />
-                <div className="text-paper-white/70 text-sm">
+                <div className="text-neutral-800/70 text-sm">
                   <div>Nairobi, Kenya</div>
                   <div>Lagos, Nigeria</div>
                   <div>Accra, Ghana</div>
@@ -180,7 +180,7 @@ export function Footer() {
                 <Phone className="w-5 h-5 text-harvest-gold flex-shrink-0" />
                 <a
                   href="tel:+254700000000"
-                  className="text-paper-white/70 hover:text-harvest-gold transition-colors text-sm"
+                  className="text-neutral-800/70 hover:text-harvest-gold transition-colors text-sm"
                 >
                   +254 700 000 000
                 </a>
@@ -194,7 +194,7 @@ export function Footer() {
                       placeholder="Enter your email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="flex-1 bg-paper-white/10 border-paper-white/20 text-paper-white placeholder:text-paper-white/60 focus:border-harvest-gold focus:ring-harvest-gold/20"
+                      className="flex-1 bg-paper-white/10 border-paper-white/20 text-neutral-800 placeholder:text-neutral-800/60 focus:border-harvest-gold focus:ring-harvest-gold/20"
                       required
                     />
                     <Button
@@ -222,11 +222,11 @@ export function Footer() {
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <div className="flex flex-wrap justify-center md:justify-start gap-6">
               {certifications.map((cert) => (
-                <div key={cert.name} className="flex items-center space-x-3 text-paper-white/80">
+                <div key={cert.name} className="flex items-center space-x-3 text-neutral-800/80">
                   <cert.icon className="w-6 h-6 text-harvest-gold" />
                   <div>
                     <div className="font-semibold text-sm">{cert.name}</div>
-                    <div className="text-xs text-paper-white/60">{cert.description}</div>
+                    <div className="text-xs text-neutral-800/60">{cert.description}</div>
                   </div>
                 </div>
               ))}
@@ -251,7 +251,7 @@ export function Footer() {
       {/* Bottom Footer */}
       <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-          <div className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-6 text-sm text-paper-white/60">
+          <div className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-6 text-sm text-neutral-800/60">
             <p>© 2025 AgriCredit Africa. All rights reserved.</p>
             <div className="flex space-x-6">
               {footerLinks.legal.map((link) => (
@@ -266,7 +266,7 @@ export function Footer() {
             </div>
           </div>
 
-          <div className="flex items-center space-x-4 text-sm text-paper-white/60">
+          <div className="flex items-center space-x-4 text-sm text-neutral-800/60">
             <span>Powered by</span>
             <div className="flex items-center space-x-2">
               <div className="w-6 h-6 bg-gradient-to-br from-agri-green to-sky-teal rounded"></div>

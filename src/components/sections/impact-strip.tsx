@@ -22,7 +22,7 @@ export function ImpactMetrics({
   className,
 }: ImpactMetricsProps) {
   return (
-    <section className={cn('bg-white py-16 -mt-16 relative z-10 rounded-t-3xl shadow-lg', className)}>
+    <section className={cn('bg-neutral-50 py-16 -mt-16 relative z-10 rounded-t-3xl shadow-lg', className)}>
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           {metrics.map((metric, index) => (
@@ -56,7 +56,7 @@ export function ImpactMetrics({
                   </span>
                 )}
               </div>
-              <div className="text-sm text-neutral-600 font-medium">
+              <div className="text-sm text-neutral-700 font-medium">
                 {metric.label}
               </div>
             </div>
