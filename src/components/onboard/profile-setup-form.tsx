@@ -124,10 +124,10 @@ function ProfileSetupForm({ onNext, onPrev, initialData }: ProfileSetupFormProps
               <div>
                 <Label htmlFor="primaryCrop">Primary Crop *</Label>
                 <Select value={formData.primaryCrop} onValueChange={(value) => setFormData(prev => ({ ...prev, primaryCrop: value }))}>
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-harvest-gold text-slate-gray">
                     <SelectValue placeholder="Select primary crop" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-harvest-gold text-slate-gray">
                     <SelectItem value="maize">Maize</SelectItem>
                     <SelectItem value="rice">Rice</SelectItem>
                     <SelectItem value="wheat">Wheat</SelectItem>
@@ -144,10 +144,10 @@ function ProfileSetupForm({ onNext, onPrev, initialData }: ProfileSetupFormProps
               <div>
                 <Label htmlFor="farmingExperience">Years of Experience *</Label>
                 <Select value={formData.farmingExperience} onValueChange={(value) => setFormData(prev => ({ ...prev, farmingExperience: value }))}>
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-harvest-gold text-slate-gray">
                     <SelectValue placeholder="Select experience" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-harvest-gold text-slate-gray">
                     <SelectItem value="0-2">0-2 years</SelectItem>
                     <SelectItem value="3-5">3-5 years</SelectItem>
                     <SelectItem value="6-10">6-10 years</SelectItem>
@@ -194,10 +194,10 @@ function ProfileSetupForm({ onNext, onPrev, initialData }: ProfileSetupFormProps
               <div>
                 <Label htmlFor="incomeSource">Primary Income Source</Label>
                 <Select value={formData.incomeSource} onValueChange={(value) => setFormData(prev => ({ ...prev, incomeSource: value }))}>
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-harvest-gold text-slate-gray">
                     <SelectValue placeholder="Select income source" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-harvest-gold text-slate-gray">
                     <SelectItem value="farming">Farming only</SelectItem>
                     <SelectItem value="farming_part">Farming + other work</SelectItem>
                     <SelectItem value="other">Other sources</SelectItem>
