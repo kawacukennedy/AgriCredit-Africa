@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Bell, Settings, CheckCircle, AlertTriangle, Leaf, DollarSign, BarChart3, TrendingUp, Plus, User } from 'lucide-react';
+import { useGetCurrentUserQuery, useGetLoansQuery, useGetUserCarbonCreditsQuery, useGetNotificationsQuery } from '@/store/apiSlice';
 import dynamic from 'next/dynamic';
 
 const FarmMap = dynamic(() => import('@/components/dashboard/farm-map'), {
@@ -31,38 +32,45 @@ export default function FarmerDashboard() {
 function FarmerDashboardContent() {
   const { t } = useTranslation();
 
-  // Mock data for alerts and quick stats
-  const alerts = [
+  const { data: userData } = useGetCurrentUserQuery();
+  const { data: loansData } = useGetLoansQuery({ status: 'active' });
+  const { data: carbonData } = useGetUserCarbonCreditsQuery();
+  const { data: notificationsData } = useGetNotificationsQuery();
+
+  // Process real data with fallbacks
+  const user = userData?.data || { name: 'Farmer', role: 'farmer' };
+
+  const loans = loansData?.data || [];
+  const totalLoanAmount = loans.reduce((sum, loan) => sum + (loan.amount_cents || 0), 0) / 100;
+  const activeLoansCount = loans.length;
+
+  const carbonCredits = carbonData?.data?.balance || 0;
+
+  const notifications = notificationsData?.data || [];
+
+  // Mock data for alerts (notifications) - using real notifications if available
+  const alerts = notifications.length > 0 ? notifications.slice(0, 3).map((notif: any) => ({
+    id: notif.id,
+    type: notif.type || 'info',
+    title: notif.title,
+    message: notif.message,
+    time: notif.created_at ? new Date(notif.created_at).toLocaleString() : 'Recently',
+    icon: notif.type === 'success' ? CheckCircle : notif.type === 'warning' ? AlertTriangle : Leaf
+  })) : [
     {
       id: 1,
       type: 'success',
-      title: 'Loan Approved',
-      message: 'Your $2,500 loan application has been approved',
-      time: '2 hours ago',
+      title: 'Welcome to AgriCredit!',
+      message: 'Your account has been successfully set up',
+      time: 'Just now',
       icon: CheckCircle
-    },
-    {
-      id: 2,
-      type: 'warning',
-      title: 'Payment Due',
-      message: 'Next payment of $125 due in 3 days',
-      time: '1 day ago',
-      icon: AlertTriangle
-    },
-    {
-      id: 3,
-      type: 'info',
-      title: 'Carbon Credits Earned',
-      message: 'You earned 8 new CARBT tokens this month',
-      time: '3 days ago',
-      icon: Leaf
     }
   ];
 
   const quickStats = [
-    { label: 'Total Loans', value: '$12,500', change: '+15%', icon: DollarSign },
-    { label: 'Active Loans', value: '2', change: '0%', icon: BarChart3 },
-    { label: 'Carbon Credits', value: '150', change: '+8%', icon: Leaf },
+    { label: 'Total Loans', value: `$${totalLoanAmount.toLocaleString()}`, change: '+15%', icon: DollarSign },
+    { label: 'Active Loans', value: activeLoansCount.toString(), change: '0%', icon: BarChart3 },
+    { label: 'Carbon Credits', value: carbonCredits.toString(), change: '+8%', icon: Leaf },
     { label: 'Farm Health', value: '92%', change: '+2%', icon: TrendingUp }
   ];
 
@@ -82,7 +90,7 @@ function FarmerDashboardContent() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-4xl md:text-5xl font-black mb-2">
-                Welcome back, Farmer! 🌾
+                Welcome back, {user.name || 'Farmer'}! 🌾
               </h1>
               <p className="text-xl opacity-90">
                 Here's your farming finance overview

@@ -46,8 +46,10 @@ function LoanDetailContent({ params }: { params: { id: string } }) {
   const { t } = useTranslation();
   const [fundLoan, { isLoading: isFunding }] = useFundLoanMutation();
 
-  // Mock comprehensive loan data
-  const loan = {
+  const { data: loanData, isLoading, error } = useGetLoanByIdQuery(params.id);
+
+  // Use API data with fallback to mock data
+  const loan = loanData || {
     id: params.id,
     farmer: {
       name: 'John Doe',
@@ -130,6 +132,49 @@ function LoanDetailContent({ params }: { params: { id: string } }) {
       default: return 'bg-slate-gray/10 text-slate-gray border-slate-gray/20';
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-paper-white">
+        <div className="container py-8">
+          <div className="animate-pulse space-y-8">
+            <div className="h-12 bg-slate-gray/10 rounded w-96"></div>
+            <div className="grid lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-2 space-y-6">
+                <div className="h-64 bg-slate-gray/10 rounded"></div>
+                <div className="h-96 bg-slate-gray/10 rounded"></div>
+              </div>
+              <div className="space-y-6">
+                <div className="h-48 bg-slate-gray/10 rounded"></div>
+                <div className="h-32 bg-slate-gray/10 rounded"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !loan) {
+    return (
+      <div className="min-h-screen bg-paper-white">
+        <div className="container py-8">
+          <div className="text-center py-12">
+            <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-slate-gray mb-2">Loan Not Found</h2>
+            <p className="text-slate-gray/70 mb-6">
+              We couldn't find the loan you're looking for. It may have been removed or the link is incorrect.
+            </p>
+            <Link href="/marketplace">
+              <Button className="btn-primary">
+                Back to Marketplace
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-paper-white">

@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { useTranslation } from 'react-i18next';
 import { WalletConnect } from '@/components/auth/wallet-connect';
+import { useLoginMutation } from '@/store/apiSlice';
 import {
   Phone,
   Wallet,
@@ -26,32 +27,39 @@ export default function LoginPage() {
   const router = useRouter();
   const { t } = useTranslation();
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
   const [step, setStep] = useState<'phone' | 'verify'>('phone');
 
+  const [login, { isLoading }] = useLoginMutation();
+
   const handlePhoneLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
-      setStep('verify');
-    }, 2000);
+    try {
+      await login({
+        phone: phoneNumber,
+        password: password || 'dummy', // For phone login, might not need password
+      }).unwrap();
+      router.push('/dashboard');
+    } catch (error) {
+      console.error('Login failed:', error);
+      // Handle error - show toast or error message
+    }
   };
 
   const handleVerification = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      await login({
+        phone: phoneNumber,
+        verification_code: verificationCode,
+      }).unwrap();
       router.push('/dashboard');
-    }, 2000);
+    } catch (error) {
+      console.error('Verification failed:', error);
+      // Handle error
+    }
   };
 
   const handleWalletLogin = () => {
