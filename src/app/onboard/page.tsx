@@ -283,19 +283,9 @@ export default function OnboardPage() {
              </div>
            </div>
 
-           {/* Step Content */}
-           <Card className="shadow-level3 border-0 overflow-hidden animate-fadeIn">
-             <div className={`h-2 bg-gradient-to-r ${steps[currentStep - 1].color} animate-pulse`}></div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Step Content */}
-          <Card className="shadow-level3 border-0 overflow-hidden animate-fadeIn">
-            <div className={`h-2 bg-gradient-to-r ${steps[currentStep - 1].color} animate-pulse`}></div>
+            {/* Step Content */}
+            <Card className="shadow-level3 border-0 overflow-hidden animate-fadeIn">
+              <div className={`h-2 bg-gradient-to-r ${steps[currentStep - 1].color} animate-pulse`}></div>
             <CardHeader className="pb-6">
               <div className="flex items-center space-x-4">
                 <div className={`w-12 h-12 rounded-xl bg-gradient-to-r ${steps[currentStep - 1].color} flex items-center justify-center shadow-lg animate-bounce`}>
