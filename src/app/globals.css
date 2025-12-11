@@ -115,9 +115,16 @@
 /* Dark theme only - according to frontend-specs.json */
 .dark {
   /* Dark theme according to frontend-specs.json with AgriCredit brand colors */
-  --background: 0 0% 7%; /* #121212 */
-  --foreground: 0 0% 100%; /* #FFFFFF */
-  --card: 0 0% 11%; /* #1E1E1E */
+  --background: 0 0% 7%; /* #121212 - primary background */
+  --background-secondary: 0 0% 11%; /* #1E1E1E - secondary background */
+  --background-tertiary: 0 0% 14%; /* #242424 - tertiary background */
+  --foreground: 0 0% 100%; /* #FFFFFF - primary text */
+  --text-secondary: 0 0% 74%; /* #BDBDBD - secondary text */
+  --text-disabled: 0 0% 46%; /* #757575 - disabled text */
+  --text-inverse: 0 0% 0%; /* #000000 - inverse text */
+  --card: 0 0% 11%; /* #1E1E1E - surface default */
+  --surface-elevated: 0 0% 14%; /* #242424 - surface elevated */
+  --surface-overlay: rgba(255, 255, 255, 0.16); /* overlay */
   --card-foreground: 0 0% 100%;
   --popover: 0 0% 11%;
   --popover-foreground: 0 0% 100%;
@@ -126,12 +133,14 @@
   --secondary: 51 100% 50%; /* #FFD700 - Harvest Gold */
   --secondary-foreground: 0 0% 0%; /* Black text on gold */
   --muted: 0 0% 16%;
-  --muted-foreground: 0 0% 70%; /* #BDBDBD */
+  --muted-foreground: 0 0% 74%; /* #BDBDBD - secondary text */
   --accent: 51 100% 50%; /* #FFD700 - Harvest Gold */
   --accent-foreground: 0 0% 0%;
   --destructive: 0 84% 45%;
   --destructive-foreground: 0 0% 100%;
-  --border: 0 0% 27%; /* #424242 */
+  --border: 0 0% 26%; /* #424242 - light border */
+  --border-medium: 0 0% 38%; /* #616161 - medium border */
+  --border-heavy: 0 0% 62%; /* #9E9E9E - heavy border */
   --input: 0 0% 16%;
   --ring: 142 71% 45%; /* #2E7D32 - Agri Green */
 
@@ -174,9 +183,16 @@
 @media (prefers-color-scheme: dark) {
   :root {
     /* Dark theme according to frontend-specs.json with AgriCredit brand colors */
-    --background: 0 0% 7%; /* #121212 */
-    --foreground: 0 0% 100%; /* #FFFFFF */
-    --card: 0 0% 11%; /* #1E1E1E */
+    --background: 0 0% 7%; /* #121212 - primary background */
+    --background-secondary: 0 0% 11%; /* #1E1E1E - secondary background */
+    --background-tertiary: 0 0% 14%; /* #242424 - tertiary background */
+    --foreground: 0 0% 100%; /* #FFFFFF - primary text */
+    --text-secondary: 0 0% 74%; /* #BDBDBD - secondary text */
+    --text-disabled: 0 0% 46%; /* #757575 - disabled text */
+    --text-inverse: 0 0% 0%; /* #000000 - inverse text */
+    --card: 0 0% 11%; /* #1E1E1E - surface default */
+    --surface-elevated: 0 0% 14%; /* #242424 - surface elevated */
+    --surface-overlay: rgba(255, 255, 255, 0.16); /* overlay */
     --card-foreground: 0 0% 100%;
     --popover: 0 0% 11%;
     --popover-foreground: 0 0% 100%;
@@ -185,12 +201,14 @@
     --secondary: 51 100% 50%; /* #FFD700 - Harvest Gold */
     --secondary-foreground: 0 0% 0%; /* Black text on gold */
     --muted: 0 0% 16%;
-    --muted-foreground: 0 0% 70%; /* #BDBDBD */
+    --muted-foreground: 0 0% 74%; /* #BDBDBD - secondary text */
     --accent: 51 100% 50%; /* #FFD700 - Harvest Gold */
     --accent-foreground: 0 0% 0%;
     --destructive: 0 84% 45%;
     --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 27%; /* #424242 */
+    --border: 0 0% 26%; /* #424242 - light border */
+    --border-medium: 0 0% 38%; /* #616161 - medium border */
+    --border-heavy: 0 0% 62%; /* #9E9E9E - heavy border */
     --input: 0 0% 16%;
     --ring: 142 71% 45%; /* #2E7D32 - Agri Green */
 
