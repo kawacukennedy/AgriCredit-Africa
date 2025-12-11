@@ -435,7 +435,7 @@ function AIKYCForm({ onNext, onPrev, initialData }: AIKYCFormProps) {
             </Button>
             <Button
               onClick={handleVerify}
-              disabled={!isFormValid || isVerifying}
+              disabled={isVerifying}
               className="flex-1 btn-primary py-3"
             >
               {isVerifying ? (
