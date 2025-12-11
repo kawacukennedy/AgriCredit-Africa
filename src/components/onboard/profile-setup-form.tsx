@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTranslation } from 'react-i18next';
-import { useCompleteProfileMutation } from '@/lib/api';
+
 import { MapPin, Tractor, Users } from 'lucide-react';
 
 interface ProfileSetupFormProps {
@@ -19,7 +19,7 @@ interface ProfileSetupFormProps {
 
 function ProfileSetupForm({ onNext, onPrev, initialData }: ProfileSetupFormProps) {
   const { t } = useTranslation();
-  const [completeProfile, { isLoading: isSubmitting }] = useCompleteProfileMutation();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     farmName: initialData?.farmName || '',
     farmSize: initialData?.farmSize || '',
@@ -33,29 +33,17 @@ function ProfileSetupForm({ onNext, onPrev, initialData }: ProfileSetupFormProps
   });
 
   const handleSubmit = async () => {
-    try {
-      const result = await completeProfile({
-        farm_name: formData.farmName,
-        farm_size: parseFloat(formData.farmSize),
-        farm_location: formData.farmLocation,
-        primary_crop: formData.primaryCrop,
-        farming_experience: formData.farmingExperience,
-        equipment_owned: formData.equipmentOwned,
-        household_size: formData.householdSize ? parseInt(formData.householdSize) : null,
-        income_source: formData.incomeSource,
-        challenges: formData.challenges
-      }).unwrap();
+    setIsSubmitting(true);
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
-      onNext({
-        ...formData,
-        profileCompleted: true,
-        completedAt: new Date().toISOString(),
-        credential: result.credential
-      });
-    } catch (error) {
-      console.error('Failed to complete profile:', error);
-      alert('Failed to complete profile. Please try again.');
-    }
+    setIsSubmitting(false);
+    onNext({
+      ...formData,
+      profileCompleted: true,
+      completedAt: new Date().toISOString(),
+      credential: `cred_${Date.now()}`
+    });
   };
 
   const isFormValid = formData.farmName && formData.farmSize && formData.farmLocation &&
