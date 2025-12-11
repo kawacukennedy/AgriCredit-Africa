@@ -9,19 +9,19 @@ import { useTranslation } from 'react-i18next';
 import dynamic from 'next/dynamic';
 
 const DIDCreationForm = dynamic(() => import('@/components/onboard/did-creation-form'), {
-  loading: () => <div className="animate-pulse p-8 bg-slate-gray/5 rounded-lg">Loading DID creation...</div>
+  loading: () => <div className="animate-pulse p-8 bg-neutral-800/5 rounded-lg">Loading DID creation...</div>
 });
 
 const AIKYCForm = dynamic(() => import('@/components/onboard/ai-kyc-form'), {
-  loading: () => <div className="animate-pulse p-8 bg-slate-gray/5 rounded-lg">Loading AI KYC...</div>
+  loading: () => <div className="animate-pulse p-8 bg-neutral-800/5 rounded-lg">Loading AI KYC...</div>
 });
 
 const ProfileSetupForm = dynamic(() => import('@/components/onboard/profile-setup-form'), {
-  loading: () => <div className="animate-pulse p-8 bg-slate-gray/5 rounded-lg">Loading profile setup...</div>
+  loading: () => <div className="animate-pulse p-8 bg-neutral-800/5 rounded-lg">Loading profile setup...</div>
 });
 
 const OnboardingComplete = dynamic(() => import('@/components/onboard/onboarding-complete'), {
-  loading: () => <div className="animate-pulse p-8 bg-slate-gray/5 rounded-lg">Loading completion...</div>
+  loading: () => <div className="animate-pulse p-8 bg-neutral-800/5 rounded-lg">Loading completion...</div>
 });
 import { useRouter } from 'next/navigation';
 import { CheckCircle, Shield, User, FileText, Trophy, ArrowRight, ArrowLeft, Sparkles, Clock } from 'lucide-react';
@@ -145,7 +145,7 @@ export default function OnboardPage() {
   const timeElapsed = Math.floor((Date.now() - startTime) / 60000); // minutes
 
   return (
-    <div className="bg-gradient-to-br from-paper-white via-paper-white to-sky-teal/5">
+    <div className="bg-gradient-to-br from-neutral-50 via-neutral-50 to-neutral-100">
 
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-agri-green to-sky-teal text-white py-16 relative overflow-hidden">
@@ -188,21 +188,21 @@ export default function OnboardPage() {
           <div className="mb-12">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-2xl font-bold text-slate-gray">Onboarding Progress</h2>
-                <p className="text-sm text-slate-gray/60 mt-1">
+                <h2 className="text-2xl font-bold text-neutral-800">Onboarding Progress</h2>
+                <p className="text-sm text-neutral-800/60 mt-1">
                   Step {currentStep} of {steps.length} • {steps[currentStep - 1].title}
                 </p>
               </div>
               <div className="text-right">
                 <div className="text-2xl font-bold text-agri-green">{Math.round(progressPercentage)}%</div>
-                <div className="text-sm text-slate-gray/60">Complete</div>
+                <div className="text-sm text-neutral-800/60">Complete</div>
               </div>
             </div>
 
             {/* Enhanced Progress Bar */}
             <div className="mb-8">
               <div className="relative">
-                <Progress value={progressPercentage} className="h-4 bg-slate-gray/20" />
+                <Progress value={progressPercentage} className="h-4 bg-neutral-800/20" />
                 <div className="absolute inset-0 bg-gradient-to-r from-agri-green to-sky-teal rounded-full opacity-20"></div>
                 <div
                   className="absolute top-0 left-0 h-4 bg-gradient-to-r from-agri-green to-sky-teal rounded-full transition-all duration-1000 ease-out"
@@ -210,12 +210,12 @@ export default function OnboardPage() {
                 ></div>
               </div>
               <div className="flex justify-between mt-3 text-sm">
-                <span className="text-slate-gray/60">🚀 Start</span>
+                <span className="text-neutral-800/60">🚀 Start</span>
                 <span className="text-agri-green font-medium flex items-center">
                   <Sparkles className="w-4 h-4 mr-1" />
                   {Math.round(progressPercentage)}% Complete
                 </span>
-                <span className="text-slate-gray/60">🎯 Finish</span>
+                <span className="text-neutral-800/60">🎯 Finish</span>
               </div>
             </div>
 
@@ -230,13 +230,13 @@ export default function OnboardPage() {
                 return (
                   <div
                     key={step.id}
-                    className={`relative p-4 rounded-xl border-2 transition-all duration-500 transform hover:scale-105 ${
-                      isCompleted
-                        ? 'bg-gradient-to-br from-sky-teal/10 to-green-50 border-sky-teal shadow-lg shadow-sky-teal/20'
-                        : isCurrent
-                        ? 'bg-gradient-to-br from-agri-green/10 to-emerald-50 border-agri-green shadow-lg shadow-agri-green/20 animate-pulse'
-                        : 'bg-paper-white border-slate-gray/20 hover:border-agri-green/50'
-                    }`}
+                     className={`relative p-4 rounded-xl border-2 transition-all duration-500 transform hover:scale-105 ${
+                       isCompleted
+                         ? 'bg-gradient-to-br from-sky-teal/10 to-neutral-100 border-sky-teal shadow-lg shadow-sky-teal/20'
+                         : isCurrent
+                         ? 'bg-gradient-to-br from-agri-green/10 to-neutral-100 border-agri-green shadow-lg shadow-agri-green/20 animate-pulse'
+                         : 'bg-neutral-100 border-neutral-400 hover:border-agri-green/50'
+                     }`}
                   >
                     <div className="flex items-center space-x-3">
                       <div className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-300 ${
@@ -244,7 +244,7 @@ export default function OnboardPage() {
                           ? 'bg-gradient-to-r from-sky-teal to-teal-600 text-white shadow-lg'
                           : isCurrent
                           ? 'bg-gradient-to-r from-agri-green to-green-600 text-white shadow-lg animate-bounce'
-                          : 'bg-slate-gray/10 text-slate-gray/40'
+                          : 'bg-neutral-800/10 text-neutral-800/40'
                       }`}>
                         {isCompleted ? (
                           <CheckCircle className="w-6 h-6 animate-pulse" />
@@ -254,12 +254,12 @@ export default function OnboardPage() {
                       </div>
                       <div className="flex-1">
                         <h3 className={`font-semibold transition-colors ${
-                          isCompleted || isCurrent ? 'text-slate-gray' : 'text-slate-gray/60'
+                          isCompleted || isCurrent ? 'text-neutral-800' : 'text-neutral-800/60'
                         }`}>
                           {step.title}
                         </h3>
                         <p className={`text-sm transition-colors ${
-                          isCompleted || isCurrent ? 'text-slate-gray/70' : 'text-slate-gray/40'
+                          isCompleted || isCurrent ? 'text-neutral-800/70' : 'text-neutral-800/40'
                         }`}>
                           {step.description}
                         </p>
@@ -273,9 +273,19 @@ export default function OnboardPage() {
 
                     {/* Enhanced Connector Line */}
                     {index < steps.length - 1 && (
-                      <div className={`absolute top-6 left-full w-full h-0.5 -translate-y-1/2 transition-all duration-500 ${
-                        isCompleted ? 'bg-gradient-to-r from-sky-teal to-teal-500' : 'bg-slate-gray/20'
-                      }`} style={{ width: 'calc(100% - 2.5rem)' }} />
+                       <div className={`absolute top-6 left-full w-full h-0.5 -translate-y-1/2 transition-all duration-500 ${
+                         isCompleted ? 'bg-gradient-to-r from-sky-teal to-teal-500' : 'bg-neutral-400'
+                       }`} style={{ width: 'calc(100% - 2.5rem)' }} />
+                     )}
+                   </div>
+                 );
+               })}
+             </div>
+           </div>
+
+           {/* Step Content */}
+           <Card className="shadow-level3 border-0 overflow-hidden animate-fadeIn">
+             <div className={`h-2 bg-gradient-to-r ${steps[currentStep - 1].color} animate-pulse`}></div>
                     )}
                   </div>
                 );
@@ -292,10 +302,10 @@ export default function OnboardPage() {
                   {renderCurrentStepIcon(currentStep)}
                 </div>
                 <div className="animate-fadeIn animation-delay-200">
-                  <CardTitle className="text-2xl text-slate-gray">
+                  <CardTitle className="text-2xl text-neutral-800">
                     {steps[currentStep - 1].title}
                   </CardTitle>
-                  <p className="text-slate-gray/70 mt-1">
+                  <p className="text-neutral-800/70 mt-1">
                     {steps[currentStep - 1].description}
                   </p>
                   {currentStep > 1 && (
@@ -319,8 +329,8 @@ export default function OnboardPage() {
                       <Sparkles className="w-8 h-8 text-white" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold text-slate-gray">Processing...</h3>
-                      <p className="text-slate-gray/60">Please wait while we process your information</p>
+                      <h3 className="text-lg font-semibold text-neutral-800">Processing...</h3>
+                      <p className="text-neutral-800/60">Please wait while we process your information</p>
                     </div>
                   </div>
                 </div>
@@ -338,14 +348,14 @@ export default function OnboardPage() {
               variant="outline"
               onClick={prevStep}
               disabled={currentStep === 1 || isLoading}
-              className="flex items-center space-x-2 hover:bg-slate-gray/5 transition-all duration-200"
+              className="flex items-center space-x-2 hover:bg-neutral-800/5 transition-all duration-200"
             >
               <ArrowLeft className="w-4 h-4" />
               <span>Previous</span>
             </Button>
 
             <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2 text-sm text-slate-gray/60">
+              <div className="flex items-center space-x-2 text-sm text-neutral-800/60">
                 <span>Need help?</span>
                 <Button
                   variant="link"
@@ -356,7 +366,7 @@ export default function OnboardPage() {
                 </Button>
               </div>
 
-              <div className="flex items-center space-x-2 text-sm text-slate-gray/60">
+              <div className="flex items-center space-x-2 text-sm text-neutral-800/60">
                 <span>💾 Progress saved automatically</span>
               </div>
             </div>
