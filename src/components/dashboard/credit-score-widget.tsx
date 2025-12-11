@@ -72,7 +72,7 @@ export const CreditScoreWidget = React.memo(function CreditScoreWidget() {
       case 'low': return 'bg-sky-teal/10 text-sky-teal border-sky-teal/20';
       case 'medium': return 'bg-harvest-gold/10 text-harvest-gold border-harvest-gold/20';
       case 'high': return 'bg-destructive/10 text-destructive border-destructive/20';
-      default: return 'bg-slate-gray/10 text-slate-gray border-slate-gray/20';
+      default: return 'bg-neutral-100/50 text-slate-gray border-neutral-300/50';
     }
   };
 
@@ -97,7 +97,7 @@ export const CreditScoreWidget = React.memo(function CreditScoreWidget() {
                  <Badge className={getRiskBadgeColor(creditMetrics.riskLevel)}>
                    {creditMetrics.riskLevel} Risk
                  </Badge>
-                <Badge variant="outline" className="border-slate-gray/20">
+                <Badge variant="outline" className="border-neutral-300/50">
                   <CheckCircle className="w-3 h-3 mr-1" />
                   Verified
                 </Badge>
@@ -125,7 +125,7 @@ export const CreditScoreWidget = React.memo(function CreditScoreWidget() {
                 </h4>
                 <div className="space-y-2">
                   {creditData.data.explainability.slice(0, 3).map((factor: any, index: number) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-slate-gray/5 rounded-lg">
+                     <div key={index} className="flex items-center justify-between p-3 bg-neutral-100/30 rounded-lg">
                       <span className="text-sm text-slate-gray capitalize">
                         {factor.feature.replace(/_/g, ' ')}
                       </span>
@@ -148,7 +148,7 @@ export const CreditScoreWidget = React.memo(function CreditScoreWidget() {
             )}
 
             {/* Last Updated */}
-            <div className="flex items-center justify-between pt-4 border-t border-slate-gray/10">
+            <div className="flex items-center justify-between pt-4 border-t border-neutral-300/30">
               <span className="text-xs text-slate-gray/60">Last updated</span>
               <span className="text-xs text-slate-gray/60">
                 {new Date().toLocaleDateString()}

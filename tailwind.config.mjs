@@ -63,7 +63,7 @@ export default {
           900: '#1B5E20',
         },
         'paper-white': '#FDFCF9',
-        'slate-gray': '#1E1E1E',
+        'slate-gray': '#FFFFFF',
 
         // Design System Colors from frontend-specs.json
         primary: {
@@ -84,17 +84,18 @@ export default {
           900: '#FF6F00',
         },
         neutral: {
-          50: '#FAFAFA',
-          100: '#F5F5F5',
-          200: '#EEEEEE',
-          300: '#E0E0E0',
-          400: '#BDBDBD',
-          500: '#9E9E9E',
-          600: '#757575',
-          700: '#616161',
-          800: '#424242',
-          900: '#212121',
-        },
+           // Dark mode appropriate neutrals since app is always dark
+           50: '#242424', // tertiary background
+           100: '#1E1E1E', // secondary background
+           200: '#1E1E1E', // surface default
+           300: '#424242', // light border
+           400: '#616161', // medium border
+           500: '#9E9E9E', // heavy border
+           600: '#757575', // disabled text
+           700: '#BDBDBD', // secondary text
+           800: '#FFFFFF', // primary text
+           900: '#FFFFFF', // primary text
+         },
         success: {
           light: '#00C853',
           dark: '#00E676',
