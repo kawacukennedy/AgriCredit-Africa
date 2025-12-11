@@ -167,8 +167,8 @@ function AIKYCForm({ onNext, onPrev, initialData }: AIKYCFormProps) {
           <User className="w-8 h-8 text-white" />
         </div>
         <div>
-          <h3 className="text-2xl font-bold text-slate-gray mb-2">AI-Powered Identity Verification</h3>
-          <p className="text-slate-gray/70 max-w-lg mx-auto">
+          <h3 className="text-2xl font-bold text-neutral-800 mb-2">AI-Powered Identity Verification</h3>
+          <p className="text-neutral-800/70 max-w-lg mx-auto">
             Our advanced AI system will verify your identity using document analysis,
             facial recognition, and biometric verification for maximum security.
           </p>
@@ -177,20 +177,20 @@ function AIKYCForm({ onNext, onPrev, initialData }: AIKYCFormProps) {
 
       {/* Verification Steps */}
       <div className="grid md:grid-cols-3 gap-4">
-        <div className="text-center p-4 bg-blue-50 rounded-xl border border-blue-200">
-          <FileText className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-          <h4 className="font-semibold text-slate-gray mb-1">Document Analysis</h4>
-          <p className="text-sm text-slate-gray/70">OCR & validation</p>
+        <div className="text-center p-4 bg-blue-900/20 rounded-xl border border-blue-700">
+          <FileText className="w-8 h-8 text-blue-400 mx-auto mb-2" />
+          <h4 className="font-semibold text-neutral-200 mb-1">Document Analysis</h4>
+          <p className="text-sm text-neutral-400">OCR & validation</p>
         </div>
-        <div className="text-center p-4 bg-green-50 rounded-xl border border-green-200">
-          <Camera className="w-8 h-8 text-green-600 mx-auto mb-2" />
-          <h4 className="font-semibold text-slate-gray mb-1">Facial Recognition</h4>
-          <p className="text-sm text-slate-gray/70">Biometric verification</p>
+        <div className="text-center p-4 bg-green-900/20 rounded-xl border border-green-700">
+          <Camera className="w-8 h-8 text-green-400 mx-auto mb-2" />
+          <h4 className="font-semibold text-neutral-200 mb-1">Facial Recognition</h4>
+          <p className="text-sm text-neutral-400">Biometric verification</p>
         </div>
-        <div className="text-center p-4 bg-purple-50 rounded-xl border border-purple-200">
-          <Shield className="w-8 h-8 text-purple-600 mx-auto mb-2" />
-          <h4 className="font-semibold text-slate-gray mb-1">Risk Assessment</h4>
-          <p className="text-sm text-slate-gray/70">Fraud detection</p>
+        <div className="text-center p-4 bg-purple-900/20 rounded-xl border border-purple-700">
+          <Shield className="w-8 h-8 text-purple-400 mx-auto mb-2" />
+          <h4 className="font-semibold text-neutral-200 mb-1">Risk Assessment</h4>
+          <p className="text-sm text-neutral-400">Fraud detection</p>
         </div>
       </div>
 
@@ -199,7 +199,7 @@ function AIKYCForm({ onNext, onPrev, initialData }: AIKYCFormProps) {
           {/* Personal Information */}
           <Card className="border-slate-gray/20">
             <CardHeader>
-              <CardTitle className="flex items-center text-slate-gray">
+              <CardTitle className="flex items-center text-neutral-800">
                 <User className="w-5 h-5 mr-2 text-agri-green" />
                 Personal Information
               </CardTitle>
@@ -207,7 +207,7 @@ function AIKYCForm({ onNext, onPrev, initialData }: AIKYCFormProps) {
             <CardContent className="space-y-6">
                <div className="grid md:grid-cols-2 gap-6">
                  <div className="space-y-2">
-                   <Label htmlFor="fullName" className="text-sm font-medium text-slate-gray">
+                   <Label htmlFor="fullName" className="text-sm font-medium text-neutral-800">
                      Full Legal Name *
                    </Label>
                    <Input
@@ -227,7 +227,7 @@ function AIKYCForm({ onNext, onPrev, initialData }: AIKYCFormProps) {
                    )}
                  </div>
                  <div className="space-y-2">
-                   <Label htmlFor="dateOfBirth" className="text-sm font-medium text-slate-gray">
+                   <Label htmlFor="dateOfBirth" className="text-sm font-medium text-neutral-800">
                      Date of Birth *
                    </Label>
                    <Input
@@ -250,7 +250,7 @@ function AIKYCForm({ onNext, onPrev, initialData }: AIKYCFormProps) {
 
                <div className="grid md:grid-cols-2 gap-6">
                  <div className="space-y-2">
-                   <Label htmlFor="nationality" className="text-sm font-medium text-slate-gray">
+                   <Label htmlFor="nationality" className="text-sm font-medium text-neutral-800">
                      Nationality *
                    </Label>
                    <Input
@@ -270,7 +270,7 @@ function AIKYCForm({ onNext, onPrev, initialData }: AIKYCFormProps) {
                    )}
                  </div>
                  <div className="space-y-2">
-                   <Label htmlFor="phoneNumber" className="text-sm font-medium text-slate-gray">
+                   <Label htmlFor="phoneNumber" className="text-sm font-medium text-neutral-800">
                      Phone Number *
                    </Label>
                    <Input
@@ -292,7 +292,7 @@ function AIKYCForm({ onNext, onPrev, initialData }: AIKYCFormProps) {
                </div>
 
                <div className="space-y-2">
-                 <Label htmlFor="address" className="text-sm font-medium text-slate-gray">
+                 <Label htmlFor="address" className="text-sm font-medium text-neutral-800">
                    Residential Address *
                  </Label>
                  <Textarea
@@ -318,7 +318,7 @@ function AIKYCForm({ onNext, onPrev, initialData }: AIKYCFormProps) {
           {/* Document Upload */}
           <Card className="border-slate-gray/20">
             <CardHeader>
-              <CardTitle className="flex items-center text-slate-gray">
+              <CardTitle className="flex items-center text-neutral-800">
                 <FileText className="w-5 h-5 mr-2 text-agri-green" />
                 Document Verification
               </CardTitle>
@@ -326,7 +326,7 @@ function AIKYCForm({ onNext, onPrev, initialData }: AIKYCFormProps) {
             <CardContent className="space-y-6">
                <div className="space-y-4">
                  <div>
-                   <Label className="text-sm font-medium text-slate-gray mb-3 block">
+                   <Label className="text-sm font-medium text-neutral-800 mb-3 block">
                      Government ID Document *
                    </Label>
                    <div className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors cursor-pointer ${
@@ -348,17 +348,17 @@ function AIKYCForm({ onNext, onPrev, initialData }: AIKYCFormProps) {
                          <div className="space-y-3">
                            <CheckCircle className="w-12 h-12 text-sky-teal mx-auto animate-bounce" />
                            <div>
-                             <p className="font-medium text-slate-gray">{formData.idDocument.name}</p>
-                             <p className="text-sm text-slate-gray/60">Click to change file</p>
+                             <p className="font-medium text-neutral-800">{formData.idDocument.name}</p>
+                             <p className="text-sm text-neutral-800/60">Click to change file</p>
                            </div>
                          </div>
                        ) : (
                          <div className="space-y-3">
-                           <Upload className="w-12 h-12 text-slate-gray/40 mx-auto" />
+                           <Upload className="w-12 h-12 text-neutral-800/40 mx-auto" />
                            <div>
-                             <p className="font-medium text-slate-gray">Upload ID Document</p>
-                             <p className="text-sm text-slate-gray/60">Passport, National ID, or Driver's License</p>
-                             <p className="text-xs text-slate-gray/50 mt-1">PNG, JPG, PDF up to 10MB</p>
+                             <p className="font-medium text-neutral-800">Upload ID Document</p>
+                             <p className="text-sm text-neutral-800/60">Passport, National ID, or Driver's License</p>
+                             <p className="text-xs text-neutral-800/50 mt-1">PNG, JPG, PDF up to 10MB</p>
                            </div>
                          </div>
                        )}
@@ -370,7 +370,7 @@ function AIKYCForm({ onNext, onPrev, initialData }: AIKYCFormProps) {
                  </div>
 
                  <div>
-                   <Label className="text-sm font-medium text-slate-gray mb-3 block">
+                   <Label className="text-sm font-medium text-neutral-800 mb-3 block">
                      Selfie Photo *
                    </Label>
                    <div className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors cursor-pointer ${
@@ -392,17 +392,17 @@ function AIKYCForm({ onNext, onPrev, initialData }: AIKYCFormProps) {
                          <div className="space-y-3">
                            <CheckCircle className="w-12 h-12 text-sky-teal mx-auto animate-bounce" />
                            <div>
-                             <p className="font-medium text-slate-gray">{formData.selfie.name}</p>
-                             <p className="text-sm text-slate-gray/60">Click to change photo</p>
+                             <p className="font-medium text-neutral-800">{formData.selfie.name}</p>
+                             <p className="text-sm text-neutral-800/60">Click to change photo</p>
                            </div>
                          </div>
                        ) : (
                          <div className="space-y-3">
-                           <Camera className="w-12 h-12 text-slate-gray/40 mx-auto" />
+                           <Camera className="w-12 h-12 text-neutral-800/40 mx-auto" />
                            <div>
-                             <p className="font-medium text-slate-gray">Take Selfie</p>
-                             <p className="text-sm text-slate-gray/60">For facial recognition verification</p>
-                             <p className="text-xs text-slate-gray/50 mt-1">Clear photo of your face</p>
+                             <p className="font-medium text-neutral-800">Take Selfie</p>
+                             <p className="text-sm text-neutral-800/60">For facial recognition verification</p>
+                             <p className="text-xs text-neutral-800/50 mt-1">Clear photo of your face</p>
                            </div>
                          </div>
                        )}
@@ -462,25 +462,25 @@ function AIKYCForm({ onNext, onPrev, initialData }: AIKYCFormProps) {
                 <Loader2 className="w-8 h-8 text-white animate-spin" />
               </div>
               <div>
-                <h3 className="text-2xl font-bold text-slate-gray mb-2">AI Verification in Progress</h3>
-                <p className="text-slate-gray/70">
+                <h3 className="text-2xl font-bold text-neutral-800 mb-2">AI Verification in Progress</h3>
+                <p className="text-neutral-800/70">
                   Our AI is analyzing your documents and biometric data...
                 </p>
               </div>
 
               <div className="space-y-4">
                 <Progress value={verificationProgress} className="h-3" />
-                <p className="text-sm text-slate-gray/60">{Math.round(verificationProgress)}% complete</p>
+                <p className="text-sm text-neutral-800/60">{Math.round(verificationProgress)}% complete</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                <div className={`p-3 rounded-lg ${verificationProgress >= 25 ? 'bg-sky-teal/10 text-sky-teal' : 'bg-slate-gray/10 text-slate-gray/50'}`}>
+                <div className={`p-3 rounded-lg ${verificationProgress >= 25 ? 'bg-sky-teal/10 text-sky-teal' : 'bg-slate-gray/10 text-neutral-800/50'}`}>
                   ✓ Document Analysis
                 </div>
-                <div className={`p-3 rounded-lg ${verificationProgress >= 60 ? 'bg-sky-teal/10 text-sky-teal' : 'bg-slate-gray/10 text-slate-gray/50'}`}>
+                <div className={`p-3 rounded-lg ${verificationProgress >= 60 ? 'bg-sky-teal/10 text-sky-teal' : 'bg-slate-gray/10 text-neutral-800/50'}`}>
                   ✓ Facial Recognition
                 </div>
-                <div className={`p-3 rounded-lg ${verificationProgress >= 90 ? 'bg-sky-teal/10 text-sky-teal' : 'bg-slate-gray/10 text-slate-gray/50'}`}>
+                <div className={`p-3 rounded-lg ${verificationProgress >= 90 ? 'bg-sky-teal/10 text-sky-teal' : 'bg-slate-gray/10 text-neutral-800/50'}`}>
                   ✓ Risk Assessment
                 </div>
               </div>
@@ -497,8 +497,8 @@ function AIKYCForm({ onNext, onPrev, initialData }: AIKYCFormProps) {
                 <CheckCircle className="w-8 h-8 text-white" />
               </div>
               <div>
-                <h3 className="text-2xl font-bold text-slate-gray mb-2">Identity Verification Successful!</h3>
-                <p className="text-slate-gray/70">
+                <h3 className="text-2xl font-bold text-neutral-800 mb-2">Identity Verification Successful!</h3>
+                <p className="text-neutral-800/70">
                   Your identity has been verified successfully with our AI system.
                 </p>
               </div>
@@ -506,7 +506,7 @@ function AIKYCForm({ onNext, onPrev, initialData }: AIKYCFormProps) {
               <div className="bg-green-50 border border-green-200 rounded-lg p-4 max-w-md mx-auto">
                 <div className="flex items-center justify-center space-x-2 mb-2">
                   <Badge className="bg-sky-teal text-white">Verified</Badge>
-                  <span className="text-sm text-slate-gray/60">High Confidence</span>
+                  <span className="text-sm text-neutral-800/60">High Confidence</span>
                 </div>
                 <p className="text-sm text-green-700">
                   Your verifiable credentials have been issued and stored securely.
@@ -525,8 +525,8 @@ function AIKYCForm({ onNext, onPrev, initialData }: AIKYCFormProps) {
                 <AlertCircle className="w-8 h-8 text-white" />
               </div>
               <div>
-                <h3 className="text-2xl font-bold text-slate-gray mb-2">Verification Could Not Be Completed</h3>
-                <p className="text-slate-gray/70">
+                <h3 className="text-2xl font-bold text-neutral-800 mb-2">Verification Could Not Be Completed</h3>
+                <p className="text-neutral-800/70">
                   We could not verify your identity with the provided information.
                 </p>
               </div>
