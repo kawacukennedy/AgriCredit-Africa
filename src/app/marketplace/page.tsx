@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useTranslation } from 'react-i18next';
 import { useGetMarketplaceListingsQuery, useFundLoanMutation } from '@/store/apiSlice';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import {
   Search,
   Filter,
@@ -27,8 +28,14 @@ import {
   CheckCircle,
   AlertTriangle,
   Info,
-  Plus
+  Plus,
+  Map
 } from 'lucide-react';
+
+const LoanMap = dynamic(() => import('@/components/marketplace/loan-map'), {
+  ssr: false,
+  loading: () => <div className="h-96 bg-slate-gray/10 rounded-lg animate-pulse flex items-center justify-center">Loading map...</div>
+});
 
 export default function MarketplacePage() {
   const { t } = useTranslation();
@@ -40,12 +47,12 @@ export default function MarketplacePage() {
     sortBy: 'score'
   });
   const [searchQuery, setSearchQuery] = useState('');
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [viewMode, setViewMode] = useState<'grid' | 'list' | 'map'>('grid');
   const [showFilters, setShowFilters] = useState(false);
 
   const [fundLoan, { isLoading: isFunding }] = useFundLoanMutation();
 
-  const { data: listings, isLoading, error } = useGetMarketplaceListingsQuery({
+  const { data: listings, isLoading, error, refetch } = useGetMarketplaceListingsQuery({
     crop_type: filters.crop !== 'all' ? filters.crop : undefined,
     location: filters.region !== 'all' ? filters.region : undefined,
     min_score: filters.scoreRange !== 'all' ? parseInt(filters.scoreRange.split('-')[0]) : undefined,
@@ -54,6 +61,8 @@ export default function MarketplacePage() {
     max_price: filters.amountRange !== 'all' ? (filters.amountRange.includes('+') ? undefined : parseInt(filters.amountRange.split('-')[1])) : undefined,
     search: searchQuery || undefined,
     sort_by: filters.sortBy,
+  }, {
+    pollingInterval: 30000, // Poll every 30 seconds for real-time updates
   });
 
   const handleFundLoan = async (loanId: string) => {
@@ -302,9 +311,18 @@ export default function MarketplacePage() {
                   variant={viewMode === 'list' ? 'default' : 'ghost'}
                   size="sm"
                   onClick={() => setViewMode('list')}
-                  className="rounded-l-none"
+                  className="rounded-none"
                 >
                   List
+                </Button>
+                <Button
+                  variant={viewMode === 'map' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('map')}
+                  className="rounded-l-none"
+                >
+                  <Map className="w-4 h-4 mr-1" />
+                  Map
                 </Button>
               </div>
             </div>
@@ -416,8 +434,26 @@ export default function MarketplacePage() {
           )}
         </div>
 
+        {/* Map View */}
+        {viewMode === 'map' && (
+          <Card className="shadow-level2 border-0">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center text-slate-gray">
+                <Map className="w-5 h-5 mr-2 text-agri-green" />
+                Loan Locations
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <LoanMap loans={sortedLoans} onLoanSelect={(loanId) => {
+                // Navigate to loan detail or highlight in map
+                window.location.href = `/loan/${loanId}`;
+              }} />
+            </CardContent>
+          </Card>
+        )}
+
         {/* Loan Cards */}
-        {sortedLoans.length > 0 ? (
+        {viewMode !== 'map' && sortedLoans.length > 0 ? (
           <div className={viewMode === 'grid'
             ? "grid md:grid-cols-2 lg:grid-cols-3 gap-6"
             : "space-y-4"

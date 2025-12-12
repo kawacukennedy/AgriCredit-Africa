@@ -1,6 +1,7 @@
 'use client';
 
-import { Suspense } from 'react';
+import { Suspense, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import Link from 'next/link';
 import { AuthGuard } from '@/components/auth/AuthGuard';
@@ -19,8 +20,19 @@ const FarmMap = dynamic(() => import('@/components/dashboard/farm-map'), {
   loading: () => <div className="h-64 bg-gray-100 rounded-lg animate-pulse" />
 });
 
-export default function FarmerDashboard() {
-  const { t } = useTranslation();
+export default function Dashboard() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const role = searchParams.get('role') || 'farmer';
+
+  useEffect(() => {
+    // Redirect to appropriate dashboard based on role
+    if (role === 'investor') {
+      router.replace('/dashboard/investor');
+    } else {
+      // Stay on farmer dashboard (default)
+    }
+  }, [role, router]);
 
   return (
     <AuthGuard>

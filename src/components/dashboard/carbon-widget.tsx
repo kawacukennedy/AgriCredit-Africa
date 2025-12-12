@@ -4,23 +4,74 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from 'react-i18next';
-import { Leaf, TrendingUp, DollarSign, BarChart3, Plus, ArrowRight, Info } from 'lucide-react';
+import { useGetUserCarbonCreditsQuery, useGetCarbonTransactionsQuery } from '@/store/apiSlice';
+import { Leaf, TrendingUp, DollarSign, BarChart3, Plus, ArrowRight, Info, AlertCircle } from 'lucide-react';
 
 export function CarbonWidget() {
   const { t } = useTranslation();
 
-  // Mock data - in real app, this would come from API
-  const carbonCredits = 150;
-  const value = 2250; // in USD
-  const monthlyGeneration = 12;
-  const yearlyTarget = 200;
-  const progressPercentage = (carbonCredits / yearlyTarget) * 100;
+  const { data: carbonData, isLoading: carbonLoading, error: carbonError } = useGetUserCarbonCreditsQuery();
 
+  // Use real data with fallbacks
+  const carbonCredits = carbonData?.data?.balance || 0;
+  const value = carbonData?.data?.value_usd || 0;
+  const monthlyGeneration = carbonData?.data?.monthly_generation || 0;
+  const yearlyTarget = carbonData?.data?.yearly_target || 200;
+  const progressPercentage = yearlyTarget > 0 ? (carbonCredits / yearlyTarget) * 100 : 0;
+
+  // Mock transactions for now - in future, add API endpoint for carbon transactions
   const recentTransactions = [
     { date: '2024-01-15', amount: 8, type: 'earned', activity: 'Sustainable irrigation' },
     { date: '2024-01-10', amount: 5, type: 'earned', activity: 'No-till farming' },
     { date: '2024-01-05', amount: 3, type: 'sold', activity: 'Market sale' },
   ];
+
+  if (carbonLoading) {
+    return (
+      <Card className="shadow-level2 border-0">
+        <div className="h-1 bg-gradient-to-r from-green-500 to-emerald-500"></div>
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center text-slate-gray">
+            <Leaf className="w-5 h-5 mr-2 text-agri-green" />
+            Carbon Credits
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="loading-skeleton h-16 rounded-lg"></div>
+            <div className="loading-skeleton h-12 rounded-lg"></div>
+            <div className="loading-skeleton h-20 rounded-lg"></div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (carbonError) {
+    return (
+      <Card className="shadow-level2 border-0">
+        <div className="h-1 bg-gradient-to-r from-green-500 to-emerald-500"></div>
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center text-slate-gray">
+            <Leaf className="w-5 h-5 mr-2 text-agri-green" />
+            Carbon Credits
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8">
+            <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-slate-gray mb-2">Unable to Load Carbon Data</h3>
+            <p className="text-slate-gray/70 text-sm mb-4">
+              We couldn't load your carbon credits information. Please try again.
+            </p>
+            <Button variant="outline" size="sm">
+              Retry
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="shadow-level2 border-0">

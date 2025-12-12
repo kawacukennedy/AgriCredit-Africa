@@ -4,13 +4,23 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from 'react-i18next';
-import { MapPin, ZoomIn, ZoomOut, RotateCcw, Activity, TrendingUp, Cloud, Sun } from 'lucide-react';
+import { useGetUserFarmsQuery } from '@/store/apiSlice';
+import { MapPin, ZoomIn, ZoomOut, RotateCcw, Activity, TrendingUp, Cloud, Sun, AlertCircle } from 'lucide-react';
 
 export default function FarmMap() {
   const { t } = useTranslation();
 
-  // Mock NDVI data for the last 30 days
-  const ndviData = [0.65, 0.68, 0.72, 0.69, 0.74, 0.71, 0.76, 0.73, 0.78, 0.75];
+  const { data: farmsData, isLoading, error } = useGetUserFarmsQuery();
+
+  // Use real farm data
+  const primaryFarm = farmsData?.data?.[0];
+  const farmSize = primaryFarm?.size_hectares || 5.2;
+  const location = primaryFarm?.location || 'Nairobi Region, Kenya';
+  const ndviScore = primaryFarm?.ndvi_score || 0.75;
+  const weatherRisk = primaryFarm?.weather_risk || 0.2;
+
+  // Mock NDVI data for the last 30 days - in future, get from API
+  const ndviData = [0.65, 0.68, 0.72, 0.69, 0.74, 0.71, 0.76, 0.73, 0.78, ndviScore];
   const currentNDVI = ndviData[ndviData.length - 1];
   const previousNDVI = ndviData[ndviData.length - 2];
   const ndviChange = ((currentNDVI - previousNDVI) / previousNDVI * 100).toFixed(1);
@@ -26,6 +36,48 @@ export default function FarmMap() {
     if (value >= 0.6) return 'Good';
     return 'Needs Attention';
   };
+
+  if (isLoading) {
+    return (
+      <Card className="shadow-level2 border-0">
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center text-slate-gray">
+            <MapPin className="w-5 h-5 mr-2 text-agri-green" />
+            Farm Overview
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="loading-skeleton h-64 rounded-xl mb-6"></div>
+          <div className="loading-skeleton h-16 rounded-lg"></div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="shadow-level2 border-0">
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center text-slate-gray">
+            <MapPin className="w-5 h-5 mr-2 text-agri-green" />
+            Farm Overview
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8">
+            <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-slate-gray mb-2">Unable to Load Farm Data</h3>
+            <p className="text-slate-gray/70 text-sm mb-4">
+              We couldn't load your farm information. Please try again.
+            </p>
+            <Button variant="outline" size="sm">
+              Retry
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="shadow-level2 border-0">
@@ -50,8 +102,8 @@ export default function FarmMap() {
             <div className="relative z-10 text-center">
               <MapPin className="w-12 h-12 text-agri-green mx-auto mb-3 animate-map-pulse" />
               <h3 className="text-lg font-semibold text-slate-gray mb-1">Farm Location</h3>
-              <p className="text-sm text-slate-gray/60">Nairobi Region, Kenya</p>
-              <p className="text-xs text-slate-gray/50 mt-1">5.2 hectares</p>
+              <p className="text-sm text-slate-gray/60">{location}</p>
+              <p className="text-xs text-slate-gray/50 mt-1">{farmSize} hectares</p>
             </div>
           </div>
 

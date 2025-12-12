@@ -8,6 +8,10 @@ import { Badge } from '@/components/ui/badge';
 import { useTranslation } from 'react-i18next';
 import dynamic from 'next/dynamic';
 
+const RoleSelectionForm = dynamic(() => import('@/components/onboard/role-selection-form'), {
+  loading: () => <div className="animate-pulse p-8 bg-neutral-800/5 rounded-lg">Loading role selection...</div>
+});
+
 const DIDCreationForm = dynamic(() => import('@/components/onboard/did-creation-form'), {
   loading: () => <div className="animate-pulse p-8 bg-neutral-800/5 rounded-lg">Loading DID creation...</div>
 });
@@ -29,31 +33,38 @@ import { CheckCircle, Shield, User, FileText, Trophy, ArrowRight, ArrowLeft, Spa
 const steps = [
   {
     id: 1,
-    title: 'DID Creation',
-    description: 'Create your decentralized identity',
-    icon: Shield,
+    title: 'Role Selection',
+    description: 'Choose your role in the platform',
+    icon: User,
     color: 'from-blue-600 to-cyan-600'
   },
   {
     id: 2,
-    title: 'AI KYC',
-    description: 'Verify your identity with AI',
-    icon: User,
+    title: 'DID Creation',
+    description: 'Create your decentralized identity',
+    icon: Shield,
     color: 'from-green-600 to-emerald-600'
   },
   {
     id: 3,
-    title: 'Profile Setup',
-    description: 'Complete your farmer profile',
-    icon: FileText,
+    title: 'AI KYC',
+    description: 'Verify your identity with AI',
+    icon: User,
     color: 'from-amber-600 to-orange-600'
   },
   {
     id: 4,
+    title: 'Profile Setup',
+    description: 'Complete your profile',
+    icon: FileText,
+    color: 'from-purple-600 to-pink-600'
+  },
+  {
+    id: 5,
     title: 'Complete',
     description: 'Welcome to AgriCredit Africa',
     icon: Trophy,
-    color: 'from-purple-600 to-pink-600'
+    color: 'from-indigo-600 to-purple-600'
   },
 ];
 
@@ -116,7 +127,9 @@ export default function OnboardPage() {
     // Mark onboarding as complete
     localStorage.setItem('agricredit_onboarding_complete', 'true');
 
-    router.push('/dashboard?onboarding=complete');
+    // Redirect based on role
+    const userRole = formData.role || 'farmer';
+    router.push(`/dashboard?onboarding=complete&role=${userRole}`);
   };
 
   const getEstimatedTimeRemaining = () => {
@@ -129,12 +142,14 @@ export default function OnboardPage() {
   const renderStepContent = () => {
     switch (currentStep) {
       case 1:
-        return <DIDCreationForm onNext={nextStep} initialData={formData} />;
+        return <RoleSelectionForm onNext={nextStep} initialData={formData} />;
       case 2:
-        return <AIKYCForm onNext={nextStep} onPrev={prevStep} initialData={formData} />;
+        return <DIDCreationForm onNext={nextStep} onPrev={prevStep} initialData={formData} />;
       case 3:
-        return <ProfileSetupForm onNext={nextStep} onPrev={prevStep} initialData={formData} />;
+        return <AIKYCForm onNext={nextStep} onPrev={prevStep} initialData={formData} />;
       case 4:
+        return <ProfileSetupForm onNext={nextStep} onPrev={prevStep} initialData={formData} />;
+      case 5:
         return <OnboardingComplete onComplete={handleComplete} profileData={formData} />;
       default:
         return null;

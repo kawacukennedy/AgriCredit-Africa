@@ -7,8 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useTranslation } from 'react-i18next';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import {
-  BarChart3,
   TrendingUp,
   TrendingDown,
   PieChart,
@@ -25,6 +25,16 @@ import {
   Leaf,
   Zap
 } from 'lucide-react';
+
+const LoanPerformanceChart = dynamic(() => import('@/components/admin/loan-performance-chart'), {
+  ssr: false,
+  loading: () => <div className="h-64 bg-slate-gray/5 rounded-lg flex items-center justify-center">Loading chart...</div>
+});
+
+const GeographicDistributionChart = dynamic(() => import('@/components/admin/geographic-distribution-chart'), {
+  ssr: false,
+  loading: () => <div className="h-64 bg-slate-gray/5 rounded-lg flex items-center justify-center">Loading chart...</div>
+});
 
 export default function AdminAnalyticsPage() {
   return (
@@ -171,13 +181,7 @@ function AdminAnalyticsContent() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="h-64 bg-slate-gray/5 rounded-lg flex items-center justify-center">
-                <div className="text-center">
-                  <BarChart3 className="w-12 h-12 text-slate-gray/40 mx-auto mb-2" />
-                  <p className="text-slate-gray/60">Performance trends chart</p>
-                  <p className="text-sm text-slate-gray/50">Monthly loan volume and repayment rates</p>
-                </div>
-              </div>
+              <LoanPerformanceChart />
             </CardContent>
           </Card>
 
@@ -190,36 +194,7 @@ function AdminAnalyticsContent() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {[
-                  { country: 'Kenya', loans: 450, percentage: 36, growth: '+15%' },
-                  { country: 'Nigeria', loans: 320, percentage: 26, growth: '+22%' },
-                  { country: 'Ghana', loans: 180, percentage: 15, growth: '+8%' },
-                  { country: 'Tanzania', loans: 120, percentage: 10, growth: '+12%' },
-                  { country: 'Uganda', loans: 100, percentage: 8, growth: '+18%' },
-                  { country: 'Others', loans: 80, percentage: 5, growth: '+5%' }
-                ].map((region, index) => (
-                  <div key={index} className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-3 h-3 bg-agri-green rounded-full"></div>
-                      <span className="text-sm font-medium text-slate-gray">{region.country}</span>
-                    </div>
-                    <div className="flex items-center space-x-4">
-                      <span className="text-sm text-slate-gray/60">{region.loans} loans</span>
-                      <div className="w-16 bg-slate-gray/10 rounded-full h-2">
-                        <div
-                          className="bg-agri-green h-2 rounded-full"
-                          style={{ width: `${region.percentage}%` }}
-                        />
-                      </div>
-                      <span className="text-sm font-medium text-slate-gray w-8">{region.percentage}%</span>
-                      <Badge className="bg-sky-teal/10 text-sky-teal border-sky-teal/20 text-xs">
-                        {region.growth}
-                      </Badge>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <GeographicDistributionChart />
             </CardContent>
           </Card>
         </div>
