@@ -17,7 +17,7 @@ import {
   Star,
   TrendingUp,
   Award,
-  HandHeart,
+  HeartHandshake,
   Building2
 } from 'lucide-react';
 
@@ -89,7 +89,7 @@ export default function CooperativeLendingPage() {
       maxAmount: 3000,
       interestRate: '5-15%',
       term: '3-12 months',
-      icon: HandHeart,
+      icon: HeartHandshake,
       color: 'bg-purple-500'
     }
   ];
