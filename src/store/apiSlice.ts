@@ -70,7 +70,7 @@ const baseQueryWithFallback = async (args: any, api: any, extraOptions: any) => 
   try {
     const result = await fetchBaseQuery({
       baseUrl: process.env.NEXT_PUBLIC_API_URL ||
-        (process.env.NEXT_PUBLIC_APP_ENV === 'production'
+        (isProduction
           ? 'https://agricredit-backend.vercel.app'
           : 'http://localhost:8000'),
       prepareHeaders: (headers, { getState }) => {
@@ -115,11 +115,17 @@ const baseQueryWithFallback = async (args: any, api: any, extraOptions: any) => 
   }
 };
 
+// Determine if we're in production
+const isProduction = process.env.NODE_ENV === 'production' ||
+  process.env.VERCEL_ENV === 'production' ||
+  process.env.NEXT_PUBLIC_VERCEL_ENV === 'production' ||
+  typeof window !== 'undefined' && window.location.hostname !== 'localhost';
+
 export const apiSlice = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.NEXT_PUBLIC_API_URL ||
-      (process.env.NEXT_PUBLIC_APP_ENV === 'production'
+      (isProduction
         ? 'https://agricredit-backend.vercel.app'
         : 'http://localhost:8000'),
     prepareHeaders: (headers, { getState }) => {

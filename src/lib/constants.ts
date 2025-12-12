@@ -16,8 +16,15 @@ export const CONTRACT_ADDRESSES = {
   governance: '0x...',
 } as const;
 
+// Determine if we're in production
+const isProduction = process.env.NODE_ENV === 'production' ||
+  process.env.VERCEL_ENV === 'production' ||
+  process.env.NEXT_PUBLIC_VERCEL_ENV === 'production' ||
+  typeof window !== 'undefined' && window.location.hostname !== 'localhost';
+
 export const API_ENDPOINTS = {
-  base: process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8000',
+  base: process.env.NEXT_PUBLIC_API_BASE ||
+    (isProduction ? 'https://agricredit-backend.vercel.app' : 'http://localhost:8000'),
   loans: '/api/loans',
   carbon: '/api/carbon',
   governance: '/api/governance',
