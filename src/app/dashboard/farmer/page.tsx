@@ -10,7 +10,7 @@ import { CarbonWidget } from '@/components/dashboard/carbon-widget';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Bell, Settings, CheckCircle, AlertTriangle, Leaf, DollarSign, BarChart3, TrendingUp, Plus, User, Tractor, MapPin } from 'lucide-react';
+import { Bell, Settings, CheckCircle, AlertTriangle, Leaf, DollarSign, BarChart3, TrendingUp, Plus, User, Tractor, MapPin, Users } from 'lucide-react';
 import { useGetCurrentUserQuery, useGetLoansQuery, useGetUserCarbonCreditsQuery, useGetNotificationsQuery } from '@/store/apiSlice';
 import dynamic from 'next/dynamic';
 
@@ -200,6 +200,12 @@ function FarmerDashboardContent() {
                   <Button className="w-full bg-gradient-to-r from-[#4CAF50] to-[#00C853] hover:from-[#4CAF50]/90 hover:to-[#00C853]/90 text-white justify-start">
                     <Plus className="w-4 h-4 mr-2" />
                     Apply for Loan
+                  </Button>
+                </Link>
+                <Link href="/cooperative-lending">
+                  <Button variant="outline" className="w-full border-[#424242] hover:border-[#00C853] hover:text-[#00C853] text-white justify-start bg-[#242424]">
+                    <Users className="w-4 h-4 mr-2" />
+                    Cooperative Lending
                   </Button>
                 </Link>
                 <Link href="/marketplace">

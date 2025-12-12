@@ -73,7 +73,7 @@ function RegisterPageContent() {
       title: 'Smallholder Farmer',
       description: 'Apply for microloans, earn carbon credits, and access farming tools',
       icon: Users,
-      benefits: ['Instant loans up to $5,000', 'AI credit scoring', 'Carbon credit rewards'],
+      benefits: ['Instant loans up to $5,000', 'AI credit scoring', 'Carbon credit rewards', 'Cooperative lending options'],
       color: 'agri-green'
     },
     {
@@ -83,14 +83,6 @@ function RegisterPageContent() {
       icon: TrendingUp,
       benefits: ['Competitive returns', 'Blockchain security', 'Impact investing'],
       color: 'sky-teal'
-    },
-    {
-      id: 'coop',
-      title: 'Cooperative Agent',
-      description: 'Help farmers access credit and manage cooperative lending',
-      icon: Shield,
-      benefits: ['Commission-based earnings', 'Community impact', 'Training provided'],
-      color: 'harvest-gold'
     }
   ];
 
@@ -112,7 +104,7 @@ function RegisterPageContent() {
           </div>
 
           {/* Role Selection */}
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 gap-6 max-w-2xl mx-auto">
             {roleOptions.map((option) => {
               const IconComponent = option.icon;
               return (

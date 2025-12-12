@@ -35,6 +35,12 @@ function ProfileSetupForm({ onNext, onPrev, initialData, role }: ProfileSetupFor
     householdSize: initialData?.householdSize || '',
     incomeSource: initialData?.incomeSource || '',
     challenges: initialData?.challenges || '',
+    // Cooperative lending options
+    cooperativeMember: initialData?.cooperativeMember || '',
+    cooperativeName: initialData?.cooperativeName || '',
+    cooperativeRole: initialData?.cooperativeRole || '',
+    cooperativeSize: initialData?.cooperativeSize || '',
+    cooperativeLendingInterest: initialData?.cooperativeLendingInterest || false,
     // Investor fields
     investmentExperience: initialData?.investmentExperience || '',
     riskTolerance: initialData?.riskTolerance || '',
@@ -60,7 +66,8 @@ function ProfileSetupForm({ onNext, onPrev, initialData, role }: ProfileSetupFor
 
   const isFormValid = isFarmer
     ? (formData.farmName && formData.farmSize && formData.farmLocation &&
-       formData.primaryCrop && formData.farmingExperience)
+       formData.primaryCrop && formData.farmingExperience &&
+       formData.cooperativeMember !== '')
     : isInvestor
     ? (formData.investmentExperience && formData.riskTolerance && formData.investmentGoals &&
        formData.initialInvestment && formData.investmentHorizon)
@@ -236,8 +243,92 @@ function ProfileSetupForm({ onNext, onPrev, initialData, role }: ProfileSetupFor
                     rows={3}
                   />
                 </div>
-              </CardContent>
-            </Card>
+            </CardContent>
+          </Card>
+
+          {/* Cooperative Lending Options */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center">
+                <Users className="mr-2 h-5 w-5" />
+                Cooperative Lending Options
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="cooperativeMember">Are you a member of a farming cooperative? *</Label>
+                <Select value={formData.cooperativeMember} onValueChange={(value) => setFormData(prev => ({ ...prev, cooperativeMember: value }))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select option" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="yes">Yes, I am a member</SelectItem>
+                    <SelectItem value="no">No, I am not a member</SelectItem>
+                    <SelectItem value="interested">Not yet, but interested</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {formData.cooperativeMember === 'yes' && (
+                <>
+                  <div>
+                    <Label htmlFor="cooperativeName">Cooperative Name</Label>
+                    <Input
+                      id="cooperativeName"
+                      value={formData.cooperativeName}
+                      onChange={(e) => setFormData(prev => ({ ...prev, cooperativeName: e.target.value }))}
+                      placeholder="Name of your cooperative"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="cooperativeRole">Your Role in Cooperative</Label>
+                      <Select value={formData.cooperativeRole} onValueChange={(value) => setFormData(prev => ({ ...prev, cooperativeRole: value }))}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select role" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="member">Member</SelectItem>
+                          <SelectItem value="leader">Group Leader</SelectItem>
+                          <SelectItem value="secretary">Secretary</SelectItem>
+                          <SelectItem value="treasurer">Treasurer</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="cooperativeSize">Cooperative Size</Label>
+                      <Select value={formData.cooperativeSize} onValueChange={(value) => setFormData(prev => ({ ...prev, cooperativeSize: value }))}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select size" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="small">Small (1-20 members)</SelectItem>
+                          <SelectItem value="medium">Medium (21-50 members)</SelectItem>
+                          <SelectItem value="large">Large (50+ members)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              <div className="flex items-start space-x-3">
+                <input
+                  id="cooperativeLendingInterest"
+                  type="checkbox"
+                  checked={formData.cooperativeLendingInterest}
+                  onChange={(e) => setFormData(prev => ({ ...prev, cooperativeLendingInterest: e.target.checked }))}
+                  className="mt-1"
+                />
+                <label htmlFor="cooperativeLendingInterest" className="text-sm text-muted-foreground">
+                  I'm interested in accessing cooperative lending programs and group loans for better rates and terms
+                </label>
+              </div>
+            </CardContent>
+          </Card>
+
           </>
         ) : isInvestor ? (
           <>
