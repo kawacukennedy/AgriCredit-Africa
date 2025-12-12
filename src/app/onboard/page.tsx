@@ -212,6 +212,11 @@ export default function OnboardPage() {
   const progressPercentage = steps.length > 1 ? ((currentStep - 1) / (steps.length - 1)) * 100 : 0;
   const timeElapsed = Math.floor((Date.now() - startTime) / 60000); // minutes
 
+  const renderCurrentStepIcon = (currentStep: number) => {
+    const StepIcon = steps[currentStep - 1].icon;
+    return <StepIcon className="w-6 h-6 text-white" />;
+  };
+
   return (
     <div className="bg-gradient-to-br from-neutral-50 via-neutral-50 to-neutral-100">
 
@@ -448,7 +453,3 @@ export default function OnboardPage() {
   );
 }
 
-function renderCurrentStepIcon(currentStep: number) {
-  const StepIcon = steps[currentStep - 1].icon;
-  return <StepIcon className="w-6 h-6 text-white" />;
-}
