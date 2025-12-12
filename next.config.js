@@ -14,6 +14,9 @@ const nextConfig = {
     unoptimized: true,
   },
   swcMinify: false,
+  experimental: {
+    serverComponentsExternalPackages: [],
+  },
   i18n: {
     locales: ['en', 'fr', 'ha', 'sw'],
     defaultLocale: 'en',

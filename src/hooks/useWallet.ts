@@ -26,16 +26,21 @@ export function useWallet() {
 
   const connect = async () => {
     if (!window.ethereum) {
-      setState(prev => ({ ...prev, error: 'MetaMask not installed' }));
+      setState(prev => ({ ...prev, error: 'No Ethereum wallet detected. Please install MetaMask or another Web3 wallet.' }));
       return;
     }
 
     setState(prev => ({ ...prev, isConnecting: true, error: null }));
 
     try {
+      // Check if the wallet is unlocked and accessible
       const accounts = await window.ethereum.request({
         method: 'eth_requestAccounts',
       });
+
+      if (!accounts || accounts.length === 0) {
+        throw new Error('No accounts found. Please unlock your wallet.');
+      }
 
       const chainId = await window.ethereum.request({
         method: 'eth_chainId',
@@ -49,10 +54,21 @@ export function useWallet() {
         error: null,
       });
     } catch (error: any) {
+      console.warn('Wallet connection error:', error);
+
+      let errorMessage = 'Failed to connect wallet';
+      if (error.code === 4001) {
+        errorMessage = 'Connection rejected by user';
+      } else if (error.code === -32002) {
+        errorMessage = 'Connection request already pending';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
       setState(prev => ({
         ...prev,
         isConnecting: false,
-        error: error.message || 'Failed to connect wallet',
+        error: errorMessage,
       }));
     }
   };
@@ -84,11 +100,13 @@ export function useWallet() {
   };
 
   useEffect(() => {
-    if (window.ethereum) {
-      // Check if already connected
-      window.ethereum.request({ method: 'eth_accounts' }).then((accounts: string[]) => {
-        if (accounts.length > 0) {
-          window.ethereum.request({ method: 'eth_chainId' }).then((chainId: string) => {
+    const checkConnection = async () => {
+      if (window.ethereum) {
+        try {
+          // Check if already connected
+          const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+          if (accounts && accounts.length > 0) {
+            const chainId = await window.ethereum.request({ method: 'eth_chainId' });
             setState({
               address: accounts[0],
               isConnected: true,
@@ -96,31 +114,45 @@ export function useWallet() {
               chainId: parseInt(chainId, 16),
               error: null,
             });
-          });
+          }
+        } catch (error) {
+          console.warn('Error checking wallet connection:', error);
         }
-      });
 
-      // Listen for account changes
-      window.ethereum.on('accountsChanged', (accounts: string[]) => {
-        if (accounts.length > 0) {
-          setState(prev => ({ ...prev, address: accounts[0] }));
-        } else {
+        // Listen for account changes
+        const handleAccountsChanged = (accounts: string[]) => {
+          if (accounts.length > 0) {
+            setState(prev => ({ ...prev, address: accounts[0], isConnected: true }));
+          } else {
+            disconnect();
+          }
+        };
+
+        // Listen for chain changes
+        const handleChainChanged = (chainId: string) => {
+          setState(prev => ({ ...prev, chainId: parseInt(chainId, 16) }));
+        };
+
+        // Listen for disconnection
+        const handleDisconnect = () => {
           disconnect();
-        }
-      });
+        };
 
-      // Listen for chain changes
-      window.ethereum.on('chainChanged', (chainId: string) => {
-        setState(prev => ({ ...prev, chainId: parseInt(chainId, 16) }));
-      });
-    }
+        window.ethereum.on('accountsChanged', handleAccountsChanged);
+        window.ethereum.on('chainChanged', handleChainChanged);
+        window.ethereum.on('disconnect', handleDisconnect);
 
-    return () => {
-      if (window.ethereum) {
-        window.ethereum.removeAllListeners('accountsChanged');
-        window.ethereum.removeAllListeners('chainChanged');
+        return () => {
+          if (window.ethereum) {
+            window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
+            window.ethereum.removeListener('chainChanged', handleChainChanged);
+            window.ethereum.removeListener('disconnect', handleDisconnect);
+          }
+        };
       }
     };
+
+    checkConnection();
   }, []);
 
   return {

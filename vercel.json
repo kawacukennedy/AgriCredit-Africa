@@ -12,6 +12,10 @@
     {
       "source": "/api/(.*)",
       "destination": "/api/$1"
+    },
+    {
+      "source": "/_next/static/(.*)",
+      "destination": "/_next/static/$1"
     }
   ],
   "headers": [
@@ -43,6 +47,24 @@
     },
     {
       "source": "/manifest.json",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/_next/static/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/(.*\\?_rsc=.*)",
       "headers": [
         {
           "key": "Cache-Control",
