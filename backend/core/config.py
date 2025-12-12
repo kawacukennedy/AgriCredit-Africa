@@ -13,8 +13,17 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 
     # CORS
-    ALLOWED_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:8000"]
-    ALLOWED_HOSTS: List[str] = ["localhost", "127.0.0.1"]
+    ALLOWED_ORIGINS: List[str] = [
+        "http://localhost:3000",
+        "http://localhost:8000",
+        "https://agri-credit-africa.vercel.app",
+        "https://agricredit-backend.vercel.app"
+    ]
+    ALLOWED_HOSTS: List[str] = ["localhost", "127.0.0.1", "agri-credit-africa.vercel.app", "agricredit-backend.vercel.app"]
+
+    # Environment variable override for CORS (for production deployment)
+    CORS_ORIGINS: str = os.getenv("CORS_ORIGINS", "")
+    CORS_HOSTS: str = os.getenv("CORS_HOSTS", "")
 
     # Email
     SMTP_SERVER: str = "smtp.gmail.com"

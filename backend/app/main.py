@@ -134,18 +134,28 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.add_middleware(SlowAPIMiddleware)
 
 # Configure CORS
+# Use environment variables if set, otherwise use default config
+cors_origins = settings.ALLOWED_ORIGINS
+if settings.CORS_ORIGINS:
+    cors_origins = [origin.strip() for origin in settings.CORS_ORIGINS.split(",")]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.ALLOWED_ORIGINS,
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # Add security middleware
+# Use environment variables if set, otherwise use default config
+cors_hosts = settings.ALLOWED_HOSTS
+if settings.CORS_HOSTS:
+    cors_hosts = [host.strip() for host in settings.CORS_HOSTS.split(",")]
+
 app.add_middleware(
     TrustedHostMiddleware,
-    allowed_hosts=settings.ALLOWED_HOSTS if hasattr(settings, 'ALLOWED_HOSTS') else ["*"]
+    allowed_hosts=cors_hosts if cors_hosts else ["*"]
 )
 
 # Add compression middleware
