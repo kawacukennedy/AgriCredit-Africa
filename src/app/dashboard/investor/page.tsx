@@ -115,7 +115,7 @@ function InvestorDashboardContent() {
   ];
 
   return (
-    <div className="bg-paper-white">
+    <div className="bg-[#121212] text-white min-h-screen">
       {/* Skip to main content link for accessibility */}
       <a
         href="#dashboard-content"
@@ -125,7 +125,7 @@ function InvestorDashboardContent() {
       </a>
 
       {/* Hero Section */}
-      <header className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white py-12" role="banner">
+      <header className="bg-gradient-to-r from-[#1976D2] to-[#2196F3] text-white py-12" role="banner">
         <div className="container">
           <div className="flex items-center justify-between">
             <div>
@@ -161,21 +161,21 @@ function InvestorDashboardContent() {
           {portfolioStats.map((stat, index) => {
             const Icon = stat.icon;
             return (
-              <Card key={index} className="shadow-level1 border-0">
+              <Card key={index} className="shadow-level1 border-0 bg-[#1E1E1E] border-[#424242]">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-2xl font-black text-slate-gray mb-1">
+                      <p className="text-2xl font-black text-white mb-1">
                         {stat.value}
                       </p>
-                      <p className="text-sm text-slate-gray/60">{stat.label}</p>
+                      <p className="text-sm text-[#BDBDBD]">{stat.label}</p>
                     </div>
-                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center">
+                    <div className="w-12 h-12 bg-gradient-to-br from-[#1976D2] to-[#2196F3] rounded-xl flex items-center justify-center">
                       <Icon className="w-6 h-6 text-white" />
                     </div>
                   </div>
                   <div className="flex items-center mt-3">
-                    <Badge className="bg-sky-teal/10 text-sky-teal border-sky-teal/20 text-xs">
+                    <Badge className="bg-[#1976D2]/20 text-[#2196F3] border-[#1976D2]/30 text-xs">
                       <TrendingUp className="w-3 h-3 mr-1" />
                       {stat.change}
                     </Badge>
@@ -190,49 +190,49 @@ function InvestorDashboardContent() {
           {/* Portfolio Overview */}
           <div className="lg:col-span-2 space-y-6">
             {/* Portfolio Performance Chart */}
-            <Card className="shadow-level2 border-0">
+            <Card className="shadow-level2 border-0 bg-[#1E1E1E] border-[#424242]">
               <CardHeader>
-                <CardTitle className="flex items-center text-slate-gray">
-                  <BarChart3 className="w-5 h-5 mr-2 text-blue-600" />
+                <CardTitle className="flex items-center text-white">
+                  <BarChart3 className="w-5 h-5 mr-2 text-[#2196F3]" />
                   Portfolio Performance
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-64 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-lg flex items-center justify-center">
+                <div className="h-64 bg-gradient-to-br from-[#1E1E1E] to-[#242424] rounded-lg flex items-center justify-center border border-[#424242]">
                   <div className="text-center">
-                    <PieChart className="w-12 h-12 text-blue-400 mx-auto mb-2" />
-                    <p className="text-blue-600 font-medium">Portfolio Allocation Chart</p>
-                    <p className="text-sm text-slate-gray/60">Interactive chart showing your investments</p>
+                    <PieChart className="w-12 h-12 text-[#2196F3] mx-auto mb-2" />
+                    <p className="text-[#2196F3] font-medium">Portfolio Allocation Chart</p>
+                    <p className="text-sm text-[#BDBDBD]">Interactive chart showing your investments</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
             {/* Recent Investments */}
-            <Card className="shadow-level2 border-0">
+            <Card className="shadow-level2 border-0 bg-[#1E1E1E] border-[#424242]">
               <CardHeader>
-                <CardTitle className="flex items-center text-slate-gray">
-                  <DollarSign className="w-5 h-5 mr-2 text-blue-600" />
+                <CardTitle className="flex items-center text-white">
+                  <DollarSign className="w-5 h-5 mr-2 text-[#2196F3]" />
                   Recent Investments
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   {recentInvestments.map((investment) => (
-                    <div key={investment.id} className="flex items-center justify-between p-4 border border-slate-gray/10 rounded-lg hover:bg-slate-gray/5 transition-colors">
+                    <div key={investment.id} className="flex items-center justify-between p-4 border border-[#424242] rounded-lg hover:bg-[#242424] transition-colors">
                       <div className="flex items-center space-x-4">
-                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                          investment.risk === 'low' ? 'bg-green-100' :
-                          investment.risk === 'medium' ? 'bg-yellow-100' : 'bg-red-100'
-                        }`}>
-                          <Users className={`w-5 h-5 ${
-                            investment.risk === 'low' ? 'text-green-600' :
-                            investment.risk === 'medium' ? 'text-yellow-600' : 'text-red-600'
-                          }`} />
+                         <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                           investment.risk === 'low' ? 'bg-[#00C853]/20' :
+                           investment.risk === 'medium' ? 'bg-[#FFB300]/20' : 'bg-[#D32F2F]/20'
+                         }`}>
+                           <Users className={`w-5 h-5 ${
+                             investment.risk === 'low' ? 'text-[#00C853]' :
+                             investment.risk === 'medium' ? 'text-[#FFB300]' : 'text-[#D32F2F]'
+                           }`} />
                         </div>
                         <div>
-                          <h3 className="font-semibold text-slate-gray">{investment.borrower}</h3>
-                          <p className="text-sm text-slate-gray/60">
+                          <h3 className="font-semibold text-white">{investment.borrower}</h3>
+                          <p className="text-sm text-[#BDBDBD]">
                             ${investment.amount.toLocaleString()} • Due: {investment.dueDate}
                           </p>
                         </div>
@@ -240,15 +240,15 @@ function InvestorDashboardContent() {
                       <div className="text-right">
                         <div className="flex items-center space-x-2">
                           <Badge className={
-                            investment.status === 'active' ? 'bg-sky-teal/10 text-sky-teal' :
-                            investment.status === 'completed' ? 'bg-green-500/10 text-green-600' :
-                            'bg-slate-gray/10 text-slate-gray'
+                            investment.status === 'active' ? 'bg-[#1976D2]/20 text-[#2196F3] border-[#1976D2]/30' :
+                            investment.status === 'completed' ? 'bg-[#00C853]/20 text-[#00C853] border-[#00C853]/30' :
+                            'bg-[#616161]/20 text-[#BDBDBD] border-[#616161]/30'
                           }>
                             {investment.status}
                           </Badge>
                           <div className="text-sm">
-                            <p className="font-semibold text-green-600">+${investment.return.toFixed(2)}</p>
-                            <p className="text-slate-gray/60">returns</p>
+                            <p className="font-semibold text-[#00C853]">+${investment.return.toFixed(2)}</p>
+                            <p className="text-[#BDBDBD]">returns</p>
                           </div>
                         </div>
                       </div>
@@ -262,13 +262,13 @@ function InvestorDashboardContent() {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Quick Actions */}
-            <Card className="shadow-level2 border-0">
-              <CardHeader>
-                <CardTitle className="flex items-center text-slate-gray">
-                  <Target className="w-5 h-5 mr-2 text-blue-600" />
-                  Quick Actions
-                </CardTitle>
-              </CardHeader>
+             <Card className="shadow-level2 border-0 bg-[#1E1E1E] border-[#424242]">
+               <CardHeader>
+                 <CardTitle className="flex items-center text-white">
+                   <Target className="w-5 h-5 mr-2 text-[#2196F3]" />
+                   Quick Actions
+                 </CardTitle>
+               </CardHeader>
               <CardContent className="space-y-3">
                 <Link href="/marketplace">
                   <Button className="w-full btn-primary">
@@ -291,66 +291,66 @@ function InvestorDashboardContent() {
               </CardContent>
             </Card>
 
-            {/* Portfolio Health */}
-            <Card className="shadow-level2 border-0">
-              <CardHeader>
-                <CardTitle className="flex items-center text-slate-gray">
-                  <CheckCircle className="w-5 h-5 mr-2 text-green-600" />
-                  Portfolio Health
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div>
-                    <div className="flex justify-between text-sm mb-2">
-                      <span className="text-slate-gray/70">Overall Health</span>
-                      <span className="font-semibold text-green-600">{portfolio.portfolioHealth}%</span>
-                    </div>
-                    <Progress value={portfolio.portfolioHealth} className="h-2" />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4 text-center">
-                    <div>
-                      <p className="text-2xl font-bold text-green-600">{portfolio.averageReturn}%</p>
-                      <p className="text-xs text-slate-gray/60">Avg Return</p>
-                    </div>
-                    <div>
-                      <p className="text-2xl font-bold text-blue-600">{portfolio.totalBorrowers}</p>
-                      <p className="text-xs text-slate-gray/60">Borrowers</p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+             {/* Portfolio Health */}
+             <Card className="shadow-level2 border-0 bg-[#1E1E1E] border-[#424242]">
+               <CardHeader>
+                 <CardTitle className="flex items-center text-white">
+                   <CheckCircle className="w-5 h-5 mr-2 text-[#00C853]" />
+                   Portfolio Health
+                 </CardTitle>
+               </CardHeader>
+               <CardContent>
+                 <div className="space-y-4">
+                   <div>
+                     <div className="flex justify-between text-sm mb-2">
+                       <span className="text-[#BDBDBD]">Overall Health</span>
+                       <span className="font-semibold text-[#00C853]">{portfolio.portfolioHealth}%</span>
+                     </div>
+                     <Progress value={portfolio.portfolioHealth} className="h-2 bg-[#424242]" />
+                   </div>
+                   <div className="grid grid-cols-2 gap-4 text-center">
+                     <div>
+                       <p className="text-2xl font-bold text-[#00C853]">{portfolio.averageReturn}%</p>
+                       <p className="text-xs text-[#BDBDBD]">Avg Return</p>
+                     </div>
+                     <div>
+                       <p className="text-2xl font-bold text-[#2196F3]">{portfolio.totalBorrowers}</p>
+                       <p className="text-xs text-[#BDBDBD]">Borrowers</p>
+                     </div>
+                   </div>
+                 </div>
+               </CardContent>
+             </Card>
 
-            {/* Recent Alerts */}
-            <Card className="shadow-level2 border-0">
-              <CardHeader>
-                <CardTitle className="flex items-center text-slate-gray">
-                  <Bell className="w-5 h-5 mr-2 text-blue-600" />
-                  Recent Alerts
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {alerts.map((alert) => {
-                    const AlertIcon = alert.icon;
-                    return (
-                      <div key={alert.id} className="flex items-start space-x-3 p-3 bg-slate-gray/5 rounded-lg">
-                        <AlertIcon className={`w-5 h-5 mt-0.5 ${
-                          alert.type === 'success' ? 'text-green-600' :
-                          alert.type === 'warning' ? 'text-yellow-600' : 'text-blue-600'
-                        }`} />
-                        <div className="flex-1">
-                          <h4 className="font-medium text-slate-gray text-sm">{alert.title}</h4>
-                          <p className="text-xs text-slate-gray/60">{alert.message}</p>
-                          <p className="text-xs text-slate-gray/50 mt-1">{alert.time}</p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
+             {/* Recent Alerts */}
+             <Card className="shadow-level2 border-0 bg-[#1E1E1E] border-[#424242]">
+               <CardHeader>
+                 <CardTitle className="flex items-center text-white">
+                   <Bell className="w-5 h-5 mr-2 text-[#2196F3]" />
+                   Recent Alerts
+                 </CardTitle>
+               </CardHeader>
+               <CardContent>
+                 <div className="space-y-3">
+                   {alerts.map((alert) => {
+                     const AlertIcon = alert.icon;
+                     return (
+                       <div key={alert.id} className="flex items-start space-x-3 p-3 bg-[#242424] rounded-lg">
+                         <AlertIcon className={`w-5 h-5 mt-0.5 ${
+                           alert.type === 'success' ? 'text-[#00C853]' :
+                           alert.type === 'warning' ? 'text-[#FFB300]' : 'text-[#2196F3]'
+                         }`} />
+                         <div className="flex-1">
+                           <h4 className="font-medium text-white text-sm">{alert.title}</h4>
+                           <p className="text-xs text-[#BDBDBD]">{alert.message}</p>
+                           <p className="text-xs text-[#616161] mt-1">{alert.time}</p>
+                         </div>
+                       </div>
+                     );
+                   })}
+                 </div>
+               </CardContent>
+             </Card>
           </div>
         </div>
       </div>

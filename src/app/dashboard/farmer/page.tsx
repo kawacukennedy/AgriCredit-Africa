@@ -1,7 +1,6 @@
 'use client';
 
-import { Suspense, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
 import Link from 'next/link';
 import { AuthGuard } from '@/components/auth/AuthGuard';
@@ -11,37 +10,22 @@ import { CarbonWidget } from '@/components/dashboard/carbon-widget';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Bell, Settings, CheckCircle, AlertTriangle, Leaf, DollarSign, BarChart3, TrendingUp, Plus, User } from 'lucide-react';
+import { Bell, Settings, CheckCircle, AlertTriangle, Leaf, DollarSign, BarChart3, TrendingUp, Plus, User, Tractor, MapPin } from 'lucide-react';
 import { useGetCurrentUserQuery, useGetLoansQuery, useGetUserCarbonCreditsQuery, useGetNotificationsQuery } from '@/store/apiSlice';
 import dynamic from 'next/dynamic';
 
 const FarmMap = dynamic(() => import('@/components/dashboard/farm-map'), {
   ssr: false,
-  loading: () => <div className="h-64 bg-gray-100 rounded-lg animate-pulse" />
+  loading: () => <div className="h-64 bg-[#1E1E1E] rounded-lg animate-pulse" />
 });
 
-function DashboardContent() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const role = searchParams.get('role') || 'farmer';
+export default function FarmerDashboard() {
+  const { t } = useTranslation();
 
-  useEffect(() => {
-    // Redirect to appropriate dashboard based on role
-    if (role === 'investor') {
-      router.replace('/dashboard/investor');
-    } else if (role === 'farmer') {
-      router.replace('/dashboard/farmer');
-    }
-  }, [role, router]);
-
-  return <FarmerDashboardContent />;
-}
-
-export default function Dashboard() {
   return (
     <AuthGuard>
       <Suspense fallback={<div>Loading...</div>}>
-        <DashboardContent />
+        <FarmerDashboardContent />
       </Suspense>
     </AuthGuard>
   );
@@ -79,7 +63,7 @@ function FarmerDashboardContent() {
       id: 1,
       type: 'success',
       title: 'Welcome to AgriCredit!',
-      message: 'Your account has been successfully set up',
+      message: 'Your farming account has been successfully set up',
       time: 'Just now',
       icon: CheckCircle
     }
@@ -93,7 +77,7 @@ function FarmerDashboardContent() {
   ];
 
   return (
-    <div className="bg-paper-white">
+    <div className="bg-[#121212] text-white min-h-screen">
       {/* Skip to main content link for accessibility */}
       <a
         href="#dashboard-content"
@@ -103,7 +87,7 @@ function FarmerDashboardContent() {
       </a>
 
       {/* Hero Section */}
-      <header className="bg-gradient-to-r from-agri-green to-sky-teal text-white py-12" role="banner">
+      <header className="bg-gradient-to-r from-[#4CAF50] to-[#00C853] text-white py-12" role="banner">
         <div className="container">
           <div className="flex items-center justify-between">
             <div>
@@ -132,22 +116,22 @@ function FarmerDashboardContent() {
         {/* Quick Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {quickStats.map((stat, index) => (
-            <Card key={index} className="shadow-level1 border-0">
+            <Card key={index} className="shadow-level1 border-0 bg-[#1E1E1E] border-[#424242]">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-2xl font-black text-slate-gray mb-1">{stat.value}</p>
-                    <p className="text-sm text-slate-gray/60">{stat.label}</p>
+                    <p className="text-2xl font-black text-white mb-1">{stat.value}</p>
+                    <p className="text-sm text-[#BDBDBD]">{stat.label}</p>
                   </div>
-                  <div className="w-12 h-12 bg-agri-green/10 rounded-xl flex items-center justify-center">
-                    <stat.icon className="w-6 h-6 text-agri-green" />
+                  <div className="w-12 h-12 bg-gradient-to-br from-[#4CAF50] to-[#00C853] rounded-xl flex items-center justify-center">
+                    <stat.icon className="w-6 h-6 text-white" />
                   </div>
                 </div>
                 <div className="flex items-center mt-3">
-                  <Badge className="bg-sky-teal/10 text-sky-teal border-sky-teal/20 text-xs">
+                  <Badge className="bg-[#00C853]/20 text-[#00C853] border-[#00C853]/30 text-xs">
                     {stat.change}
                   </Badge>
-                  <span className="text-xs text-slate-gray/60 ml-2">vs last month</span>
+                  <span className="text-xs text-[#BDBDBD] ml-2">vs last month</span>
                 </div>
               </CardContent>
             </Card>
@@ -156,10 +140,10 @@ function FarmerDashboardContent() {
 
         {/* Alerts Section */}
         {alerts.length > 0 && (
-          <Card className="mb-8 shadow-level1 border-0">
+          <Card className="mb-8 shadow-level1 border-0 bg-[#1E1E1E] border-[#424242]">
             <CardHeader className="pb-4">
-              <CardTitle className="flex items-center text-slate-gray">
-                <Bell className="w-5 h-5 mr-2 text-agri-green" />
+              <CardTitle className="flex items-center text-white">
+                <Bell className="w-5 h-5 mr-2 text-[#00C853]" />
                 Recent Alerts
               </CardTitle>
             </CardHeader>
@@ -168,22 +152,22 @@ function FarmerDashboardContent() {
                 {alerts.map((alert) => {
                   const AlertIcon = alert.icon;
                   return (
-                    <div key={alert.id} className="flex items-start space-x-4 p-4 bg-slate-gray/5 rounded-lg">
+                    <div key={alert.id} className="flex items-start space-x-4 p-4 bg-[#242424] rounded-lg">
                       <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                        alert.type === 'success' ? 'bg-sky-teal/10' :
-                        alert.type === 'warning' ? 'bg-harvest-gold/10' :
-                        'bg-blue-50'
+                        alert.type === 'success' ? 'bg-[#00C853]/20' :
+                        alert.type === 'warning' ? 'bg-[#FFB300]/20' :
+                        'bg-[#2196F3]/20'
                       }`}>
                         <AlertIcon className={`w-5 h-5 ${
-                          alert.type === 'success' ? 'text-sky-teal' :
-                          alert.type === 'warning' ? 'text-harvest-gold' :
-                          'text-blue-600'
+                          alert.type === 'success' ? 'text-[#00C853]' :
+                          alert.type === 'warning' ? 'text-[#FFB300]' :
+                          'text-[#2196F3]'
                         }`} />
                       </div>
                       <div className="flex-1">
-                        <h4 className="font-semibold text-slate-gray mb-1">{alert.title}</h4>
-                        <p className="text-sm text-slate-gray/70 mb-2">{alert.message}</p>
-                        <p className="text-xs text-slate-gray/50">{alert.time}</p>
+                        <h4 className="font-semibold text-white mb-1">{alert.title}</h4>
+                        <p className="text-sm text-[#BDBDBD] mb-2">{alert.message}</p>
+                        <p className="text-xs text-[#616161]">{alert.time}</p>
                       </div>
                     </div>
                   );
@@ -207,31 +191,31 @@ function FarmerDashboardContent() {
             <CarbonWidget />
 
             {/* Quick Actions */}
-            <Card className="shadow-level2 border-0">
+            <Card className="shadow-level2 border-0 bg-[#1E1E1E] border-[#424242]">
               <CardHeader className="pb-4">
-                <CardTitle className="text-slate-gray">Quick Actions</CardTitle>
+                <CardTitle className="text-white">Quick Actions</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <Link href="/apply">
-                  <Button className="w-full btn-primary justify-start">
+                  <Button className="w-full bg-gradient-to-r from-[#4CAF50] to-[#00C853] hover:from-[#4CAF50]/90 hover:to-[#00C853]/90 text-white justify-start">
                     <Plus className="w-4 h-4 mr-2" />
                     Apply for Loan
                   </Button>
                 </Link>
                 <Link href="/marketplace">
-                  <Button variant="outline" className="w-full border-slate-gray/20 hover:border-harvest-gold hover:text-harvest-gold justify-start">
+                  <Button variant="outline" className="w-full border-[#424242] hover:border-[#00C853] hover:text-[#00C853] text-white justify-start bg-[#242424]">
                     <BarChart3 className="w-4 h-4 mr-2" />
                     Browse Marketplace
                   </Button>
                 </Link>
                 <Link href="/carbon">
-                  <Button variant="outline" className="w-full border-slate-gray/20 hover:border-agri-green hover:text-agri-green justify-start">
+                  <Button variant="outline" className="w-full border-[#424242] hover:border-[#4CAF50] hover:text-[#4CAF50] text-white justify-start bg-[#242424]">
                     <Leaf className="w-4 h-4 mr-2" />
                     Trade Carbon Credits
                   </Button>
                 </Link>
                 <Link href="/profile">
-                  <Button variant="outline" className="w-full border-slate-gray/20 hover:border-slate-gray hover:text-slate-gray justify-start">
+                  <Button variant="outline" className="w-full border-[#424242] hover:border-[#BDBDBD] hover:text-[#BDBDBD] text-white justify-start bg-[#242424]">
                     <User className="w-4 h-4 mr-2" />
                     Update Profile
                   </Button>

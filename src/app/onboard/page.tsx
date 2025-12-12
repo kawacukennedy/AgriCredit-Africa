@@ -30,7 +30,8 @@ const OnboardingComplete = dynamic(() => import('@/components/onboard/onboarding
 import { useRouter } from 'next/navigation';
 import { CheckCircle, Shield, User, FileText, Trophy, ArrowRight, ArrowLeft, Sparkles, Clock } from 'lucide-react';
 
-const steps = [
+// Common steps for all roles
+const commonSteps = [
   {
     id: 1,
     title: 'Role Selection',
@@ -51,21 +52,59 @@ const steps = [
     description: 'Verify your identity with AI',
     icon: User,
     color: 'from-amber-600 to-orange-600'
-  },
+  }
+];
+
+// Farmer-specific steps
+const farmerSteps = [
+  ...commonSteps,
   {
     id: 4,
-    title: 'Profile Setup',
-    description: 'Complete your profile',
+    title: 'Farm Setup',
+    description: 'Configure your farming operations',
     icon: FileText,
     color: 'from-purple-600 to-pink-600'
   },
   {
     id: 5,
-    title: 'Complete',
-    description: 'Welcome to AgriCredit Africa',
+    title: 'Loan Application',
+    description: 'Set up your loan preferences',
     icon: Trophy,
     color: 'from-indigo-600 to-purple-600'
   },
+  {
+    id: 6,
+    title: 'Complete',
+    description: 'Welcome to AgriCredit Africa',
+    icon: Trophy,
+    color: 'from-emerald-600 to-teal-600'
+  }
+];
+
+// Investor-specific steps
+const investorSteps = [
+  ...commonSteps,
+  {
+    id: 4,
+    title: 'Investment Profile',
+    description: 'Set up your investment preferences',
+    icon: FileText,
+    color: 'from-purple-600 to-pink-600'
+  },
+  {
+    id: 5,
+    title: 'Portfolio Setup',
+    description: 'Configure your investment portfolio',
+    icon: Trophy,
+    color: 'from-indigo-600 to-purple-600'
+  },
+  {
+    id: 6,
+    title: 'Complete',
+    description: 'Welcome to AgriCredit Africa',
+    icon: Trophy,
+    color: 'from-emerald-600 to-teal-600'
+  }
 ];
 
 export default function OnboardPage() {
@@ -75,6 +114,16 @@ export default function OnboardPage() {
   const [startTime] = useState(Date.now());
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+
+  // Get the appropriate steps based on selected role
+  const getSteps = () => {
+    const role = formData.role;
+    if (role === 'investor') return investorSteps;
+    if (role === 'farmer') return farmerSteps;
+    return commonSteps; // Default to common steps until role is selected
+  };
+
+  const steps = getSteps();
 
   // Load saved progress from localStorage
   useEffect(() => {
@@ -129,7 +178,7 @@ export default function OnboardPage() {
 
     // Redirect based on role
     const userRole = formData.role || 'farmer';
-    router.push(`/dashboard?onboarding=complete&role=${userRole}`);
+    router.push(`/dashboard/${userRole}?onboarding=complete`);
   };
 
   const getEstimatedTimeRemaining = () => {
@@ -140,6 +189,8 @@ export default function OnboardPage() {
   };
 
   const renderStepContent = () => {
+    const role = formData.role;
+
     switch (currentStep) {
       case 1:
         return <RoleSelectionForm onNext={nextStep} initialData={formData} />;
@@ -148,15 +199,17 @@ export default function OnboardPage() {
       case 3:
         return <AIKYCForm onNext={nextStep} onPrev={prevStep} initialData={formData} />;
       case 4:
-        return <ProfileSetupForm onNext={nextStep} onPrev={prevStep} initialData={formData} />;
+        return <ProfileSetupForm onNext={nextStep} onPrev={prevStep} initialData={formData} role={role} />;
       case 5:
+        return <ProfileSetupForm onNext={nextStep} onPrev={prevStep} initialData={formData} role={role} />;
+      case 6:
         return <OnboardingComplete onComplete={handleComplete} profileData={formData} />;
       default:
         return null;
     }
   };
 
-  const progressPercentage = ((currentStep - 1) / (steps.length - 1)) * 100;
+  const progressPercentage = steps.length > 1 ? ((currentStep - 1) / (steps.length - 1)) * 100 : 0;
   const timeElapsed = Math.floor((Date.now() - startTime) / 60000); // minutes
 
   return (
@@ -167,16 +220,29 @@ export default function OnboardPage() {
         <div className="absolute inset-0 bg-gradient-to-r from-agri-green/20 to-sky-teal/20 animate-pulse"></div>
         <div className="container text-center relative z-10">
           <div className="flex items-center justify-center mb-4">
-            <Badge variant="secondary" className="bg-harvest-gold/20 text-harvest-gold border-harvest-gold/30 animate-bounce">
+            <Badge variant="secondary" className={`animate-bounce ${
+              formData.role === 'investor'
+                ? 'bg-blue-500/20 text-blue-300 border-blue-500/30'
+                : formData.role === 'farmer'
+                ? 'bg-harvest-gold/20 text-harvest-gold border-harvest-gold/30'
+                : 'bg-harvest-gold/20 text-harvest-gold border-harvest-gold/30'
+            }`}>
               <Sparkles className="w-4 h-4 mr-2" />
-              Farmer Onboarding
+              {formData.role === 'investor' ? 'Investor Onboarding' :
+               formData.role === 'farmer' ? 'Farmer Onboarding' :
+               'AgriCredit Onboarding'}
             </Badge>
           </div>
           <h1 className="text-4xl md:text-5xl font-black mb-4 animate-fadeIn">
             Join AgriCredit Africa
           </h1>
           <p className="text-xl max-w-2xl mx-auto opacity-90 animate-fadeIn animation-delay-200">
-            Complete your registration to access AI-powered microloans, carbon credits, and our decentralized farming platform
+            {formData.role === 'investor'
+              ? 'Complete your registration to access AI-powered investment opportunities, carbon credits, and our decentralized finance platform'
+              : formData.role === 'farmer'
+              ? 'Complete your registration to access AI-powered microloans, carbon credits, and our decentralized farming platform'
+              : 'Complete your registration to access AI-powered financial services and our decentralized platform'
+            }
           </p>
 
           {/* Quick Stats */}
