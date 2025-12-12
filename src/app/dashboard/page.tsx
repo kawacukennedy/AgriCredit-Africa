@@ -20,7 +20,7 @@ const FarmMap = dynamic(() => import('@/components/dashboard/farm-map'), {
   loading: () => <div className="h-64 bg-gray-100 rounded-lg animate-pulse" />
 });
 
-export default function Dashboard() {
+function DashboardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const role = searchParams.get('role') || 'farmer';
@@ -34,9 +34,15 @@ export default function Dashboard() {
     }
   }, [role, router]);
 
+  return <FarmerDashboardContent />;
+}
+
+export default function Dashboard() {
   return (
     <AuthGuard>
-      <FarmerDashboardContent />
+      <Suspense fallback={<div>Loading...</div>}>
+        <DashboardContent />
+      </Suspense>
     </AuthGuard>
   );
 }

@@ -402,6 +402,11 @@ export const apiSlice = createApi({
       }),
     }),
 
+    // Investor endpoints
+    getInvestorPortfolio: builder.query({
+      query: () => '/investor/portfolio',
+    }),
+
     // Oracle endpoints
     getOraclePrice: builder.query({
       query: (asset) => `/oracle/prices/${asset}`,
@@ -458,6 +463,7 @@ export const {
   useClaimRewardsMutation,
   useGetNotificationsQuery,
   useMarkNotificationReadMutation,
+  useGetInvestorPortfolioQuery,
   useGetOraclePriceQuery,
   useGetOracleWeatherQuery,
 } = apiSlice;
