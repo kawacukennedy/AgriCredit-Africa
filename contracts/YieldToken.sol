@@ -30,10 +30,10 @@ contract YieldToken is Initializable, ERC20Upgradeable, OwnableUpgradeable, Reen
     }
 
     // Enhanced yield farming parameters
-    uint256 public baseYieldRate = 500; // 5% APY in basis points
+    uint256 public baseYieldRate; // 5% APY in basis points
     uint256 public constant SECONDS_PER_YEAR = 365 * 24 * 60 * 60;
-    uint256 public autoCompoundBonus = 200; // 2% bonus for auto-compounding
-    uint256 public lockBonusMultiplier = 150; // 1.5x for locked positions
+    uint256 public autoCompoundBonus; // 2% bonus for auto-compounding
+    uint256 public lockBonusMultiplier; // 1.5x for locked positions
 
     // Multi-token farming
     mapping(address => MultiTokenFarm) public multiTokenFarms;
@@ -61,6 +61,10 @@ contract YieldToken is Initializable, ERC20Upgradeable, OwnableUpgradeable, Reen
         __UUPSUpgradeable_init();
 
         underlyingToken = _underlyingToken;
+
+        baseYieldRate = 500;
+        autoCompoundBonus = 200;
+        lockBonusMultiplier = 150;
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}

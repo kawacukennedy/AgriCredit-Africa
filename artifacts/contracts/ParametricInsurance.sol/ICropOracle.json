@@ -1,0 +1,45 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "ICropOracle",
+  "sourceName": "contracts/ParametricInsurance.sol",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "location",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "cropType",
+          "type": "string"
+        }
+      ],
+      "name": "getCropHealth",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "ndvi",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "healthScore",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "yieldEstimate",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}

@@ -1,0 +1,45 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "IWeatherOracle",
+  "sourceName": "contracts/ParametricInsurance.sol",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "location",
+          "type": "string"
+        }
+      ],
+      "name": "getWeatherData",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "temperature",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "rainfall",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "windSpeed",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "humidity",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}

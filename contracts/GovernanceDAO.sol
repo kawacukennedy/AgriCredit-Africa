@@ -79,15 +79,15 @@ contract GovernanceDAO is Initializable, OwnableUpgradeable, ReentrancyGuardUpgr
     uint256 public proposalCount;
 
     // Governance settings
-    uint256 public votingPeriod = 7 days;
-    uint256 public votingDelay = 1 days;
-    uint256 public proposalThreshold = 1000 * 10**18; // 1000 tokens to propose
-    uint256 public quorumThreshold = 10000 * 10**18; // 10k tokens for quorum
-    uint256 public timelockPeriod = 2 days; // Time lock for execution
+    uint256 public votingPeriod;
+    uint256 public votingDelay;
+    uint256 public proposalThreshold; // 1000 tokens to propose
+    uint256 public quorumThreshold; // 10k tokens for quorum
+    uint256 public timelockPeriod; // Time lock for execution
 
     // Emergency governance
-    uint256 public emergencyThreshold = 50000 * 10**18; // 50k tokens for emergency
-    uint256 public emergencyVotingPeriod = 1 days;
+    uint256 public emergencyThreshold; // 50k tokens for emergency
+    uint256 public emergencyVotingPeriod;
     mapping(address => bool) public emergencyCommittee;
 
     // Delegation
@@ -146,8 +146,8 @@ contract GovernanceDAO is Initializable, OwnableUpgradeable, ReentrancyGuardUpgr
 
     mapping(address => TokenLock[]) public tokenLocks;
     mapping(address => uint256) public totalLockedTokens;
-    uint256 public maxLockDuration = 365 days; // Maximum lock period
-    uint256 public timeWeightMultiplier = 2; // Multiplier for time-weighted voting
+    uint256 public maxLockDuration; // Maximum lock period
+    uint256 public timeWeightMultiplier; // Multiplier for time-weighted voting
 
     // Quadratic Voting
     struct QuadraticVote {
@@ -159,8 +159,8 @@ contract GovernanceDAO is Initializable, OwnableUpgradeable, ReentrancyGuardUpgr
 
     mapping(address => QuadraticVote[]) public quadraticVotes;
     mapping(uint256 => uint256) public quadraticVotingCredits; // proposalId => total credits used
-    uint256 public quadraticCreditPrice = 1e16; // 0.01 ETH per credit
-    uint256 public maxQuadraticCredits = 100; // Max credits per voter
+    uint256 public quadraticCreditPrice; // 0.01 ETH per credit
+    uint256 public maxQuadraticCredits; // Max credits per voter
 
     // Proposal Templates
     struct ProposalTemplate {
@@ -186,7 +186,7 @@ contract GovernanceDAO is Initializable, OwnableUpgradeable, ReentrancyGuardUpgr
 
     mapping(uint256 => MultiSigExecution) public multiSigExecutions;
     mapping(address => bool) public multiSigSigners;
-    uint256 public requiredMultiSigSignatures = 3;
+    uint256 public requiredMultiSigSignatures;
 
     // Treasury
     address public treasury;
@@ -194,7 +194,7 @@ contract GovernanceDAO is Initializable, OwnableUpgradeable, ReentrancyGuardUpgr
 
     // Security
     mapping(address => uint256) public lastProposalTime;
-    uint256 public proposalCooldown = 1 hours;
+    uint256 public proposalCooldown;
 
     event ProposalCreated(
         uint256 indexed proposalId,
@@ -232,6 +232,31 @@ contract GovernanceDAO is Initializable, OwnableUpgradeable, ReentrancyGuardUpgr
         governanceToken = IERC20(_governanceToken);
         treasury = _treasury;
         zkVerifier = _zkVerifier;
+
+        // Initialize governance settings
+        votingPeriod = 7 days;
+        votingDelay = 1 days;
+        proposalThreshold = 1000 * 10**18; // 1000 tokens to propose
+        quorumThreshold = 10000 * 10**18; // 10k tokens for quorum
+        timelockPeriod = 2 days; // Time lock for execution
+
+        // Initialize emergency governance
+        emergencyThreshold = 50000 * 10**18; // 50k tokens for emergency
+        emergencyVotingPeriod = 1 days;
+
+        // Initialize delegation settings
+        maxLockDuration = 365 days;
+        timeWeightMultiplier = 2; // Multiplier for time-weighted voting
+
+        // Initialize quadratic voting
+        quadraticCreditPrice = 1e16; // 0.01 ETH per credit
+        maxQuadraticCredits = 100; // Max credits per voter
+
+        // Initialize multi-sig
+        requiredMultiSigSignatures = 3;
+
+        // Initialize proposal settings
+        proposalCooldown = 1 days;
 
         // Initialize emergency committee
         emergencyCommittee[msg.sender] = true;

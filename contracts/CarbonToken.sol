@@ -97,18 +97,18 @@ contract CarbonToken is Initializable, ERC20Upgradeable, ERC20BurnableUpgradeabl
     // Carbon credits tracking
     mapping(uint256 => CarbonCredit) public carbonCredits;
     mapping(address => uint256[]) public farmerCredits;
-    uint256 public nextCreditId = 1;
+    uint256 public nextCreditId;
 
     // Climate AI data
     mapping(uint256 => ClimateData) public climateData;
-    uint256 public nextDataId = 1;
+    uint256 public nextDataId;
 
     // Staking and rewards
     mapping(address => uint256) public stakedBalances;
     mapping(address => uint256) public stakingRewards;
     mapping(address => uint256) public carbonOffsets; // Track carbon offsets per user
     uint256 public totalStaked;
-    uint256 public rewardRate = 500; // 5% APY in basis points
+    uint256 public rewardRate; // 5% APY in basis points
     uint256 public lastRewardUpdate;
 
     // Soulbound carbon credits
@@ -137,20 +137,20 @@ contract CarbonToken is Initializable, ERC20Upgradeable, ERC20BurnableUpgradeabl
     }
 
     mapping(uint256 => BridgeRequest) public bridgeRequests;
-    uint256 public nextBridgeId = 1;
+    uint256 public nextBridgeId;
 
     // Bridge validator system
     mapping(address => bool) public bridgeValidators;
     address[] public activeValidators;
     mapping(address => uint256) public validatorStakes;
-    uint256 public minValidatorStake = 10000 * 10**18; // 10k tokens
-    uint256 public requiredValidatorApprovals = 3; // Minimum approvals needed
-    uint256 public validatorTimeout = 7 days; // Validators must approve within timeout
+    uint256 public minValidatorStake; // 10k tokens
+    uint256 public requiredValidatorApprovals; // Minimum approvals needed
+    uint256 public validatorTimeout; // Validators must approve within timeout
 
     // Bridge security
     bool public bridgePaused;
     mapping(uint256 => uint256) public bridgeRequestTimeouts;
-    uint256 public maxBridgeAmount = 100000 * 10**18; // Max 100k tokens per bridge
+    uint256 public maxBridgeAmount; // Max 100k tokens per bridge
 
     // Oracle for carbon pricing
     address public carbonPriceOracle;
@@ -190,6 +190,15 @@ contract CarbonToken is Initializable, ERC20Upgradeable, ERC20BurnableUpgradeabl
 
         lastRewardUpdate = block.timestamp;
         soulboundCredit = SoulboundCarbonCredit(_soulboundCredit);
+
+        nextCreditId = 1;
+        nextDataId = 1;
+        rewardRate = 500;
+        nextBridgeId = 1;
+        minValidatorStake = 10000 * 10**18;
+        requiredValidatorApprovals = 3;
+        validatorTimeout = 7 days;
+        maxBridgeAmount = 100000 * 10**18;
 
         // Initialize reward params
         rewardParams = RewardParams({

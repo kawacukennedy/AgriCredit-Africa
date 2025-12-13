@@ -152,17 +152,17 @@ contract LoanManager is Initializable, OwnableUpgradeable, ReentrancyGuardUpgrad
 
     // Flash loans
     mapping(address => bool) public authorizedFlashBorrowers;
-    uint256 public flashLoanFee = 9; // 0.09% in basis points
+    uint256 public flashLoanFee; // 0.09% in basis points
 
     // Prediction markets
     mapping(uint256 => PredictionMarket) public predictionMarkets;
-    uint256 public nextMarketId = 1;
+    uint256 public nextMarketId;
 
     // Yield farming
     mapping(address => YieldFarmPosition[]) public userYieldPositions;
     mapping(address => uint256) public totalStakedPerToken;
 
-    uint256 public nextLoanId = 1;
+    uint256 public nextLoanId;
     uint256 public totalLoansFunded;
     uint256 public totalRepaid;
     uint256 public totalInsuredAmount;

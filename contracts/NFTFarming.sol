@@ -150,8 +150,8 @@ contract NFTFarming is Initializable, ERC721Upgradeable, OwnableUpgradeable, Ree
     ICrossChainBridge public crossChainBridge;
 
     // Enhanced reward system
-    uint256 public stakingRewardRate = 500; // 5% APY
-    uint256 public fractionalRewardBonus = 200; // 2% bonus for fractional holders
+    uint256 public stakingRewardRate; // 5% APY
+    uint256 public fractionalRewardBonus; // 2% bonus for fractional holders
 
     // AI Oracle for yield predictions
     address public yieldOracle;
@@ -161,16 +161,16 @@ contract NFTFarming is Initializable, ERC721Upgradeable, OwnableUpgradeable, Ree
     mapping(address => uint256[]) public stakerNFTs;
     mapping(address => uint256) public stakingRewards;
 
-    uint256 public baseStakingRewardRate = 500; // 5% APY in basis points
-    uint256 public qualityBonusMultiplier = 200; // 2x bonus for quality score > 80
-    uint256 public longTermBonusRate = 100; // Additional 1% per month staked
-    uint256 public maxLongTermBonus = 500; // Max 5% additional bonus
+    uint256 public baseStakingRewardRate; // 5% APY in basis points
+    uint256 public qualityBonusMultiplier; // 2x bonus for quality score > 80
+    uint256 public longTermBonusRate; // Additional 1% per month staked
+    uint256 public maxLongTermBonus; // Max 5% additional bonus
     uint256 public lastRewardUpdate;
 
     // Bridge validator security
     mapping(address => bool) public bridgeValidators;
     mapping(uint256 => address[]) public nftValidators; // NFT ID => approved validators
-    uint256 public minValidatorApprovals = 2; // Minimum validator approvals for cross-chain transfers
+    uint256 public minValidatorApprovals; // Minimum validator approvals for cross-chain transfers
 
     IdentityRegistry public identityRegistry;
     IERC20 public rewardToken;
@@ -183,21 +183,23 @@ contract NFTFarming is Initializable, ERC721Upgradeable, OwnableUpgradeable, Ree
     event QualityScoreUpdated(uint256 indexed tokenId, uint256 score);
     event BatchAssociated(uint256 indexed tokenId, uint256 batchId);
 
-    function initialize(
-        address _identityRegistry,
-        address _rewardToken,
-        address _yieldOracle,
-        address _crossChainBridge
-    ) public initializer {
+    function initialize() public initializer {
         __ERC721_init("AgriCredit Farm NFT", "FARM");
         __Ownable_init(msg.sender);
         __ReentrancyGuard_init();
         __UUPSUpgradeable_init();
 
-        identityRegistry = IdentityRegistry(_identityRegistry);
-        rewardToken = IERC20(_rewardToken);
-        yieldOracle = _yieldOracle;
-        crossChainBridge = ICrossChainBridge(_crossChainBridge);
+        // Initialize reward system
+        stakingRewardRate = 500; // 5% APY
+        fractionalRewardBonus = 200; // 2% bonus for fractional holders
+
+        baseStakingRewardRate = 500; // 5% APY in basis points
+        qualityBonusMultiplier = 200; // 2x bonus for quality score > 80
+        longTermBonusRate = 100; // Additional 1% per month staked
+        maxLongTermBonus = 500; // Max 5% additional bonus
+
+        minValidatorApprovals = 2; // Minimum validator approvals for cross-chain transfers
+
         lastRewardUpdate = block.timestamp;
     }
 

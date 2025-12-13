@@ -37,7 +37,7 @@ async function main() {
     console.log("✅ AgriCredit deployed to:", agriCreditAddress);
     deploymentConfig.contracts.AgriCredit = {
       address: agriCreditAddress,
-      deploymentTx: agriCredit.deployTransaction.hash,
+      deploymentTx: agriCredit.deploymentTransaction().hash,
       verified: false
     };
 
@@ -51,7 +51,7 @@ async function main() {
     console.log("✅ IdentityRegistry deployed to:", identityRegistryAddress);
     deploymentConfig.contracts.IdentityRegistry = {
       address: identityRegistryAddress,
-      deploymentTx: identityRegistry.deployTransaction.hash,
+      deploymentTx: identityRegistry.deploymentTransaction().hash,
       verified: false
     };
 
@@ -65,7 +65,7 @@ async function main() {
     console.log("✅ CarbonToken deployed to:", carbonTokenAddress);
     deploymentConfig.contracts.CarbonToken = {
       address: carbonTokenAddress,
-      deploymentTx: carbonToken.deployTransaction.hash,
+      deploymentTx: carbonToken.deploymentTransaction().hash,
       verified: false
     };
 
@@ -79,35 +79,35 @@ async function main() {
     console.log("✅ YieldToken deployed to:", yieldTokenAddress);
     deploymentConfig.contracts.YieldToken = {
       address: yieldTokenAddress,
-      deploymentTx: yieldToken.deployTransaction.hash,
+      deploymentTx: yieldToken.deploymentTransaction().hash,
       verified: false
     };
 
     // 5. Deploy LoanManager
     console.log("\n5️⃣  Deploying LoanManager...");
     const LoanManager = await ethers.getContractFactory("LoanManager");
-    const loanManager = await upgrades.deployProxy(LoanManager, [identityRegistryAddress, agriCreditAddress], { kind: 'uups' });
+    const loanManager = await upgrades.deployProxy(LoanManager, [agriCreditAddress, identityRegistryAddress, ethers.ZeroAddress, ethers.ZeroAddress, ethers.ZeroAddress, ethers.ZeroAddress, ethers.ZeroAddress, ethers.ZeroAddress, ethers.ZeroAddress, ethers.ZeroAddress, ethers.ZeroAddress, ethers.ZeroAddress], { kind: 'uups' });
     await loanManager.waitForDeployment();
     const loanManagerAddress = await loanManager.getAddress();
 
     console.log("✅ LoanManager deployed to:", loanManagerAddress);
     deploymentConfig.contracts.LoanManager = {
       address: loanManagerAddress,
-      deploymentTx: loanManager.deployTransaction.hash,
+      deploymentTx: loanManager.deploymentTransaction().hash,
       verified: false
     };
 
     // 6. Deploy GovernanceDAO
     console.log("\n6️⃣  Deploying GovernanceDAO...");
     const GovernanceDAO = await ethers.getContractFactory("GovernanceDAO");
-    const governanceDAO = await upgrades.deployProxy(GovernanceDAO, [agriCreditAddress, deployer.address, ethers.ZeroAddress, ethers.ZeroAddress], { kind: 'uups' });
+    const governanceDAO = await upgrades.deployProxy(GovernanceDAO, [agriCreditAddress, deployer.address, ethers.ZeroAddress], { kind: 'uups' });
     await governanceDAO.waitForDeployment();
     const governanceDAOAddress = await governanceDAO.getAddress();
 
     console.log("✅ GovernanceDAO deployed to:", governanceDAOAddress);
     deploymentConfig.contracts.GovernanceDAO = {
       address: governanceDAOAddress,
-      deploymentTx: governanceDAO.deployTransaction.hash,
+      deploymentTx: governanceDAO.deploymentTransaction().hash,
       verified: false
     };
 
@@ -121,7 +121,7 @@ async function main() {
     console.log("✅ NFTFarming deployed to:", nftFarmingAddress);
     deploymentConfig.contracts.NFTFarming = {
       address: nftFarmingAddress,
-      deploymentTx: nftFarming.deployTransaction.hash,
+      deploymentTx: nftFarming.deploymentTransaction().hash,
       verified: false
     };
 
@@ -135,7 +135,7 @@ async function main() {
     console.log("✅ LiquidityPool deployed to:", liquidityPoolAddress);
     deploymentConfig.contracts.LiquidityPool = {
       address: liquidityPoolAddress,
-      deploymentTx: liquidityPool.deployTransaction.hash,
+      deploymentTx: liquidityPool.deploymentTransaction().hash,
       verified: false
     };
 
@@ -149,7 +149,7 @@ async function main() {
     console.log("✅ MarketplaceEscrow deployed to:", marketplaceEscrowAddress);
     deploymentConfig.contracts.MarketplaceEscrow = {
       address: marketplaceEscrowAddress,
-      deploymentTx: marketplaceEscrow.deployTransaction.hash,
+      deploymentTx: marketplaceEscrow.deploymentTransaction().hash,
       verified: false
     };
 

@@ -46,22 +46,22 @@ contract AgriCredit is Initializable, ERC20Upgradeable, ERC20BurnableUpgradeable
     mapping(uint256 => VestingSchedule) public vestingSchedules;
     mapping(address => StakingPosition) public stakingPositions;
 
-    uint256 public globalTransferLimit = 100000 * 10**18; // 100k tokens per day per address
+    uint256 public globalTransferLimit; // 100k tokens per day per address
     uint256 public constant TRANSFER_COOLDOWN = 1 hours;
 
     // Staking parameters
-    uint256 public stakingRewardRate = 800; // 8% APY in basis points
+    uint256 public stakingRewardRate; // 8% APY in basis points
     uint256 public totalStaked;
     uint256 public rewardPerTokenStored;
     uint256 public lastRewardUpdate;
 
     // Vesting
-    uint256 public nextVestingId = 1;
+    uint256 public nextVestingId;
     uint256 public totalVested;
 
     // Governance integration
     address public governanceContract;
-    uint256 public proposalThreshold = 100000 * 10**18; // 100k tokens to propose
+    uint256 public proposalThreshold; // 100k tokens to propose
 
     event Blacklisted(address indexed account);
     event Unblacklisted(address indexed account);
@@ -86,6 +86,11 @@ contract AgriCredit is Initializable, ERC20Upgradeable, ERC20BurnableUpgradeable
 
         governanceContract = _governanceContract;
         lastRewardUpdate = block.timestamp;
+
+        globalTransferLimit = 100000 * 10**18;
+        stakingRewardRate = 800;
+        nextVestingId = 1;
+        proposalThreshold = 100000 * 10**18;
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}

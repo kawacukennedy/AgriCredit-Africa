@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { ethers } from "hardhat";
+const { ethers } = require("hardhat");
 
 describe("NFTFarming", function () {
   let nftFarming;

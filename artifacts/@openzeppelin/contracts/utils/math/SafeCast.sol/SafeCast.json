@@ -1,0 +1,65 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "SafeCast",
+  "sourceName": "@openzeppelin/contracts/utils/math/SafeCast.sol",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "uint8",
+          "name": "bits",
+          "type": "uint8"
+        },
+        {
+          "internalType": "int256",
+          "name": "value",
+          "type": "int256"
+        }
+      ],
+      "name": "SafeCastOverflowedIntDowncast",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "int256",
+          "name": "value",
+          "type": "int256"
+        }
+      ],
+      "name": "SafeCastOverflowedIntToUint",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint8",
+          "name": "bits",
+          "type": "uint8"
+        },
+        {
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        }
+      ],
+      "name": "SafeCastOverflowedUintDowncast",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        }
+      ],
+      "name": "SafeCastOverflowedUintToInt",
+      "type": "error"
+    }
+  ],
+  "bytecode": "0x60808060405234601757603a9081601d823930815050f35b600080fdfe600080fdfea2646970667358221220e11824dc518bd9c2a5a3ab4e9d5db12b47445e46a8a3b31b60f70a072affa9c164736f6c634300081c0033",
+  "deployedBytecode": "0x600080fdfea2646970667358221220e11824dc518bd9c2a5a3ab4e9d5db12b47445e46a8a3b31b60f70a072affa9c164736f6c634300081c0033",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}

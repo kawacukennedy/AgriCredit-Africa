@@ -1,0 +1,49 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "ERC1967Utils",
+  "sourceName": "@openzeppelin/contracts/proxy/ERC1967/ERC1967Utils.sol",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "admin",
+          "type": "address"
+        }
+      ],
+      "name": "ERC1967InvalidAdmin",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "beacon",
+          "type": "address"
+        }
+      ],
+      "name": "ERC1967InvalidBeacon",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "implementation",
+          "type": "address"
+        }
+      ],
+      "name": "ERC1967InvalidImplementation",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "ERC1967NonPayable",
+      "type": "error"
+    }
+  ],
+  "bytecode": "0x60808060405234601757603a9081601d823930815050f35b600080fdfe600080fdfea26469706673582212203dcbb33355cd466332c2f541fdb847e86b1d56b3696af7b440db6f19c0b44e5264736f6c634300081c0033",
+  "deployedBytecode": "0x600080fdfea26469706673582212203dcbb33355cd466332c2f541fdb847e86b1d56b3696af7b440db6f19c0b44e5264736f6c634300081c0033",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}

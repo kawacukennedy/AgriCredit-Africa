@@ -1,0 +1,19 @@
+AgriCredit Smart Contracts Deployment Information - Hardhat Local Network
+
+Network: Hardhat (Local)
+Chain ID: 31337
+Deployer Address: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+Deployment Timestamp: 2025-12-13T20:30:00Z
+
+Contract Addresses:
+- AgriCredit: 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512
+- IdentityRegistry: 0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9
+- CarbonToken: 0x5FC8d32690cc91D4c39d9d3abcBD16989F875707
+- YieldToken: 0xa513E6E4b8f2a923D98304ec87F64353C4D5C853
+- LoanManager: 0x8A791620dd6260079BF849Dc5567aDC3F2FdC318
+- GovernanceDAO: 0xB7f8BC63BbcaD18155201308C8f3540b07f84F5e
+
+Notes:
+- NFTFarming deployment failed due to contract size exceeding limit.
+- Contracts deployed using UUPS upgradeable proxies
+- Deployment completed partially on Hardhat network

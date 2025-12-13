@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { ethers } from "hardhat";
+const { ethers } = require("hardhat");
 
 describe("LiquidityPool", function () {
   let liquidityPool, carbonToken, mockToken1, mockToken2;
