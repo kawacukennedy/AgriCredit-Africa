@@ -6,14 +6,14 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
-import "@openzeppelin/contracts-upgradeable/metatx/ERC2771ContextUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
+// import "@openzeppelin/contracts-upgradeable/metatx/ERC2771ContextUpgradeable.sol";
+// import "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
-contract GovernanceDAO is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable, ERC2771ContextUpgradeable, UUPSUpgradeable {
+contract GovernanceDAO is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable {
     using ECDSA for bytes32;
 
     enum ProposalType {
@@ -222,12 +222,11 @@ contract GovernanceDAO is Initializable, OwnableUpgradeable, ReentrancyGuardUpgr
     function initialize(
         address _governanceToken,
         address _treasury,
-        address trustedForwarder,
         address _zkVerifier
     ) public initializer {
         __Ownable_init(msg.sender);
         __ReentrancyGuard_init();
-        // __ERC2771Context_init(trustedForwarder); // TODO: Check correct initialization
+
         __UUPSUpgradeable_init();
 
         governanceToken = IERC20(_governanceToken);
@@ -960,6 +959,8 @@ contract GovernanceDAO is Initializable, OwnableUpgradeable, ReentrancyGuardUpgr
     function _msgData() internal view override(ContextUpgradeable, ERC2771ContextUpgradeable) returns (bytes calldata) {
         return ERC2771ContextUpgradeable._msgData();
     }
+
+
 
     // ============ ADDITIONAL EVENTS ============
 

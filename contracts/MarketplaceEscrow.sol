@@ -539,14 +539,7 @@ contract MarketplaceEscrow is Initializable, OwnableUpgradeable, ReentrancyGuard
         return activeListings;
     }
 
-    function setPlatformFee(uint256 _fee) external onlyOwner {
-        require(_fee <= 500, "Fee too high"); // Max 5%
-        platformFee = _fee;
-    }
 
-    function setDisputePeriod(uint256 _period) external onlyOwner {
-        disputePeriod = _period;
-    }
 
     // ============ CROSS-CHAIN MARKETPLACE FUNCTIONS ============
 

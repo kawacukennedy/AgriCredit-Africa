@@ -64,6 +64,7 @@ contract AdvancedInsurance is Initializable, OwnableUpgradeable, ReentrancyGuard
         uint256 premiumCollected;
         uint256 payoutReserve;
         bool active;
+        mapping(address => uint256) contributions;
     }
 
     // ZK-Proof structures for privacy-preserving claims

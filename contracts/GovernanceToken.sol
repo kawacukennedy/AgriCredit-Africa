@@ -41,7 +41,6 @@ contract GovernanceToken is Initializable, ERC20Upgradeable, ERC20VotesUpgradeab
     uint256 public executionDelay = 2 days;
 
     // Delegation tracking
-    mapping(address => address) public delegates;
     mapping(address => uint256) public delegatedPower;
 
     // Quadratic voting structures
@@ -463,18 +462,6 @@ contract GovernanceToken is Initializable, ERC20Upgradeable, ERC20VotesUpgradeab
     }
 
     // ============ DELEGATION SYSTEM ============
-
-    function delegate(address _delegatee) external {
-        require(_delegatee != address(0), "Cannot delegate to zero address");
-        require(_delegatee != msg.sender, "Cannot delegate to self");
-
-        address previousDelegate = delegates[msg.sender];
-        delegates[msg.sender] = _delegatee;
-
-        _moveDelegatedPower(previousDelegate, _delegatee, balanceOf(msg.sender));
-
-        emit DelegationSet(msg.sender, _delegatee);
-    }
 
     function _moveDelegatedPower(address _from, address _to, uint256 _amount) internal {
         if (_from != address(0)) {

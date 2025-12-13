@@ -8,8 +8,8 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import "@openzeppelin/contracts-upgradeable/metatx/ERC2771ContextUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
+// import "@openzeppelin/contracts-upgradeable/metatx/ERC2771ContextUpgradeable.sol";
+// import "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
@@ -181,21 +181,15 @@ contract LoanManager is Initializable, OwnableUpgradeable, ReentrancyGuardUpgrad
     event YieldDistributed(uint256 indexed loanId, address indexed lender, uint256 amount);
 
     function initialize(
+        address _agriCreditToken,
         address _identityRegistry,
-        address _liquidityPool,
-        address _yieldToken,
-        address _stableToken,
-        address _priceOracle,
-        address _insurancePool,
-        address _yieldFarm,
-        address _predictionMarket,
-        address _reputation,
-        address trustedForwarder
+        address _aiPredictor,
+        address _zkVerifier
     ) public initializer {
         __Ownable_init(msg.sender);
         __ReentrancyGuard_init();
         __Pausable_init();
-        // __ERC2771Context_init(trustedForwarder); // TODO: Check correct initialization
+
         __UUPSUpgradeable_init();
 
         identityRegistry = IdentityRegistry(_identityRegistry);
@@ -889,4 +883,6 @@ contract LoanManager is Initializable, OwnableUpgradeable, ReentrancyGuardUpgrad
     function _msgData() internal view override(ContextUpgradeable, ERC2771ContextUpgradeable) returns (bytes calldata) {
         return ERC2771ContextUpgradeable._msgData();
     }
+
+
 }

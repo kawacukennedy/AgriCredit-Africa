@@ -1,4 +1,4 @@
-import { ethers } from "hardhat";
+import { ethers, upgrades } from "hardhat";
 import fs from "fs";
 import path from "path";
 
@@ -30,141 +30,126 @@ async function main() {
     // 1. Deploy AgriCredit Token
     console.log("\n1️⃣  Deploying AgriCredit Token...");
     const AgriCredit = await ethers.getContractFactory("AgriCredit");
-    const agriCredit = await AgriCredit.deploy();
+    const agriCredit = await upgrades.deployProxy(AgriCredit, [ethers.ZeroAddress], { kind: 'uups' });
     await agriCredit.waitForDeployment();
     const agriCreditAddress = await agriCredit.getAddress();
 
     console.log("✅ AgriCredit deployed to:", agriCreditAddress);
     deploymentConfig.contracts.AgriCredit = {
       address: agriCreditAddress,
-      deploymentTx: agriCredit.deploymentTransaction().hash,
+      deploymentTx: agriCredit.deployTransaction.hash,
       verified: false
     };
 
     // 2. Deploy IdentityRegistry
     console.log("\n2️⃣  Deploying IdentityRegistry...");
     const IdentityRegistry = await ethers.getContractFactory("IdentityRegistry");
-    const identityRegistry = await IdentityRegistry.deploy();
+    const identityRegistry = await upgrades.deployProxy(IdentityRegistry, [ethers.ZeroAddress], { kind: 'uups' });
     await identityRegistry.waitForDeployment();
     const identityRegistryAddress = await identityRegistry.getAddress();
 
     console.log("✅ IdentityRegistry deployed to:", identityRegistryAddress);
     deploymentConfig.contracts.IdentityRegistry = {
       address: identityRegistryAddress,
-      deploymentTx: identityRegistry.deploymentTransaction().hash,
+      deploymentTx: identityRegistry.deployTransaction.hash,
       verified: false
     };
 
     // 3. Deploy CarbonToken
     console.log("\n3️⃣  Deploying CarbonToken...");
     const CarbonToken = await ethers.getContractFactory("CarbonToken");
-    const carbonToken = await CarbonToken.deploy();
+    const carbonToken = await upgrades.deployProxy(CarbonToken, [ethers.ZeroAddress], { kind: 'uups' });
     await carbonToken.waitForDeployment();
     const carbonTokenAddress = await carbonToken.getAddress();
 
     console.log("✅ CarbonToken deployed to:", carbonTokenAddress);
     deploymentConfig.contracts.CarbonToken = {
       address: carbonTokenAddress,
-      deploymentTx: carbonToken.deploymentTransaction().hash,
+      deploymentTx: carbonToken.deployTransaction.hash,
       verified: false
     };
 
     // 4. Deploy YieldToken
     console.log("\n4️⃣  Deploying YieldToken...");
     const YieldToken = await ethers.getContractFactory("YieldToken");
-    const yieldToken = await YieldToken.deploy(
-      agriCreditAddress,
-      "AgriCredit Yield Token",
-      "AYT"
-    );
+    const yieldToken = await upgrades.deployProxy(YieldToken, [agriCreditAddress, "AgriCredit Yield Token", "AYT"], { kind: 'uups' });
     await yieldToken.waitForDeployment();
     const yieldTokenAddress = await yieldToken.getAddress();
 
     console.log("✅ YieldToken deployed to:", yieldTokenAddress);
     deploymentConfig.contracts.YieldToken = {
       address: yieldTokenAddress,
-      deploymentTx: yieldToken.deploymentTransaction().hash,
+      deploymentTx: yieldToken.deployTransaction.hash,
       verified: false
     };
 
     // 5. Deploy LoanManager
     console.log("\n5️⃣  Deploying LoanManager...");
     const LoanManager = await ethers.getContractFactory("LoanManager");
-    const loanManager = await LoanManager.deploy(
-      identityRegistryAddress,
-      agriCreditAddress
-    );
+    const loanManager = await upgrades.deployProxy(LoanManager, [identityRegistryAddress, agriCreditAddress], { kind: 'uups' });
     await loanManager.waitForDeployment();
     const loanManagerAddress = await loanManager.getAddress();
 
     console.log("✅ LoanManager deployed to:", loanManagerAddress);
     deploymentConfig.contracts.LoanManager = {
       address: loanManagerAddress,
-      deploymentTx: loanManager.deploymentTransaction().hash,
+      deploymentTx: loanManager.deployTransaction.hash,
       verified: false
     };
 
     // 6. Deploy GovernanceDAO
     console.log("\n6️⃣  Deploying GovernanceDAO...");
     const GovernanceDAO = await ethers.getContractFactory("GovernanceDAO");
-    const governanceDAO = await GovernanceDAO.deploy(
-      agriCreditAddress, // governance token
-      deployer.address, // treasury
-      ethers.ZeroAddress, // trusted forwarder (none for now)
-      ethers.ZeroAddress // ZK verifier (none for now)
-    );
+    const governanceDAO = await upgrades.deployProxy(GovernanceDAO, [agriCreditAddress, deployer.address, ethers.ZeroAddress, ethers.ZeroAddress], { kind: 'uups' });
     await governanceDAO.waitForDeployment();
     const governanceDAOAddress = await governanceDAO.getAddress();
 
     console.log("✅ GovernanceDAO deployed to:", governanceDAOAddress);
     deploymentConfig.contracts.GovernanceDAO = {
       address: governanceDAOAddress,
-      deploymentTx: governanceDAO.deploymentTransaction().hash,
+      deploymentTx: governanceDAO.deployTransaction.hash,
       verified: false
     };
 
     // 7. Deploy NFTFarming
     console.log("\n7️⃣  Deploying NFTFarming...");
     const NFTFarming = await ethers.getContractFactory("NFTFarming");
-    const nftFarming = await NFTFarming.deploy();
+    const nftFarming = await upgrades.deployProxy(NFTFarming, [], { kind: 'uups' });
     await nftFarming.waitForDeployment();
     const nftFarmingAddress = await nftFarming.getAddress();
 
     console.log("✅ NFTFarming deployed to:", nftFarmingAddress);
     deploymentConfig.contracts.NFTFarming = {
       address: nftFarmingAddress,
-      deploymentTx: nftFarming.deploymentTransaction().hash,
+      deploymentTx: nftFarming.deployTransaction.hash,
       verified: false
     };
 
     // 8. Deploy LiquidityPool
     console.log("\n8️⃣  Deploying LiquidityPool...");
     const LiquidityPool = await ethers.getContractFactory("LiquidityPool");
-    const liquidityPool = await LiquidityPool.deploy(
-      agriCreditAddress,
-      carbonTokenAddress
-    );
+    const liquidityPool = await upgrades.deployProxy(LiquidityPool, [agriCreditAddress, carbonTokenAddress], { kind: 'uups' });
     await liquidityPool.waitForDeployment();
     const liquidityPoolAddress = await liquidityPool.getAddress();
 
     console.log("✅ LiquidityPool deployed to:", liquidityPoolAddress);
     deploymentConfig.contracts.LiquidityPool = {
       address: liquidityPoolAddress,
-      deploymentTx: liquidityPool.deploymentTransaction().hash,
+      deploymentTx: liquidityPool.deployTransaction.hash,
       verified: false
     };
 
     // 9. Deploy MarketplaceEscrow
     console.log("\n9️⃣  Deploying MarketplaceEscrow...");
     const MarketplaceEscrow = await ethers.getContractFactory("MarketplaceEscrow");
-    const marketplaceEscrow = await MarketplaceEscrow.deploy();
+    const marketplaceEscrow = await upgrades.deployProxy(MarketplaceEscrow, [], { kind: 'uups' });
     await marketplaceEscrow.waitForDeployment();
     const marketplaceEscrowAddress = await marketplaceEscrow.getAddress();
 
     console.log("✅ MarketplaceEscrow deployed to:", marketplaceEscrowAddress);
     deploymentConfig.contracts.MarketplaceEscrow = {
       address: marketplaceEscrowAddress,
-      deploymentTx: marketplaceEscrow.deploymentTransaction().hash,
+      deploymentTx: marketplaceEscrow.deployTransaction.hash,
       verified: false
     };
 

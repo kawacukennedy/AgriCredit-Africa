@@ -307,7 +307,7 @@ contract AgriDEX is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeabl
                 bool shouldTrigger = slo.isAbove ? (currentPrice >= slo.triggerPrice) : (currentPrice <= slo.triggerPrice);
 
                 if (shouldTrigger && orders[i].expiry > block.timestamp) {
-                    // _executeOrder(i); // TODO: Implement order execution
+                    _executeOrder(i);
                 }
             }
         }
@@ -319,10 +319,42 @@ contract AgriDEX is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeabl
                 bool shouldTrigger = tpo.isAbove ? (currentPrice >= tpo.triggerPrice) : (currentPrice <= tpo.triggerPrice);
 
                 if (shouldTrigger && orders[i].expiry > block.timestamp) {
-                    // _executeOrder(i); // TODO: Implement order execution
+                    _executeOrder(i);
                 }
             }
         }
+    }
+
+    /**
+     * @dev Executes a triggered stop-loss or take-profit order
+     * @param orderId The ID of the order to execute
+     */
+    function _executeOrder(uint256 orderId) internal {
+        Order storage order = orders[orderId];
+        require(order.active, "Order not active");
+
+        // Find the appropriate AMM pool
+        bytes32 poolHash = keccak256(abi.encodePacked(order.tokenIn, order.tokenOut));
+        if (ammPools[poolHash].tokenA == address(0)) {
+            // Try reverse order
+            poolHash = keccak256(abi.encodePacked(order.tokenOut, order.tokenIn));
+        }
+
+        require(ammPools[poolHash].tokenA != address(0), "No pool found for token pair");
+
+        // Calculate minimum amount out (with slippage protection)
+        uint256 expectedOut = getExpectedSwapAmount(uint256(poolHash), order.tokenIn, order.amountIn);
+        uint256 minAmountOut = expectedOut * (10000 - maxSlippage) / 10000;
+
+        // Execute swap
+        uint256 amountOut = swap(uint256(poolHash), order.tokenIn, order.amountIn, minAmountOut);
+
+        // Update order
+        order.amountOut = amountOut;
+        order.filledAmount = order.amountIn;
+        order.active = false;
+
+        emit AdvancedOrderExecuted(orderId, msg.sender, order.amountIn);
     }
 
     // ============ TOKEN MANAGEMENT ============

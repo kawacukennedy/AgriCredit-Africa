@@ -39,15 +39,15 @@ contract SoulboundCarbonCredit is Initializable, ERC721Upgradeable, ERC721URISto
         return tokenId;
     }
 
-    function _beforeTokenTransfer(address from, address to, uint256 tokenId, uint256 batchSize)
+    function _beforeTokenTransfer(address from, address to, uint256 firstTokenId, uint256 batchSize)
         internal
         override(ERC721Upgradeable)
     {
-        require(from == address(0) || !soulbound[tokenId], "Soulbound token cannot be transferred");
-        super._beforeTokenTransfer(from, to, tokenId, batchSize);
+        require(from == address(0) || !soulbound[firstTokenId], "Soulbound token cannot be transferred");
+        super._beforeTokenTransfer(from, to, firstTokenId, batchSize);
     }
 
-    function _burn(uint256 tokenId) internal override(ERC721Upgradeable, ERC721URIStorageUpgradeable) {
+    function _burn(uint256 tokenId) internal {
         super._burn(tokenId);
     }
 

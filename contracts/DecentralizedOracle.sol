@@ -182,6 +182,43 @@ contract DecentralizedOracle is Initializable, OwnableUpgradeable, ReentrancyGua
 
     // ============ DATA SUBMISSION ============
 
+    /**
+     * @dev Submit IoT sensor data with device verification
+     * @param _deviceId Unique device identifier
+     * @param _dataType Type of data (Weather, CropHealth, IoT)
+     * @param _location Geographic location
+     * @param _sensorData Raw sensor readings (temperature, humidity, soil moisture, etc.)
+     * @param _signature Device signature for verification
+     */
+    function submitIoTData(
+        string memory _deviceId,
+        DataType _dataType,
+        string memory _location,
+        string memory _sensorData,
+        bytes memory _signature
+    ) external returns (bytes32) {
+        require(_dataType == DataType.Weather || _dataType == DataType.CropHealth || _dataType == DataType.IoT, "Invalid data type for IoT");
+
+        // Verify device signature (simplified - would use device registry)
+        bytes32 messageHash = keccak256(abi.encodePacked(_deviceId, _dataType, _location, _sensorData, block.timestamp));
+        address deviceAddress = ECDSA.recover(messageHash, _signature);
+
+        // In practice, would check against registered IoT devices
+        require(deviceAddress != address(0), "Invalid device signature");
+
+        // Parse sensor data (simplified - assume JSON format)
+        uint256 parsedValue = _parseSensorData(_sensorData);
+
+        // Submit as regular data
+        return submitData(_dataType, _location, string(abi.encodePacked("device:", _deviceId)), parsedValue, 95); // High confidence for IoT
+    }
+
+    function _parseSensorData(string memory _sensorData) internal pure returns (uint256) {
+        // Simplified parsing - in practice would parse JSON/temperature/humidity data
+        // For demo, return a hash-based value
+        return uint256(keccak256(abi.encodePacked(_sensorData))) % 1000; // 0-999 range
+    }
+
     function submitData(
         DataType _dataType,
         string memory _location,

@@ -56,8 +56,6 @@ contract FarmShareToken is Initializable, IERC20 {
         return true;
     }
 
-    event Transfer(address indexed from, address indexed to, uint256 value);
-    event Approval(address indexed owner, address indexed spender, uint256 value);
 }
 
 // Cross-chain bridge interface
@@ -682,7 +680,6 @@ contract NFTFarming is Initializable, ERC721Upgradeable, OwnableUpgradeable, Ree
     event NFTUnstaked(uint256 indexed tokenId, address indexed staker, uint256 stakeDuration);
     event RewardsClaimed(address indexed staker, uint256 amount);
     event QualityScoreUpdated(uint256 indexed tokenId, uint256 score);
-    event BatchAssociated(uint256 indexed tokenId, uint256 batchId);
     event BridgeValidatorAdded(address indexed validator);
     event BridgeValidatorRemoved(address indexed validator);
     event CrossChainTransferInitiated(uint256 indexed tokenId, address indexed from, address indexed to, string destinationChain);

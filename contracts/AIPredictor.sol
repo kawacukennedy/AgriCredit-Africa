@@ -40,7 +40,6 @@ contract AIPredictor is Initializable, OwnableUpgradeable, ReentrancyGuardUpgrad
         uint256 riskLevel; // 1-5 (1=lowest risk, 5=highest)
         uint256 lastAssessment;
         uint256 predictionCount;
-        mapping(string => int256) riskFactors; // Various risk metrics
     }
 
     // AI Models
@@ -51,6 +50,7 @@ contract AIPredictor is Initializable, OwnableUpgradeable, ReentrancyGuardUpgrad
     // Predictions and Risk Profiles
     mapping(uint256 => Prediction) public predictions;
     mapping(address => RiskProfile) public riskProfiles;
+    mapping(address => mapping(string => int256)) public riskFactors; // Separate mapping for risk factors
     uint256 public nextPredictionId = 1;
 
     // Oracle integration
@@ -213,7 +213,7 @@ contract AIPredictor is Initializable, OwnableUpgradeable, ReentrancyGuardUpgrad
         }
 
         uint256 predictionId = nextPredictionId++;
-        int256 riskScore = profile.riskFactors[_riskType];
+        int256 riskScore = riskFactors[_user][_riskType];
 
         predictions[predictionId] = Prediction({
             id: predictionId,
@@ -314,10 +314,10 @@ contract AIPredictor is Initializable, OwnableUpgradeable, ReentrancyGuardUpgrad
         RiskProfile storage profile = riskProfiles[_user];
 
         // Assess various risk factors
-        profile.riskFactors["loan_default"] = _assessLoanDefaultRisk(_user);
-        profile.riskFactors["crop_failure"] = _assessCropFailureRisk(_user);
-        profile.riskFactors["market_volatility"] = _assessMarketVolatilityRisk(_user);
-        profile.riskFactors["weather_risk"] = _assessWeatherRisk(_user);
+        riskFactors[_user]["loan_default"] = _assessLoanDefaultRisk(_user);
+        riskFactors[_user]["crop_failure"] = _assessCropFailureRisk(_user);
+        riskFactors[_user]["market_volatility"] = _assessMarketVolatilityRisk(_user);
+        riskFactors[_user]["weather_risk"] = _assessWeatherRisk(_user);
 
         profile.lastAssessment = block.timestamp;
     }
@@ -383,7 +383,7 @@ contract AIPredictor is Initializable, OwnableUpgradeable, ReentrancyGuardUpgrad
     }
 
     function getRiskFactor(address _user, string memory _factor) external view returns (int256) {
-        return riskProfiles[_user].riskFactors[_factor];
+        return riskFactors[_user][_factor];
     }
 
     function getAIModel(bytes32 _modelId) external view returns (AIModel memory) {
