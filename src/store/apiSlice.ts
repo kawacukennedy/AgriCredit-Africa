@@ -420,6 +420,29 @@ export const apiSlice = createApi({
     getOracleWeather: builder.query({
       query: (location) => `/oracle/weather/${location}`,
     }),
+
+    // Analytics and Reports endpoints
+    getAnalytics: builder.query({
+      query: (params) => ({
+        url: '/analytics/overview',
+        params,
+      }),
+    }),
+    getSystemHealth: builder.query({
+      query: () => '/analytics/system-health',
+    }),
+    getLoanAnalytics: builder.query({
+      query: (params) => ({
+        url: '/analytics/loans',
+        params,
+      }),
+    }),
+    getGeographicAnalytics: builder.query({
+      query: () => '/analytics/geographic',
+    }),
+    getAIModelPerformance: builder.query({
+      query: () => '/analytics/ai-performance',
+    }),
   }),
 });
 
@@ -472,4 +495,9 @@ export const {
   useGetInvestorPortfolioQuery,
   useGetOraclePriceQuery,
   useGetOracleWeatherQuery,
+  useGetAnalyticsQuery,
+  useGetSystemHealthQuery,
+  useGetLoanAnalyticsQuery,
+  useGetGeographicAnalyticsQuery,
+  useGetAIModelPerformanceQuery,
 } = apiSlice;

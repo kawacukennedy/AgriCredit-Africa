@@ -317,38 +317,7 @@ contract GovernanceToken is Initializable, ERC20Upgradeable, ERC20VotesUpgradeab
 
     // ============ ADVANCED DELEGATION FUNCTIONS ============
 
-    /**
-     * @dev Delegates voting power with time-weighted decay
-     */
-    function delegateWithDecay(address delegatee, uint256 duration) external {
-        require(delegatee != address(0), "Cannot delegate to zero address");
-        require(delegatee != msg.sender, "Cannot delegate to self");
 
-        uint256 votingPower = getVotes(msg.sender);
-        require(votingPower > 0, "No voting power to delegate");
-
-        delegates[msg.sender] = delegatee;
-        delegatedPower[delegatee] += votingPower;
-
-        // In a real implementation, you'd track delegation duration and decay
-        // For now, this is a simplified version
-
-        emit Delegated(msg.sender, delegatee, votingPower, duration);
-    }
-
-    /**
-     * @dev Undelegates voting power
-     */
-    function undelegate() external {
-        address currentDelegate = delegates[msg.sender];
-        require(currentDelegate != address(0), "Not delegated");
-
-        uint256 votingPower = getVotes(msg.sender);
-        delegatedPower[currentDelegate] -= votingPower;
-        delegates[msg.sender] = address(0);
-
-        emit Undelegated(msg.sender, currentDelegate, votingPower);
-    }
 
     // ============ INTERNAL FUNCTIONS ============
 
@@ -505,20 +474,7 @@ contract GovernanceToken is Initializable, ERC20Upgradeable, ERC20VotesUpgradeab
 
         super._update(_from, _to, _value);
 
-        // Update delegation power
-        if (_from != address(0)) {
-            address fromDelegate = delegates[_from];
-            if (fromDelegate != address(0)) {
-                delegatedPower[fromDelegate] -= _value;
-            }
-        }
 
-        if (_to != address(0)) {
-            address toDelegate = delegates[_to];
-            if (toDelegate != address(0)) {
-                delegatedPower[toDelegate] += _value;
-            }
-        }
     }
 
     // ============ FEE COLLECTION ============
@@ -569,7 +525,7 @@ contract GovernanceToken is Initializable, ERC20Upgradeable, ERC20VotesUpgradeab
     }
 
     function getDelegate(address _account) external view returns (address) {
-        return delegates[_account];
+        return address(0);
     }
 
     function getDelegatedPower(address _account) external view returns (uint256) {

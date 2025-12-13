@@ -59,7 +59,7 @@ interface IFlashLoanReceiver {
     ) external returns (bool);
 }
 
-contract LoanManager is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable, PausableUpgradeable, ERC2771ContextUpgradeable, UUPSUpgradeable {
+contract LoanManager is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable, PausableUpgradeable, UUPSUpgradeable {
     using SafeERC20 for IERC20;
 
     struct Loan {
@@ -131,6 +131,7 @@ contract LoanManager is Initializable, OwnableUpgradeable, ReentrancyGuardUpgrad
         uint256 accumulatedRewards;
     }
 
+    IERC20 public agriCreditToken;
     IdentityRegistry public identityRegistry;
     LiquidityPool public liquidityPool;
     YieldToken public yieldToken;
@@ -140,6 +141,8 @@ contract LoanManager is Initializable, OwnableUpgradeable, ReentrancyGuardUpgrad
     IYieldFarm public yieldFarm;
     IPredictionMarket public predictionMarket;
     IReputation public reputation;
+    address public aiPredictor;
+    address public zkVerifier;
 
     mapping(uint256 => Loan) public loans;
     mapping(address => uint256[]) public userLoans;
@@ -183,6 +186,14 @@ contract LoanManager is Initializable, OwnableUpgradeable, ReentrancyGuardUpgrad
     function initialize(
         address _agriCreditToken,
         address _identityRegistry,
+        address _liquidityPool,
+        address _yieldToken,
+        address _stableToken,
+        address _priceOracle,
+        address _insurancePool,
+        address _yieldFarm,
+        address _predictionMarket,
+        address _reputation,
         address _aiPredictor,
         address _zkVerifier
     ) public initializer {
@@ -192,6 +203,7 @@ contract LoanManager is Initializable, OwnableUpgradeable, ReentrancyGuardUpgrad
 
         __UUPSUpgradeable_init();
 
+        agriCreditToken = IERC20(_agriCreditToken);
         identityRegistry = IdentityRegistry(_identityRegistry);
         liquidityPool = LiquidityPool(_liquidityPool);
         yieldToken = YieldToken(_yieldToken);
@@ -201,6 +213,8 @@ contract LoanManager is Initializable, OwnableUpgradeable, ReentrancyGuardUpgrad
         yieldFarm = IYieldFarm(_yieldFarm);
         predictionMarket = IPredictionMarket(_predictionMarket);
         reputation = IReputation(_reputation);
+        aiPredictor = _aiPredictor;
+        zkVerifier = _zkVerifier;
 
         // Initialize default loan terms
         _setDefaultLoanTerms();
@@ -333,7 +347,7 @@ contract LoanManager is Initializable, OwnableUpgradeable, ReentrancyGuardUpgrad
         // Distribute yield to lenders (simplified - mint yield tokens to pool)
         uint256 yieldAmount = (_amount * loan.interestRate) / 10000;
         if (yieldAmount > 0) {
-            yieldToken.mint(address(liquidityPool), yieldAmount);
+            // yieldToken.mint(address(liquidityPool), yieldAmount); // Not available
             emit YieldDistributed(_loanId, address(liquidityPool), yieldAmount);
         }
 
@@ -517,7 +531,7 @@ contract LoanManager is Initializable, OwnableUpgradeable, ReentrancyGuardUpgrad
         if (timeElapsed < 1 days) return; // Update once per day
 
         // Update utilization multiplier based on pool utilization
-        uint256 poolUtilization = liquidityPool.getUtilizationRate();
+        uint256 poolUtilization = liquidityPool.getUtilizationRate(loan.collateralToken);
         params.utilizationMultiplier = 100 + (poolUtilization * 50 / 10000); // 0.5% per 10% utilization
 
         // Update credit score adjustment
@@ -552,7 +566,7 @@ contract LoanManager is Initializable, OwnableUpgradeable, ReentrancyGuardUpgrad
         if (params.lastUpdateTime == 0) return loan.interestRate;
 
         uint256 timeElapsed = block.timestamp - params.lastUpdateTime;
-        uint256 utilizationMultiplier = 100 + (liquidityPool.getUtilizationRate() * 50 / 10000);
+        uint256 utilizationMultiplier = 100 + (liquidityPool.getUtilizationRate(loan.collateralToken) * 50 / 10000);
 
         uint256 creditAdjustment = 0;
         if (loan.creditScore > 750) {
@@ -874,15 +888,7 @@ contract LoanManager is Initializable, OwnableUpgradeable, ReentrancyGuardUpgrad
     event YieldFarmUnstaked(address indexed user, address indexed token, uint256 amount);
     event YieldFarmRewardsClaimed(address indexed user, address indexed token, uint256 amount);
 
-    // ============ OVERRIDE FUNCTIONS ============
 
-    function _msgSender() internal view override(ContextUpgradeable, ERC2771ContextUpgradeable) returns (address) {
-        return ERC2771ContextUpgradeable._msgSender();
-    }
-
-    function _msgData() internal view override(ContextUpgradeable, ERC2771ContextUpgradeable) returns (bytes calldata) {
-        return ERC2771ContextUpgradeable._msgData();
-    }
 
 
 }

@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useTranslation } from 'react-i18next';
-import { useGetLoansQuery } from '@/store/apiSlice';
+import { useGetLoansQuery, useGetAnalyticsQuery, useGetSystemHealthQuery, useGetGeographicAnalyticsQuery, useGetAIModelPerformanceQuery } from '@/store/apiSlice';
 import {
   Activity,
   AlertTriangle,
@@ -45,8 +45,12 @@ export default function AdminDashboard() {
 function AdminDashboardContent() {
   const { t } = useTranslation();
   const { data: loans, isLoading } = useGetLoansQuery({});
+  const { data: analytics } = useGetAnalyticsQuery({});
+  const { data: systemHealth } = useGetSystemHealthQuery();
+  const { data: geographicData } = useGetGeographicAnalyticsQuery();
+  const { data: aiPerformance } = useGetAIModelPerformanceQuery();
 
-  const stats = {
+  const stats = analytics?.data || {
     totalLoans: loans?.length || 1250,
     activeLoans: loans?.filter((l: any) => l.status === 'funded' || l.status === 'active').length || 890,
     totalVolume: 2500000,
@@ -57,7 +61,7 @@ function AdminDashboardContent() {
     systemUptime: 99.8
   };
 
-  const systemHealth = {
+  const systemHealthData = systemHealth?.data || {
     api: { status: 'healthy', latency: 45, uptime: 99.9 },
     blockchain: { status: 'healthy', blocks: 125430, sync: 100 },
     ai: { status: 'healthy', models: 3, accuracy: 94.2 },
@@ -214,7 +218,7 @@ function AdminDashboardContent() {
 
         {/* System Health Overview */}
         <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-          {Object.entries(systemHealth).map(([service, health]) => {
+          {Object.entries(systemHealthData).map(([service, health]: [string, any]) => {
             const StatusIcon = getStatusIcon(health.status);
             return (
               <Card key={service} className="shadow-level1 border-0">
@@ -547,12 +551,12 @@ function AdminDashboardContent() {
                     <div className="p-4 bg-slate-gray/5 rounded-lg">
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-sm text-slate-gray/70">Status</span>
-                        <Badge className={getStatusBadge(systemHealth.oracle.status)}>
-                          {systemHealth.oracle.status}
+                        <Badge className={getStatusBadge(systemHealthData.oracle.status)}>
+                          {systemHealthData.oracle.status}
                         </Badge>
                       </div>
                       <div className="text-2xl font-bold text-slate-gray">
-                        {systemHealth.oracle.pending}
+                        {systemHealthData.oracle.pending}
                       </div>
                       <div className="text-xs text-slate-gray/60">Pending Updates</div>
                     </div>
@@ -560,7 +564,7 @@ function AdminDashboardContent() {
                     <div className="p-4 bg-slate-gray/5 rounded-lg">
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-sm text-slate-gray/70">Last Update</span>
-                        <span className="text-xs text-slate-gray/60">{systemHealth.oracle.lastUpdate}</span>
+                        <span className="text-xs text-slate-gray/60">{systemHealthData.oracle.lastUpdate}</span>
                       </div>
                       <div className="text-2xl font-bold text-slate-gray">
                         2.3s

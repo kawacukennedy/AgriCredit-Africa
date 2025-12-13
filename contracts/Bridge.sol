@@ -8,6 +8,7 @@ import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 
 contract Bridge is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable {
@@ -293,7 +294,7 @@ contract Bridge is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
         }
 
         // Verify signature
-        bytes32 ethSignedMessageHash = tx.txHash.toEthSignedMessageHash();
+        bytes32 ethSignedMessageHash = MessageHashUtils.toEthSignedMessageHash(tx.txHash);
         address signer = ethSignedMessageHash.recover(_signature);
         require(signer == msg.sender, "Invalid signature");
 

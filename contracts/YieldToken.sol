@@ -237,14 +237,12 @@ contract YieldToken is Initializable, ERC20Upgradeable, OwnableUpgradeable, Reen
         require(token != address(0), "Invalid token");
         require(multiTokenFarms[token].token == address(0), "Farm already exists");
 
-        multiTokenFarms[token] = MultiTokenFarm({
-            token: token,
-            totalStaked: 0,
-            rewardRate: rewardRate,
-            lastRewardTime: block.timestamp,
-            rewardPerTokenStored: 0,
-            active: true
-        });
+        multiTokenFarms[token].token = token;
+        multiTokenFarms[token].totalStaked = 0;
+        multiTokenFarms[token].rewardRate = rewardRate;
+        multiTokenFarms[token].lastRewardTime = block.timestamp;
+        multiTokenFarms[token].rewardPerTokenStored = 0;
+        multiTokenFarms[token].active = true;
 
         supportedFarmTokens.push(token);
 

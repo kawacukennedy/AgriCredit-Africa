@@ -652,14 +652,19 @@ contract MarketplaceEscrow is Initializable, OwnableUpgradeable, ReentrancyGuard
     }
 
     function _handleBridgedListing(
-        uint256 listingId,
+        uint256 tradeId,
+        address buyer,
         address seller,
-        string memory cropType,
-        uint256 quantity,
-        uint256 pricePerUnit,
-        address paymentToken
+        uint256 amount,
+        address token,
+        uint256 listingId
     ) internal {
         // Create local listing from bridged data
+        string memory cropType = "bridged";
+        uint256 quantity = amount;
+        uint256 pricePerUnit = 0;
+        address paymentToken = token;
+
         uint256 localListingId = nextListingId++;
         listings[localListingId] = Listing({
             id: localListingId,
@@ -667,15 +672,15 @@ contract MarketplaceEscrow is Initializable, OwnableUpgradeable, ReentrancyGuard
             cropType: cropType,
             quantity: quantity,
             pricePerUnit: pricePerUnit,
-            paymentToken: paymentToken,
+            location: "",
+            harvestDate: 0,
+            expiryDate: 0,
             active: true,
-            createdAt: block.timestamp,
             aiRecommendationScore: 0,
-            geoLocation: "",
-            qualityCertifications: new string[](0)
+            geoData: ""
         });
 
-        emit ListingCreated(localListingId, seller, cropType, quantity, pricePerUnit);
+        emit ListingCreated(localListingId, seller, cropType, quantity);
     }
 
     function _handleBridgedEscrow(
@@ -706,7 +711,7 @@ contract MarketplaceEscrow is Initializable, OwnableUpgradeable, ReentrancyGuard
             disputeDeadline: 0
         });
 
-        emit EscrowCreated(localEscrowId, buyer, seller, amount, token);
+        emit EscrowCreated(localEscrowId, buyer, seller, amount);
     }
 
     function setCrossChainBridge(address _bridge) external onlyOwner {

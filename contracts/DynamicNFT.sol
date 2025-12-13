@@ -80,7 +80,7 @@ contract DynamicNFT is Initializable, ERC721Upgradeable, OwnableUpgradeable, UUP
     event NFTBridged(uint256 indexed tokenId, uint256 targetChainId, address indexed owner);
     event NFTClaimed(uint256 indexed tokenId, address indexed owner);
 
-    function initialize(address _oracle, address _aiPredictor) public initializer {
+    function initialize(address _oracle, address payable _aiPredictor) public initializer {
         __ERC721_init("AgriCredit Dynamic Farm NFT", "DFARM");
         __Ownable_init(msg.sender);
         __UUPSUpgradeable_init();

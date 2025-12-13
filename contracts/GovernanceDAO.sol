@@ -950,15 +950,7 @@ contract GovernanceDAO is Initializable, OwnableUpgradeable, ReentrancyGuardUpgr
         treasuryBalance += msg.value;
     }
 
-    // ============ ERC2771 OVERRIDE FUNCTIONS ============
 
-    function _msgSender() internal view override(ContextUpgradeable, ERC2771ContextUpgradeable) returns (address) {
-        return ERC2771ContextUpgradeable._msgSender();
-    }
-
-    function _msgData() internal view override(ContextUpgradeable, ERC2771ContextUpgradeable) returns (bytes calldata) {
-        return ERC2771ContextUpgradeable._msgData();
-    }
 
 
 

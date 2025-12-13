@@ -325,38 +325,6 @@ contract AgriDEX is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeabl
         }
     }
 
-    /**
-     * @dev Executes a triggered stop-loss or take-profit order
-     * @param orderId The ID of the order to execute
-     */
-    function _executeOrder(uint256 orderId) internal {
-        Order storage order = orders[orderId];
-        require(order.active, "Order not active");
-
-        // Find the appropriate AMM pool
-        bytes32 poolHash = keccak256(abi.encodePacked(order.tokenIn, order.tokenOut));
-        if (ammPools[poolHash].tokenA == address(0)) {
-            // Try reverse order
-            poolHash = keccak256(abi.encodePacked(order.tokenOut, order.tokenIn));
-        }
-
-        require(ammPools[poolHash].tokenA != address(0), "No pool found for token pair");
-
-        // Calculate minimum amount out (with slippage protection)
-        uint256 expectedOut = getExpectedSwapAmount(uint256(poolHash), order.tokenIn, order.amountIn);
-        uint256 minAmountOut = expectedOut * (10000 - maxSlippage) / 10000;
-
-        // Execute swap
-        uint256 amountOut = swap(uint256(poolHash), order.tokenIn, order.amountIn, minAmountOut);
-
-        // Update order
-        order.amountOut = amountOut;
-        order.filledAmount = order.amountIn;
-        order.active = false;
-
-        emit AdvancedOrderExecuted(orderId, msg.sender, order.amountIn);
-    }
-
     // ============ TOKEN MANAGEMENT ============
 
     function addSupportedToken(address _token) external onlyOwner {
@@ -554,7 +522,7 @@ contract AgriDEX is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeabl
         address _tokenIn,
         uint256 _amountIn,
         uint256 _minAmountOut
-    ) external nonReentrant returns (uint256) {
+    ) public nonReentrant returns (uint256) {
         LiquidityPool storage pool = liquidityPools[_poolId];
         require(pool.active, "Pool not active");
 
@@ -652,7 +620,7 @@ contract AgriDEX is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeabl
         uint256 _poolId,
         address _tokenIn,
         uint256 _amountIn
-    ) external view returns (uint256) {
+    ) public view returns (uint256) {
         LiquidityPool memory pool = liquidityPools[_poolId];
 
         bool isTokenA = _tokenIn == pool.tokenA;
@@ -663,6 +631,37 @@ contract AgriDEX is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeabl
         uint256 denominator = (isTokenA ? pool.reserveA : pool.reserveB) * 10000 + amountInWithFee;
 
         return numerator / denominator;
+    }
+
+    function _executeOrder(uint256 orderId) internal {
+        Order storage order = orders[orderId];
+        require(order.active, "Order not active");
+
+        // Find the appropriate AMM pool
+        bytes32 poolHash = keccak256(abi.encodePacked(order.tokenIn, order.tokenOut));
+        uint256 poolId = poolIds[poolHash];
+        if (poolId == 0) {
+            // Try reverse order
+            poolHash = keccak256(abi.encodePacked(order.tokenOut, order.tokenIn));
+            poolId = poolIds[poolHash];
+        }
+
+        require(poolId != 0, "No pool found for token pair");
+        require(liquidityPools[poolId].active, "Pool not active");
+
+        // Calculate minimum amount out (with slippage protection)
+        uint256 expectedOut = getExpectedSwapAmount(poolId, order.tokenIn, order.amountIn);
+        uint256 minAmountOut = expectedOut * (10000 - maxSlippage) / 10000;
+
+        // Execute swap
+        uint256 amountOut = swap(poolId, order.tokenIn, order.amountIn, minAmountOut);
+
+        // Update order
+        order.amountOut = amountOut;
+        order.filledAmount = order.amountIn;
+        order.active = false;
+
+        emit AdvancedOrderExecuted(orderId, msg.sender, order.amountIn);
     }
 
     // ============ FLASH LOANS ============
@@ -690,7 +689,7 @@ contract AgriDEX is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeabl
         IERC20(_token).safeTransfer(msg.sender, _amount);
 
         // Execute borrower's callback
-        IFlashLoanReceiver(msg.sender).executeOperation(_token, _amount, fee, _params);
+        IFlashLoanReceiver(msg.sender).executeOperation(_token, _amount, fee, msg.sender, _params);
 
         // Check that tokens were returned
         uint256 balanceAfter = IERC20(_token).balanceOf(address(this));

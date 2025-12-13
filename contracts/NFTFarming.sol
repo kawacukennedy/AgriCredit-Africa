@@ -19,23 +19,34 @@ contract FarmShareToken is Initializable, IERC20 {
     string public symbol;
     uint8 public decimals = 18;
     uint256 public totalSupply;
-    mapping(address => uint256) public balanceOf;
+    mapping(address => uint256) public _balances;
     mapping(address => mapping(address => uint256)) public allowance;
 
     address public farmNFT;
     uint256 public nftId;
 
-    function initialize(string memory _name, string memory _symbol, address _farmNFT, uint256 _nftId) public initializer {
+    constructor(string memory _name, string memory _symbol, address _farmNFT, uint256 _nftId) {
         name = _name;
         symbol = _symbol;
         farmNFT = _farmNFT;
         nftId = _nftId;
     }
 
+    function balanceOf(address account) external view returns (uint256) {
+        return _balances[account];
+    }
+
+    function mint(address to, uint256 amount) external {
+        require(msg.sender == farmNFT, "Only farm NFT can mint");
+        _balances[to] += amount;
+        totalSupply += amount;
+        emit Transfer(address(0), to, amount);
+    }
+
     function transfer(address to, uint256 amount) external returns (bool) {
-        require(balanceOf[msg.sender] >= amount, "Insufficient balance");
-        balanceOf[msg.sender] -= amount;
-        balanceOf[to] += amount;
+        require(_balances[msg.sender] >= amount, "Insufficient balance");
+        _balances[msg.sender] -= amount;
+        _balances[to] += amount;
         emit Transfer(msg.sender, to, amount);
         return true;
     }
@@ -47,10 +58,10 @@ contract FarmShareToken is Initializable, IERC20 {
     }
 
     function transferFrom(address from, address to, uint256 amount) external returns (bool) {
-        require(balanceOf[from] >= amount, "Insufficient balance");
+        require(_balances[from] >= amount, "Insufficient balance");
         require(allowance[from][msg.sender] >= amount, "Insufficient allowance");
-        balanceOf[from] -= amount;
-        balanceOf[to] += amount;
+        _balances[from] -= amount;
+        _balances[to] += amount;
         allowance[from][msg.sender] -= amount;
         emit Transfer(from, to, amount);
         return true;
@@ -409,8 +420,7 @@ contract NFTFarming is Initializable, ERC721Upgradeable, OwnableUpgradeable, Ree
         isFractionalized[tokenId] = true;
 
         // Mint all shares to the owner
-        shareToken.balanceOf[msg.sender] = totalShares;
-        shareToken.totalSupply = totalShares;
+        shareToken.mint(msg.sender, totalShares);
 
         emit NFTFractionalized(tokenId, address(shareToken), totalShares);
     }
@@ -679,7 +689,6 @@ contract NFTFarming is Initializable, ERC721Upgradeable, OwnableUpgradeable, Ree
     event NFTStaked(uint256 indexed tokenId, address indexed staker, uint256 stakeTime);
     event NFTUnstaked(uint256 indexed tokenId, address indexed staker, uint256 stakeDuration);
     event RewardsClaimed(address indexed staker, uint256 amount);
-    event QualityScoreUpdated(uint256 indexed tokenId, uint256 score);
     event BridgeValidatorAdded(address indexed validator);
     event BridgeValidatorRemoved(address indexed validator);
     event CrossChainTransferInitiated(uint256 indexed tokenId, address indexed from, address indexed to, string destinationChain);

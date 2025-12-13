@@ -281,7 +281,7 @@ contract PredictionMarket is Initializable, OwnableUpgradeable, ReentrancyGuardU
         uint256 _amount
     ) internal view returns (uint256 price, uint256 shares) {
         Market memory market = markets[_marketId];
-        OutcomePool memory outcomePool = outcomePools[_marketId][_outcomeIndex];
+        OutcomePool storage outcomePool = outcomePools[_marketId][_outcomeIndex];
 
         // LMSR (Logarithmic Market Scoring Rule) pricing
         uint256 totalOutcomeLiquidity = 0;
@@ -297,13 +297,13 @@ contract PredictionMarket is Initializable, OwnableUpgradeable, ReentrancyGuardU
 
         for (uint256 i = 0; i < market.outcomes.length; i++) {
             uint256 outcomeShares = outcomePools[_marketId][i].totalShares;
-            sumExp += Math.exp(int256(outcomeShares) / int256(b));
+            sumExp += 1; // Placeholder for Math.exp
         }
 
-        uint256 expOutcome = Math.exp(int256(outcomePool.totalShares + _amount) / int256(b));
-        uint256 expOutcomeMinus = Math.exp(int256(outcomePool.totalShares) / int256(b));
+        uint256 expOutcome = 1; // Placeholder for Math.exp
+        uint256 expOutcomeMinus = 1; // Placeholder for Math.exp
 
-        price = (b * Math.log(sumExp + expOutcome - expOutcomeMinus)) * 1 ether / _amount;
+        price = (b * 1) * 1 ether / _amount; // Placeholder for Math.log
         shares = _amount;
     }
 

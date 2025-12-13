@@ -699,7 +699,7 @@ contract LiquidityPool is Initializable, OwnableUpgradeable, ReentrancyGuardUpgr
         uint256 userRewards,
         uint256 rewardRate
     ) {
-        YieldFarm memory farm = yieldFarms[token];
+        YieldFarm storage farm = yieldFarms[token];
 
         // Calculate pending rewards
         uint256 currentTime = block.timestamp;

@@ -6,6 +6,7 @@ import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 
 contract CrossChainMessenger is Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable {
     using ECDSA for bytes32;
@@ -241,7 +242,7 @@ contract CrossChainMessenger is Initializable, OwnableUpgradeable, ReentrancyGua
         require(!message.validators[msg.sender], "Already validated");
 
         // Verify signature
-        bytes32 ethSignedMessageHash = message.messageHash.toEthSignedMessageHash();
+        bytes32 ethSignedMessageHash = MessageHashUtils.toEthSignedMessageHash(message.messageHash);
         address signer = ethSignedMessageHash.recover(_signature);
         require(signer == msg.sender, "Invalid signature");
 

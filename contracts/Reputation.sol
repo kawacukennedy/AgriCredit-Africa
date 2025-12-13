@@ -212,7 +212,7 @@ contract Reputation is Initializable, OwnableUpgradeable, UUPSUpgradeable {
                 reputation.reputationScore = maxReputationScore;
             }
         } else {
-            reputation.reputationScore = uint256(int256(reputation.reputationScore) - uint256(-scoreChange));
+            reputation.reputationScore = uint256(int256(reputation.reputationScore) - scoreChange);
             if (reputation.reputationScore < minReputationScore) {
                 reputation.reputationScore = minReputationScore;
             }

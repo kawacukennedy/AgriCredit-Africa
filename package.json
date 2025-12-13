@@ -7,8 +7,9 @@
     "build": "next build",
     "start": "next start",
     "test": "jest",
-    "compile": "npx hardhat compile",
     "test:contracts": "npx hardhat test",
+    "test:all": "npm run test:contracts && npm run test",
+    "compile": "npx hardhat compile",
     "lint": "next lint"
   },
   "dependencies": {

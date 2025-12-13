@@ -303,7 +303,7 @@ contract YieldAggregator is Initializable, OwnableUpgradeable, ReentrancyGuardUp
             uint256 currentAllocation = _getCurrentAllocation(_portfolio.user, strategyId);
             uint256 targetAllocation = _portfolio.allocations[strategyId];
 
-            if (Math.abs(int256(currentAllocation) - int256(targetAllocation)) > _portfolio.rebalanceThreshold) {
+            if ((currentAllocation > targetAllocation ? currentAllocation - targetAllocation : targetAllocation - currentAllocation) > _portfolio.rebalanceThreshold) {
                 return true;
             }
         }

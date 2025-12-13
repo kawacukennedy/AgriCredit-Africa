@@ -380,7 +380,7 @@ contract AdvancedInsurance is Initializable, OwnableUpgradeable, ReentrancyGuard
         require(pool.utilizedCapacity + _amount <= pool.totalCapacity, "Exceeds pool capacity");
 
         pool.contributions[msg.sender] += _amount;
-        pool.premiumPool += _amount;
+        pool.premiumCollected += _amount;
         pool.utilizedCapacity += _amount;
 
         emit PoolContribution(_poolId, msg.sender, _amount);
@@ -473,7 +473,7 @@ contract AdvancedInsurance is Initializable, OwnableUpgradeable, ReentrancyGuard
             pool.poolType,
             pool.totalCapacity,
             pool.utilizedCapacity,
-            pool.premiumPool,
+            pool.premiumCollected,
             pool.active
         );
     }
@@ -518,9 +518,9 @@ contract AdvancedInsurance is Initializable, OwnableUpgradeable, ReentrancyGuard
     // Withdraw accumulated premiums (for pool management)
     function withdrawPremiums(uint256 _poolId, uint256 _amount) external onlyOwner {
         InsurancePool storage pool = insurancePools[_poolId];
-        require(_amount <= pool.premiumPool, "Insufficient premiums");
+        require(_amount <= pool.premiumCollected, "Insufficient premiums");
 
-        pool.premiumPool -= _amount;
+        pool.premiumCollected -= _amount;
         payable(owner()).transfer(_amount);
     }
 

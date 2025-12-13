@@ -1,0 +1,1 @@
+// Babel config removed - using Next.js built-in config
