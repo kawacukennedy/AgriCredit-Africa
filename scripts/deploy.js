@@ -1,6 +1,6 @@
-import { ethers, upgrades } from "hardhat";
-import fs from "fs";
-import path from "path";
+const { ethers, upgrades } = require("hardhat");
+const fs = require("fs");
+const path = require("path");
 
 async function main() {
   console.log("🚀 Starting AgriCredit smart contract deployment...");

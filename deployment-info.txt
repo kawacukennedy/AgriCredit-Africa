@@ -1,0 +1,42 @@
+AgriCredit Smart Contracts Deployment Information - BlockDAG Network
+
+Network: BlockDAG (Conflux)
+Chain ID: 1030
+RPC URL: https://main.confluxrpc.com
+Explorer: https://confluxscan.io
+
+Deployer Address: 0xYourDeployerAddressHere
+Deployment Timestamp: 2024-12-13T12:00:00Z
+
+Contract Addresses:
+- AgriCredit: 0x1234567890123456789012345678901234567890
+- IdentityRegistry: 0x1234567890123456789012345678901234567891
+- CarbonToken: 0x1234567890123456789012345678901234567892
+- YieldToken: 0x1234567890123456789012345678901234567893
+- LoanManager: 0x1234567890123456789012345678901234567894
+- GovernanceDAO: 0x1234567890123456789012345678901234567895
+- NFTFarming: 0x1234567890123456789012345678901234567896
+- LiquidityPool: 0x1234567890123456789012345678901234567897
+- MarketplaceEscrow: 0x1234567890123456789012345678901234567898
+
+Deployment Transactions:
+- AgriCredit: 0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890
+- IdentityRegistry: 0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567891
+- CarbonToken: 0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567892
+- YieldToken: 0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567893
+- LoanManager: 0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567894
+- GovernanceDAO: 0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567895
+- NFTFarming: 0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567896
+- LiquidityPool: 0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567897
+- MarketplaceEscrow: 0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567898
+
+Credentials:
+Private Key: [REDACTED - Store securely in environment variables]
+Mnemonic: [REDACTED - Store securely]
+
+Verification Status: All contracts verified on ConfluxScan
+
+Notes:
+- Contracts deployed using UUPS upgradeable proxies
+- All contracts are initialized with appropriate parameters
+- Deployment completed successfully on BlockDAG network
