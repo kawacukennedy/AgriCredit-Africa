@@ -4265,6 +4265,59 @@ async def get_weather_data(location: str):
         logger.error("Weather data retrieval failed", error=str(e), location=location)
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post(
+    "/iot/sensor-data",
+    summary="Receive IoT sensor data",
+    description="Endpoint to receive sensor data from IoT devices for real-time monitoring"
+)
+async def receive_sensor_data(sensor_data: Dict[str, Any], background_tasks: BackgroundTasks):
+    """Receive and process IoT sensor data"""
+    try:
+        # Validate sensor data
+        required_fields = ['device_id', 'sensor_type', 'value', 'timestamp', 'location']
+        for field in required_fields:
+            if field not in sensor_data:
+                raise HTTPException(status_code=400, detail=f"Missing required field: {field}")
+
+        # Process sensor data asynchronously
+        background_tasks.add_task(process_sensor_data_async, sensor_data)
+
+        logger.info("Sensor data received", device_id=sensor_data['device_id'], sensor_type=sensor_data['sensor_type'])
+        return api_response.success({"message": "Sensor data received successfully"}, "Data queued for processing")
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Sensor data processing failed", error=str(e))
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get(
+    "/iot/sensor-readings/{device_id}",
+    summary="Get sensor readings for device",
+    description="Retrieve recent sensor readings for a specific IoT device"
+)
+async def get_sensor_readings(device_id: str, limit: int = 50, db: Session = Depends(get_db)):
+    """Get sensor readings for a device"""
+    try:
+        readings = db.query(SensorReading).filter(
+            SensorReading.device_id == device_id
+        ).order_by(SensorReading.timestamp.desc()).limit(limit).all()
+
+        return api_response.success({
+            "device_id": device_id,
+            "readings": [{
+                "id": reading.id,
+                "sensor_type": reading.sensor_type,
+                "value": reading.value,
+                "timestamp": reading.timestamp.isoformat(),
+                "location": reading.location
+            } for reading in readings]
+        }, f"Retrieved {len(readings)} sensor readings")
+
+    except Exception as e:
+        logger.error("Sensor readings retrieval failed", error=str(e), device_id=device_id)
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.get(
     "/oracle/crop-yield/{crop_type}/{region}",
     summary="Get crop yield data from oracle",
