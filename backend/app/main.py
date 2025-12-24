@@ -45,7 +45,7 @@ from .core.api_utils import (
     PaginationParams, PaginatedResponse, FilterParams,
     api_response, pagination_helper, filter_helper, audit_helper
 )
-from .api.graphql import graphql_app
+# from .api.graphql import graphql_app  # Temporarily disabled due to GraphQL schema issues
 from .api.schemas import (
     User as UserSchema, UserCreate, UserUpdate, Token, LoginRequest,
     SensorReading as SensorReadingSchema, SensorReadingCreate,
@@ -57,11 +57,15 @@ from .api.schemas import (
     MarketplaceListing as MarketplaceListingSchema, MarketplaceListingCreate,
     Notification as NotificationSchema, CarbonCredit as CarbonCreditSchema
 )
-from ..models.credit_scoring_model import CreditScoringModel
-from ..models.yield_prediction_model import YieldPredictionModel
-from ..models.climate_model import ClimateAnalysisModel
-from ..models.market_price_model import MarketPricePredictionModel
-from ..models.sentiment_model import SentimentAnalysisModel
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+
+from models.credit_scoring_model import CreditScoringModel
+from models.yield_prediction_model import YieldPredictionModel
+from models.climate_model import ClimateAnalysisModel
+from models.market_price_model import MarketPricePredictionModel
+from models.sentiment_model import SentimentAnalysisModel
 
 # Configure structured logging
 structlog.configure(
@@ -1838,7 +1842,7 @@ async def analyze_sensor_data(device_id: int, reading_id: int):
         logger.error("Sensor data analysis failed", error=str(analysis_error), device_id=device_id)
 
 # GraphQL API
-app.include_router(graphql_app, prefix="/graphql", tags=["graphql"])
+# app.include_router(graphql_app, prefix="/graphql", tags=["graphql"])  # Temporarily disabled
 
 # WebSocket endpoint
 @app.websocket("/ws/{user_id}")

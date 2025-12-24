@@ -1,8 +1,8 @@
 {
   "_format": "hh-sol-cache-2",
   "files": {
-    "/Volumes/RCA/agricredit/contracts/AIPredictor.sol": {
-      "lastModificationDate": 1765621452455,
+    "/Volumes/RCA/AgriCredit-Africa/contracts/AIPredictor.sol": {
+      "lastModificationDate": 1766580518594,
       "contentHash": "6742a2f436f830d40fbcbd89e0f1a9d3",
       "sourceName": "contracts/AIPredictor.sol",
       "solcConfig": {
@@ -11,7 +11,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -47,8 +47,8 @@
         "AIPredictor"
       ]
     },
-    "/Volumes/RCA/agricredit/contracts/DecentralizedOracle.sol": {
-      "lastModificationDate": 1765651828236,
+    "/Volumes/RCA/AgriCredit-Africa/contracts/DecentralizedOracle.sol": {
+      "lastModificationDate": 1766580518622,
       "contentHash": "e2fe2a099b7e74a33f8d864c5c4a16bd",
       "sourceName": "contracts/DecentralizedOracle.sol",
       "solcConfig": {
@@ -57,7 +57,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -92,8 +92,8 @@
         "DecentralizedOracle"
       ]
     },
-    "/Volumes/RCA/agricredit/node_modules/@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol": {
-      "lastModificationDate": 1765654701793,
+    "/Volumes/RCA/AgriCredit-Africa/node_modules/@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol": {
+      "lastModificationDate": 1766580706394,
       "contentHash": "24562076b21756e3358ede5e844008ce",
       "sourceName": "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol",
       "solcConfig": {
@@ -102,7 +102,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -132,8 +132,8 @@
         "ReentrancyGuardUpgradeable"
       ]
     },
-    "/Volumes/RCA/agricredit/node_modules/@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol": {
-      "lastModificationDate": 1765654701792,
+    "/Volumes/RCA/AgriCredit-Africa/node_modules/@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol": {
+      "lastModificationDate": 1766580706328,
       "contentHash": "77d30f3cd93f46b80b6f8f1ebc574ee4",
       "sourceName": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol",
       "solcConfig": {
@@ -142,7 +142,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -173,8 +173,87 @@
         "OwnableUpgradeable"
       ]
     },
-    "/Volumes/RCA/agricredit/node_modules/@openzeppelin/contracts/utils/Strings.sol": {
-      "lastModificationDate": 1765654701962,
+    "/Volumes/RCA/AgriCredit-Africa/node_modules/@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol": {
+      "lastModificationDate": 1766580706251,
+      "contentHash": "2acae54ad209714bca07edf4bae32f72",
+      "sourceName": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol",
+      "solcConfig": {
+        "version": "0.8.28",
+        "settings": {
+          "viaIR": true,
+          "optimizer": {
+            "enabled": true,
+            "runs": 1000
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "storageLayout"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "Initializable"
+      ]
+    },
+    "/Volumes/RCA/AgriCredit-Africa/node_modules/@openzeppelin/contracts/utils/math/Math.sol": {
+      "lastModificationDate": 1766580708318,
+      "contentHash": "5ec781e33d3a9ac91ffdc83d94420412",
+      "sourceName": "@openzeppelin/contracts/utils/math/Math.sol",
+      "solcConfig": {
+        "version": "0.8.28",
+        "settings": {
+          "viaIR": true,
+          "optimizer": {
+            "enabled": true,
+            "runs": 1000
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "storageLayout"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../Panic.sol",
+        "./SafeCast.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "Math"
+      ]
+    },
+    "/Volumes/RCA/AgriCredit-Africa/node_modules/@openzeppelin/contracts/utils/Strings.sol": {
+      "lastModificationDate": 1766580708881,
       "contentHash": "d8f70caf0e0c77dc908176ed44812fb7",
       "sourceName": "@openzeppelin/contracts/utils/Strings.sol",
       "solcConfig": {
@@ -183,7 +262,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -215,8 +294,8 @@
         "Strings"
       ]
     },
-    "/Volumes/RCA/agricredit/node_modules/@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol": {
-      "lastModificationDate": 1765654701797,
+    "/Volumes/RCA/AgriCredit-Africa/node_modules/@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol": {
+      "lastModificationDate": 1766580706452,
       "contentHash": "08db0b4bea3d52072346c326c5b857b7",
       "sourceName": "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol",
       "solcConfig": {
@@ -225,7 +304,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -257,87 +336,8 @@
         "UUPSUpgradeable"
       ]
     },
-    "/Volumes/RCA/agricredit/node_modules/@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol": {
-      "lastModificationDate": 1765654701788,
-      "contentHash": "2acae54ad209714bca07edf4bae32f72",
-      "sourceName": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol",
-      "solcConfig": {
-        "version": "0.8.28",
-        "settings": {
-          "viaIR": true,
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "evmVersion": "paris",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "storageLayout"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.8.20"
-      ],
-      "artifacts": [
-        "Initializable"
-      ]
-    },
-    "/Volumes/RCA/agricredit/node_modules/@openzeppelin/contracts/utils/math/Math.sol": {
-      "lastModificationDate": 1765654701729,
-      "contentHash": "5ec781e33d3a9ac91ffdc83d94420412",
-      "sourceName": "@openzeppelin/contracts/utils/math/Math.sol",
-      "solcConfig": {
-        "version": "0.8.28",
-        "settings": {
-          "viaIR": true,
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "evmVersion": "paris",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "storageLayout"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "../Panic.sol",
-        "./SafeCast.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.20"
-      ],
-      "artifacts": [
-        "Math"
-      ]
-    },
-    "/Volumes/RCA/agricredit/node_modules/@openzeppelin/contracts/utils/cryptography/ECDSA.sol": {
-      "lastModificationDate": 1765654701294,
+    "/Volumes/RCA/AgriCredit-Africa/node_modules/@openzeppelin/contracts/utils/cryptography/ECDSA.sol": {
+      "lastModificationDate": 1766580706913,
       "contentHash": "81de029d56aa803972be03c5d277cb6c",
       "sourceName": "@openzeppelin/contracts/utils/cryptography/ECDSA.sol",
       "solcConfig": {
@@ -346,7 +346,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -374,8 +374,8 @@
         "ECDSA"
       ]
     },
-    "/Volumes/RCA/agricredit/node_modules/@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol": {
-      "lastModificationDate": 1765654700879,
+    "/Volumes/RCA/AgriCredit-Africa/node_modules/@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol": {
+      "lastModificationDate": 1766580704865,
       "contentHash": "c28aaa25d083a9a55bd9ec9e0b785122",
       "sourceName": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol",
       "solcConfig": {
@@ -384,7 +384,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -414,8 +414,8 @@
         "ContextUpgradeable"
       ]
     },
-    "/Volumes/RCA/agricredit/node_modules/@openzeppelin/contracts/interfaces/draft-IERC1822.sol": {
-      "lastModificationDate": 1765654701107,
+    "/Volumes/RCA/AgriCredit-Africa/node_modules/@openzeppelin/contracts/interfaces/draft-IERC1822.sol": {
+      "lastModificationDate": 1766580706792,
       "contentHash": "9b2cafd2153b51bcfd7f4cb4cfc975aa",
       "sourceName": "@openzeppelin/contracts/interfaces/draft-IERC1822.sol",
       "solcConfig": {
@@ -424,7 +424,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -452,8 +452,8 @@
         "IERC1822Proxiable"
       ]
     },
-    "/Volumes/RCA/agricredit/node_modules/@openzeppelin/contracts/proxy/ERC1967/ERC1967Utils.sol": {
-      "lastModificationDate": 1765654701382,
+    "/Volumes/RCA/AgriCredit-Africa/node_modules/@openzeppelin/contracts/proxy/ERC1967/ERC1967Utils.sol": {
+      "lastModificationDate": 1766580707242,
       "contentHash": "2741625b983eb412cfdd8aa55a7671c1",
       "sourceName": "@openzeppelin/contracts/proxy/ERC1967/ERC1967Utils.sol",
       "solcConfig": {
@@ -462,7 +462,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -495,46 +495,8 @@
         "ERC1967Utils"
       ]
     },
-    "/Volumes/RCA/agricredit/node_modules/@openzeppelin/contracts/utils/StorageSlot.sol": {
-      "lastModificationDate": 1765654701961,
-      "contentHash": "e656d64c4ce918f3d13030b91c935134",
-      "sourceName": "@openzeppelin/contracts/utils/StorageSlot.sol",
-      "solcConfig": {
-        "version": "0.8.28",
-        "settings": {
-          "viaIR": true,
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "evmVersion": "paris",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "storageLayout"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.8.20"
-      ],
-      "artifacts": [
-        "StorageSlot"
-      ]
-    },
-    "/Volumes/RCA/agricredit/node_modules/@openzeppelin/contracts/interfaces/IERC1967.sol": {
-      "lastModificationDate": 1765654701589,
+    "/Volumes/RCA/AgriCredit-Africa/node_modules/@openzeppelin/contracts/interfaces/IERC1967.sol": {
+      "lastModificationDate": 1766580708077,
       "contentHash": "3c9577899f440b0c66e880c96e9250bb",
       "sourceName": "@openzeppelin/contracts/interfaces/IERC1967.sol",
       "solcConfig": {
@@ -543,7 +505,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -571,8 +533,8 @@
         "IERC1967"
       ]
     },
-    "/Volumes/RCA/agricredit/node_modules/@openzeppelin/contracts/utils/Address.sol": {
-      "lastModificationDate": 1765654700541,
+    "/Volumes/RCA/AgriCredit-Africa/node_modules/@openzeppelin/contracts/utils/Address.sol": {
+      "lastModificationDate": 1766580706302,
       "contentHash": "2a06d82f31f75087bf90231599da4f1c",
       "sourceName": "@openzeppelin/contracts/utils/Address.sol",
       "solcConfig": {
@@ -581,7 +543,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -611,8 +573,46 @@
         "Address"
       ]
     },
-    "/Volumes/RCA/agricredit/node_modules/@openzeppelin/contracts/proxy/beacon/IBeacon.sol": {
-      "lastModificationDate": 1765654701584,
+    "/Volumes/RCA/AgriCredit-Africa/node_modules/@openzeppelin/contracts/utils/StorageSlot.sol": {
+      "lastModificationDate": 1766580708869,
+      "contentHash": "e656d64c4ce918f3d13030b91c935134",
+      "sourceName": "@openzeppelin/contracts/utils/StorageSlot.sol",
+      "solcConfig": {
+        "version": "0.8.28",
+        "settings": {
+          "viaIR": true,
+          "optimizer": {
+            "enabled": true,
+            "runs": 1000
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "storageLayout"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "StorageSlot"
+      ]
+    },
+    "/Volumes/RCA/AgriCredit-Africa/node_modules/@openzeppelin/contracts/proxy/beacon/IBeacon.sol": {
+      "lastModificationDate": 1766580707968,
       "contentHash": "ee2e46607ed2be58bd554306d068acba",
       "sourceName": "@openzeppelin/contracts/proxy/beacon/IBeacon.sol",
       "solcConfig": {
@@ -621,7 +621,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -649,8 +649,8 @@
         "IBeacon"
       ]
     },
-    "/Volumes/RCA/agricredit/node_modules/@openzeppelin/contracts/utils/Errors.sol": {
-      "lastModificationDate": 1765654701403,
+    "/Volumes/RCA/AgriCredit-Africa/node_modules/@openzeppelin/contracts/utils/Errors.sol": {
+      "lastModificationDate": 1766580707621,
       "contentHash": "6b5eac2b85500c3012977849cfd633d8",
       "sourceName": "@openzeppelin/contracts/utils/Errors.sol",
       "solcConfig": {
@@ -659,7 +659,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -687,8 +687,8 @@
         "Errors"
       ]
     },
-    "/Volumes/RCA/agricredit/node_modules/@openzeppelin/contracts/utils/Panic.sol": {
-      "lastModificationDate": 1765654701951,
+    "/Volumes/RCA/AgriCredit-Africa/node_modules/@openzeppelin/contracts/utils/Panic.sol": {
+      "lastModificationDate": 1766580708619,
       "contentHash": "2133dc13536b4a6a98131e431fac59e1",
       "sourceName": "@openzeppelin/contracts/utils/Panic.sol",
       "solcConfig": {
@@ -697,7 +697,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -725,8 +725,8 @@
         "Panic"
       ]
     },
-    "/Volumes/RCA/agricredit/node_modules/@openzeppelin/contracts/utils/math/SafeCast.sol": {
-      "lastModificationDate": 1765654701954,
+    "/Volumes/RCA/AgriCredit-Africa/node_modules/@openzeppelin/contracts/utils/math/SafeCast.sol": {
+      "lastModificationDate": 1766580708724,
       "contentHash": "2adca1150f58fc6f3d1f0a0f22ee7cca",
       "sourceName": "@openzeppelin/contracts/utils/math/SafeCast.sol",
       "solcConfig": {
@@ -735,7 +735,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -763,8 +763,8 @@
         "SafeCast"
       ]
     },
-    "/Volumes/RCA/agricredit/node_modules/@openzeppelin/contracts/utils/math/SignedMath.sol": {
-      "lastModificationDate": 1765654701957,
+    "/Volumes/RCA/AgriCredit-Africa/node_modules/@openzeppelin/contracts/utils/math/SignedMath.sol": {
+      "lastModificationDate": 1766580708764,
       "contentHash": "ae3528afb8bdb0a7dcfba5b115ee8074",
       "sourceName": "@openzeppelin/contracts/utils/math/SignedMath.sol",
       "solcConfig": {
@@ -773,7 +773,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -803,8 +803,8 @@
         "SignedMath"
       ]
     },
-    "/Volumes/RCA/agricredit/contracts/DynamicNFT.sol": {
-      "lastModificationDate": 1765649972884,
+    "/Volumes/RCA/AgriCredit-Africa/contracts/DynamicNFT.sol": {
+      "lastModificationDate": 1766580518622,
       "contentHash": "cbca6861c303bdfe43e94d1339cdb7b6",
       "sourceName": "contracts/DynamicNFT.sol",
       "solcConfig": {
@@ -813,7 +813,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -849,8 +849,8 @@
         "DynamicNFT"
       ]
     },
-    "/Volumes/RCA/agricredit/node_modules/@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol": {
-      "lastModificationDate": 1765654701393,
+    "/Volumes/RCA/AgriCredit-Africa/node_modules/@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol": {
+      "lastModificationDate": 1766580705961,
       "contentHash": "1c5851d32f3a9b29c8962274b38974a7",
       "sourceName": "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol",
       "solcConfig": {
@@ -859,7 +859,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -897,8 +897,8 @@
         "ERC721Upgradeable"
       ]
     },
-    "/Volumes/RCA/agricredit/node_modules/@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol": {
-      "lastModificationDate": 1765654700998,
+    "/Volumes/RCA/AgriCredit-Africa/node_modules/@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol": {
+      "lastModificationDate": 1766580705428,
       "contentHash": "4d250f562322f9c023c5503064ffc12f",
       "sourceName": "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol",
       "solcConfig": {
@@ -907,7 +907,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -938,8 +938,8 @@
         "ERC165Upgradeable"
       ]
     },
-    "/Volumes/RCA/agricredit/node_modules/@openzeppelin/contracts/interfaces/draft-IERC6093.sol": {
-      "lastModificationDate": 1765654701108,
+    "/Volumes/RCA/AgriCredit-Africa/node_modules/@openzeppelin/contracts/interfaces/draft-IERC6093.sol": {
+      "lastModificationDate": 1766580706815,
       "contentHash": "5041977bbe908de2e6ed0270447f79ad",
       "sourceName": "@openzeppelin/contracts/interfaces/draft-IERC6093.sol",
       "solcConfig": {
@@ -948,7 +948,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -978,46 +978,8 @@
         "IERC721Errors"
       ]
     },
-    "/Volumes/RCA/agricredit/node_modules/@openzeppelin/contracts/utils/introspection/IERC165.sol": {
-      "lastModificationDate": 1765654701588,
-      "contentHash": "7074c93b1ea0a122063f26ddd1db1032",
-      "sourceName": "@openzeppelin/contracts/utils/introspection/IERC165.sol",
-      "solcConfig": {
-        "version": "0.8.28",
-        "settings": {
-          "viaIR": true,
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "evmVersion": "paris",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "storageLayout"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        ">=0.4.16"
-      ],
-      "artifacts": [
-        "IERC165"
-      ]
-    },
-    "/Volumes/RCA/agricredit/node_modules/@openzeppelin/contracts/token/ERC721/IERC721.sol": {
-      "lastModificationDate": 1765654701593,
+    "/Volumes/RCA/AgriCredit-Africa/node_modules/@openzeppelin/contracts/token/ERC721/IERC721.sol": {
+      "lastModificationDate": 1766580708211,
       "contentHash": "f62e11dbd302e17a5621a1438f4e054c",
       "sourceName": "@openzeppelin/contracts/token/ERC721/IERC721.sol",
       "solcConfig": {
@@ -1026,7 +988,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -1056,8 +1018,46 @@
         "IERC721"
       ]
     },
-    "/Volumes/RCA/agricredit/node_modules/@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol": {
-      "lastModificationDate": 1765654701594,
+    "/Volumes/RCA/AgriCredit-Africa/node_modules/@openzeppelin/contracts/utils/introspection/IERC165.sol": {
+      "lastModificationDate": 1766580708065,
+      "contentHash": "7074c93b1ea0a122063f26ddd1db1032",
+      "sourceName": "@openzeppelin/contracts/utils/introspection/IERC165.sol",
+      "solcConfig": {
+        "version": "0.8.28",
+        "settings": {
+          "viaIR": true,
+          "optimizer": {
+            "enabled": true,
+            "runs": 1000
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "storageLayout"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        ">=0.4.16"
+      ],
+      "artifacts": [
+        "IERC165"
+      ]
+    },
+    "/Volumes/RCA/AgriCredit-Africa/node_modules/@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol": {
+      "lastModificationDate": 1766580708228,
       "contentHash": "136c64eca25bcb8a68f43ac6605559f9",
       "sourceName": "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol",
       "solcConfig": {
@@ -1066,7 +1066,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -1096,8 +1096,8 @@
         "IERC721Metadata"
       ]
     },
-    "/Volumes/RCA/agricredit/node_modules/@openzeppelin/contracts/token/ERC721/utils/ERC721Utils.sol": {
-      "lastModificationDate": 1765654701402,
+    "/Volumes/RCA/AgriCredit-Africa/node_modules/@openzeppelin/contracts/token/ERC721/utils/ERC721Utils.sol": {
+      "lastModificationDate": 1766580707592,
       "contentHash": "4cefad279a37c895b709bce2b901816e",
       "sourceName": "@openzeppelin/contracts/token/ERC721/utils/ERC721Utils.sol",
       "solcConfig": {
@@ -1106,7 +1106,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -1137,8 +1137,8 @@
         "ERC721Utils"
       ]
     },
-    "/Volumes/RCA/agricredit/node_modules/@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol": {
-      "lastModificationDate": 1765654701594,
+    "/Volumes/RCA/AgriCredit-Africa/node_modules/@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol": {
+      "lastModificationDate": 1766580708248,
       "contentHash": "d61660a41ce200e99816e4734f7fd202",
       "sourceName": "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol",
       "solcConfig": {
@@ -1147,7 +1147,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -1175,8 +1175,8 @@
         "IERC721Receiver"
       ]
     },
-    "/Volumes/RCA/agricredit/node_modules/@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721URIStorageUpgradeable.sol": {
-      "lastModificationDate": 1765654701394,
+    "/Volumes/RCA/AgriCredit-Africa/node_modules/@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721URIStorageUpgradeable.sol": {
+      "lastModificationDate": 1766580705970,
       "contentHash": "f8f3407312c59eaa503141607bb2692e",
       "sourceName": "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721URIStorageUpgradeable.sol",
       "solcConfig": {
@@ -1185,7 +1185,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -1220,8 +1220,8 @@
         "ERC721URIStorageUpgradeable"
       ]
     },
-    "/Volumes/RCA/agricredit/node_modules/@openzeppelin/contracts/interfaces/IERC4906.sol": {
-      "lastModificationDate": 1765654701592,
+    "/Volumes/RCA/AgriCredit-Africa/node_modules/@openzeppelin/contracts/interfaces/IERC4906.sol": {
+      "lastModificationDate": 1766580708160,
       "contentHash": "4386d2e9b1578157802062e156bd9ae1",
       "sourceName": "@openzeppelin/contracts/interfaces/IERC4906.sol",
       "solcConfig": {
@@ -1230,7 +1230,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -1261,46 +1261,8 @@
         "IERC4906"
       ]
     },
-    "/Volumes/RCA/agricredit/node_modules/@openzeppelin/contracts/interfaces/IERC721.sol": {
-      "lastModificationDate": 1765654701593,
-      "contentHash": "6b9716905fb42874ed1769ae7f7458b1",
-      "sourceName": "@openzeppelin/contracts/interfaces/IERC721.sol",
-      "solcConfig": {
-        "version": "0.8.28",
-        "settings": {
-          "viaIR": true,
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "evmVersion": "paris",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "storageLayout"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "../token/ERC721/IERC721.sol"
-      ],
-      "versionPragmas": [
-        ">=0.6.2"
-      ],
-      "artifacts": []
-    },
-    "/Volumes/RCA/agricredit/node_modules/@openzeppelin/contracts/interfaces/IERC165.sol": {
-      "lastModificationDate": 1765654701588,
+    "/Volumes/RCA/AgriCredit-Africa/node_modules/@openzeppelin/contracts/interfaces/IERC165.sol": {
+      "lastModificationDate": 1766580708061,
       "contentHash": "947853028399b7de34bcc3704ee06e99",
       "sourceName": "@openzeppelin/contracts/interfaces/IERC165.sol",
       "solcConfig": {
@@ -1309,7 +1271,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -1337,8 +1299,46 @@
       ],
       "artifacts": []
     },
-    "/Volumes/RCA/agricredit/node_modules/@openzeppelin/contracts-upgradeable/utils/cryptography/EIP712Upgradeable.sol": {
-      "lastModificationDate": 1765654700994,
+    "/Volumes/RCA/AgriCredit-Africa/node_modules/@openzeppelin/contracts/interfaces/IERC721.sol": {
+      "lastModificationDate": 1766580708207,
+      "contentHash": "6b9716905fb42874ed1769ae7f7458b1",
+      "sourceName": "@openzeppelin/contracts/interfaces/IERC721.sol",
+      "solcConfig": {
+        "version": "0.8.28",
+        "settings": {
+          "viaIR": true,
+          "optimizer": {
+            "enabled": true,
+            "runs": 1000
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "storageLayout"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../token/ERC721/IERC721.sol"
+      ],
+      "versionPragmas": [
+        ">=0.6.2"
+      ],
+      "artifacts": []
+    },
+    "/Volumes/RCA/AgriCredit-Africa/node_modules/@openzeppelin/contracts-upgradeable/utils/cryptography/EIP712Upgradeable.sol": {
+      "lastModificationDate": 1766580705206,
       "contentHash": "f8055e450e39c5c05fe8765503402e52",
       "sourceName": "@openzeppelin/contracts-upgradeable/utils/cryptography/EIP712Upgradeable.sol",
       "solcConfig": {
@@ -1347,7 +1347,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -1379,8 +1379,8 @@
         "EIP712Upgradeable"
       ]
     },
-    "/Volumes/RCA/agricredit/node_modules/@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol": {
-      "lastModificationDate": 1765654701934,
+    "/Volumes/RCA/AgriCredit-Africa/node_modules/@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol": {
+      "lastModificationDate": 1766580708377,
       "contentHash": "260f3968eefa3bbd30520cff5384cd93",
       "sourceName": "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol",
       "solcConfig": {
@@ -1389,7 +1389,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -1419,8 +1419,8 @@
         "MessageHashUtils"
       ]
     },
-    "/Volumes/RCA/agricredit/node_modules/@openzeppelin/contracts/interfaces/IERC5267.sol": {
-      "lastModificationDate": 1765654701592,
+    "/Volumes/RCA/AgriCredit-Africa/node_modules/@openzeppelin/contracts/interfaces/IERC5267.sol": {
+      "lastModificationDate": 1766580708164,
       "contentHash": "6e00d2fe4bc0d5f1add753824498bb35",
       "sourceName": "@openzeppelin/contracts/interfaces/IERC5267.sol",
       "solcConfig": {
@@ -1429,7 +1429,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -1457,8 +1457,8 @@
         "IERC5267"
       ]
     },
-    "/Volumes/RCA/agricredit/node_modules/@openzeppelin/contracts/utils/types/Time.sol": {
-      "lastModificationDate": 1765654701963,
+    "/Volumes/RCA/AgriCredit-Africa/node_modules/@openzeppelin/contracts/utils/types/Time.sol": {
+      "lastModificationDate": 1766580708892,
       "contentHash": "d83e7814a059fc1287fd765f424ce004",
       "sourceName": "@openzeppelin/contracts/utils/types/Time.sol",
       "solcConfig": {
@@ -1467,7 +1467,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -1498,8 +1498,8 @@
         "Time"
       ]
     },
-    "/Volumes/RCA/agricredit/node_modules/@openzeppelin/contracts/utils/structs/Checkpoints.sol": {
-      "lastModificationDate": 1765654700874,
+    "/Volumes/RCA/AgriCredit-Africa/node_modules/@openzeppelin/contracts/utils/structs/Checkpoints.sol": {
+      "lastModificationDate": 1766580706474,
       "contentHash": "7e3b3e7a04ea9d446b39835a2f6a58cd",
       "sourceName": "@openzeppelin/contracts/utils/structs/Checkpoints.sol",
       "solcConfig": {
@@ -1508,7 +1508,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -1538,8 +1538,8 @@
         "Checkpoints"
       ]
     },
-    "/Volumes/RCA/agricredit/node_modules/@openzeppelin/contracts-upgradeable/governance/utils/VotesUpgradeable.sol": {
-      "lastModificationDate": 1765654701803,
+    "/Volumes/RCA/AgriCredit-Africa/node_modules/@openzeppelin/contracts-upgradeable/governance/utils/VotesUpgradeable.sol": {
+      "lastModificationDate": 1766580706504,
       "contentHash": "c1ced7ce42768948b420e56366d609b2",
       "sourceName": "@openzeppelin/contracts-upgradeable/governance/utils/VotesUpgradeable.sol",
       "solcConfig": {
@@ -1548,7 +1548,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -1586,8 +1586,8 @@
         "VotesUpgradeable"
       ]
     },
-    "/Volumes/RCA/agricredit/node_modules/@openzeppelin/contracts-upgradeable/utils/NoncesUpgradeable.sol": {
-      "lastModificationDate": 1765654701791,
+    "/Volumes/RCA/AgriCredit-Africa/node_modules/@openzeppelin/contracts-upgradeable/utils/NoncesUpgradeable.sol": {
+      "lastModificationDate": 1766580706303,
       "contentHash": "42abaa30579e947b1f601ff9756eb47c",
       "sourceName": "@openzeppelin/contracts-upgradeable/utils/NoncesUpgradeable.sol",
       "solcConfig": {
@@ -1596,7 +1596,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -1626,8 +1626,8 @@
         "NoncesUpgradeable"
       ]
     },
-    "/Volumes/RCA/agricredit/node_modules/@openzeppelin/contracts/interfaces/IERC5805.sol": {
-      "lastModificationDate": 1765654701592,
+    "/Volumes/RCA/AgriCredit-Africa/node_modules/@openzeppelin/contracts/interfaces/IERC5805.sol": {
+      "lastModificationDate": 1766580708175,
       "contentHash": "4ca519ef7ae252e5aaff422172d4e8a9",
       "sourceName": "@openzeppelin/contracts/interfaces/IERC5805.sol",
       "solcConfig": {
@@ -1636,7 +1636,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -1667,8 +1667,8 @@
         "IERC5805"
       ]
     },
-    "/Volumes/RCA/agricredit/node_modules/@openzeppelin/contracts/governance/utils/IVotes.sol": {
-      "lastModificationDate": 1765654701728,
+    "/Volumes/RCA/AgriCredit-Africa/node_modules/@openzeppelin/contracts/governance/utils/IVotes.sol": {
+      "lastModificationDate": 1766580708310,
       "contentHash": "61c6e9b90081d85a755a3107dcaacc26",
       "sourceName": "@openzeppelin/contracts/governance/utils/IVotes.sol",
       "solcConfig": {
@@ -1677,7 +1677,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -1705,8 +1705,8 @@
         "IVotes"
       ]
     },
-    "/Volumes/RCA/agricredit/node_modules/@openzeppelin/contracts/interfaces/IERC6372.sol": {
-      "lastModificationDate": 1765654701593,
+    "/Volumes/RCA/AgriCredit-Africa/node_modules/@openzeppelin/contracts/interfaces/IERC6372.sol": {
+      "lastModificationDate": 1766580708202,
       "contentHash": "af8cb4a1b941a8230c36de0b4aacf653",
       "sourceName": "@openzeppelin/contracts/interfaces/IERC6372.sol",
       "solcConfig": {
@@ -1715,7 +1715,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -1743,8 +1743,8 @@
         "IERC6372"
       ]
     },
-    "/Volumes/RCA/agricredit/contracts/Reputation.sol": {
-      "lastModificationDate": 1765651763063,
+    "/Volumes/RCA/AgriCredit-Africa/contracts/Reputation.sol": {
+      "lastModificationDate": 1766580518628,
       "contentHash": "74e4ad7059c78231e3f90023b609e8d4",
       "sourceName": "contracts/Reputation.sol",
       "solcConfig": {
@@ -1753,7 +1753,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -1786,8 +1786,8 @@
         "Reputation"
       ]
     },
-    "/Volumes/RCA/agricredit/contracts/YieldVault.sol": {
-      "lastModificationDate": 1765099377779,
+    "/Volumes/RCA/AgriCredit-Africa/contracts/YieldVault.sol": {
+      "lastModificationDate": 1766580518630,
       "contentHash": "1b06117a3aacae2afc5c07de704f36c5",
       "sourceName": "contracts/YieldVault.sol",
       "solcConfig": {
@@ -1796,7 +1796,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -1834,9 +1834,9 @@
         "YieldVault"
       ]
     },
-    "/Volumes/RCA/agricredit/contracts/LiquidityPool.sol": {
-      "lastModificationDate": 1765650630127,
-      "contentHash": "435245148bff0702dd0a3bcf11259eb2",
+    "/Volumes/RCA/AgriCredit-Africa/contracts/LiquidityPool.sol": {
+      "lastModificationDate": 1766581961306,
+      "contentHash": "b36e1e5f36485f4ae0089a3f292b975c",
       "sourceName": "contracts/LiquidityPool.sol",
       "solcConfig": {
         "version": "0.8.28",
@@ -1844,7 +1844,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -1881,8 +1881,8 @@
         "LiquidityPool"
       ]
     },
-    "/Volumes/RCA/agricredit/contracts/YieldToken.sol": {
-      "lastModificationDate": 1765656477891,
+    "/Volumes/RCA/AgriCredit-Africa/contracts/YieldToken.sol": {
+      "lastModificationDate": 1766580518630,
       "contentHash": "0f85fcb2d41d2577e4a939eff3c37649",
       "sourceName": "contracts/YieldToken.sol",
       "solcConfig": {
@@ -1891,7 +1891,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -1926,8 +1926,8 @@
         "YieldToken"
       ]
     },
-    "/Volumes/RCA/agricredit/node_modules/@openzeppelin/contracts/token/ERC20/IERC20.sol": {
-      "lastModificationDate": 1765654701589,
+    "/Volumes/RCA/AgriCredit-Africa/node_modules/@openzeppelin/contracts/token/ERC20/IERC20.sol": {
+      "lastModificationDate": 1766580708095,
       "contentHash": "9261adf6457863de3e9892f51317ec89",
       "sourceName": "@openzeppelin/contracts/token/ERC20/IERC20.sol",
       "solcConfig": {
@@ -1936,7 +1936,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -1964,8 +1964,8 @@
         "IERC20"
       ]
     },
-    "/Volumes/RCA/agricredit/contracts/ICrossChainBridge.sol": {
-      "lastModificationDate": 1765097119744,
+    "/Volumes/RCA/AgriCredit-Africa/contracts/ICrossChainBridge.sol": {
+      "lastModificationDate": 1766580518624,
       "contentHash": "a90d0a90f2e188a78796a583a88f3c60",
       "sourceName": "contracts/ICrossChainBridge.sol",
       "solcConfig": {
@@ -1974,7 +1974,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -2002,8 +2002,8 @@
         "ICrossChainBridge"
       ]
     },
-    "/Volumes/RCA/agricredit/contracts/CarbonToken.sol": {
-      "lastModificationDate": 1765656044739,
+    "/Volumes/RCA/AgriCredit-Africa/contracts/CarbonToken.sol": {
+      "lastModificationDate": 1766580518609,
       "contentHash": "474d25e85fd88835904f4869aa37547c",
       "sourceName": "contracts/CarbonToken.sol",
       "solcConfig": {
@@ -2012,7 +2012,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -2053,8 +2053,8 @@
         "SoulboundCarbonCredit"
       ]
     },
-    "/Volumes/RCA/agricredit/node_modules/@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol": {
-      "lastModificationDate": 1765654701371,
+    "/Volumes/RCA/AgriCredit-Africa/node_modules/@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol": {
+      "lastModificationDate": 1766580705551,
       "contentHash": "f5cb0cb4dcb2ad0074b448995119804b",
       "sourceName": "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol",
       "solcConfig": {
@@ -2063,7 +2063,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -2097,8 +2097,8 @@
         "ERC20Upgradeable"
       ]
     },
-    "/Volumes/RCA/agricredit/node_modules/@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20BurnableUpgradeable.sol": {
-      "lastModificationDate": 1765654700998,
+    "/Volumes/RCA/AgriCredit-Africa/node_modules/@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20BurnableUpgradeable.sol": {
+      "lastModificationDate": 1766580705432,
       "contentHash": "1715e45b25825865aadbbd2205cbfe06",
       "sourceName": "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20BurnableUpgradeable.sol",
       "solcConfig": {
@@ -2107,7 +2107,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -2139,8 +2139,8 @@
         "ERC20BurnableUpgradeable"
       ]
     },
-    "/Volumes/RCA/agricredit/node_modules/@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol": {
-      "lastModificationDate": 1765654701590,
+    "/Volumes/RCA/AgriCredit-Africa/node_modules/@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol": {
+      "lastModificationDate": 1766580708106,
       "contentHash": "513778b30d2750f5d2b9b19bbcf748a5",
       "sourceName": "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol",
       "solcConfig": {
@@ -2149,7 +2149,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -2179,8 +2179,8 @@
         "IERC20Metadata"
       ]
     },
-    "/Volumes/RCA/agricredit/node_modules/@openzeppelin/contracts/interfaces/IERC20.sol": {
-      "lastModificationDate": 1765654701589,
+    "/Volumes/RCA/AgriCredit-Africa/node_modules/@openzeppelin/contracts/interfaces/IERC20.sol": {
+      "lastModificationDate": 1766580708089,
       "contentHash": "68620db2da7583d9a4919096ac77f577",
       "sourceName": "@openzeppelin/contracts/interfaces/IERC20.sol",
       "solcConfig": {
@@ -2189,7 +2189,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -2217,8 +2217,8 @@
       ],
       "artifacts": []
     },
-    "/Volumes/RCA/agricredit/node_modules/@openzeppelin/contracts/interfaces/IERC1363.sol": {
-      "lastModificationDate": 1765654701588,
+    "/Volumes/RCA/AgriCredit-Africa/node_modules/@openzeppelin/contracts/interfaces/IERC1363.sol": {
+      "lastModificationDate": 1766580708052,
       "contentHash": "a7fd0f05e36b0d0a21c75340c9c639ec",
       "sourceName": "@openzeppelin/contracts/interfaces/IERC1363.sol",
       "solcConfig": {
@@ -2227,7 +2227,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -2258,8 +2258,8 @@
         "IERC1363"
       ]
     },
-    "/Volumes/RCA/agricredit/node_modules/@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol": {
-      "lastModificationDate": 1765654701955,
+    "/Volumes/RCA/AgriCredit-Africa/node_modules/@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol": {
+      "lastModificationDate": 1766580708732,
       "contentHash": "1fb9edee1d763745a62d0b1954998792",
       "sourceName": "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol",
       "solcConfig": {
@@ -2268,7 +2268,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -2299,8 +2299,8 @@
         "SafeERC20"
       ]
     },
-    "/Volumes/RCA/agricredit/contracts/YieldAggregator.sol": {
-      "lastModificationDate": 1765651791164,
+    "/Volumes/RCA/AgriCredit-Africa/contracts/YieldAggregator.sol": {
+      "lastModificationDate": 1766580518629,
       "contentHash": "885c7e981ac5cf5b3bc41b784c0c1644",
       "sourceName": "contracts/YieldAggregator.sol",
       "solcConfig": {
@@ -2309,7 +2309,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -2349,8 +2349,8 @@
         "YieldAggregator"
       ]
     },
-    "/Volumes/RCA/agricredit/contracts/StakingRewards.sol": {
-      "lastModificationDate": 1765099199193,
+    "/Volumes/RCA/AgriCredit-Africa/contracts/StakingRewards.sol": {
+      "lastModificationDate": 1766580518629,
       "contentHash": "c6792af6073e5ac193f7ea2eb8b49cb2",
       "sourceName": "contracts/StakingRewards.sol",
       "solcConfig": {
@@ -2359,7 +2359,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -2396,17 +2396,17 @@
         "StakingRewards"
       ]
     },
-    "/Volumes/RCA/agricredit/node_modules/@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20VotesUpgradeable.sol": {
-      "lastModificationDate": 1765654701373,
-      "contentHash": "b41e4fe35151d0c778a4f082e79246c9",
-      "sourceName": "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20VotesUpgradeable.sol",
+    "/Volumes/RCA/AgriCredit-Africa/node_modules/@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20PausableUpgradeable.sol": {
+      "lastModificationDate": 1766580705488,
+      "contentHash": "46d770a6194b5c717774c7ce4287ffd1",
+      "sourceName": "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20PausableUpgradeable.sol",
       "solcConfig": {
         "version": "0.8.28",
         "settings": {
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -2428,28 +2428,27 @@
       },
       "imports": [
         "../ERC20Upgradeable.sol",
-        "../../../governance/utils/VotesUpgradeable.sol",
-        "@openzeppelin/contracts/utils/structs/Checkpoints.sol",
+        "../../../utils/PausableUpgradeable.sol",
         "../../../proxy/utils/Initializable.sol"
       ],
       "versionPragmas": [
         "^0.8.20"
       ],
       "artifacts": [
-        "ERC20VotesUpgradeable"
+        "ERC20PausableUpgradeable"
       ]
     },
-    "/Volumes/RCA/agricredit/contracts/GovernanceToken.sol": {
-      "lastModificationDate": 1765650193022,
-      "contentHash": "a60d58f720e1fb7eceef9f6db73b7547",
-      "sourceName": "contracts/GovernanceToken.sol",
+    "/Volumes/RCA/AgriCredit-Africa/node_modules/@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol": {
+      "lastModificationDate": 1766580706359,
+      "contentHash": "a77dad8312dfaddab72fab403ee0c0a6",
+      "sourceName": "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol",
       "solcConfig": {
         "version": "0.8.28",
         "settings": {
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -2470,22 +2469,18 @@
         }
       },
       "imports": [
-        "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol",
-        "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20VotesUpgradeable.sol",
-        "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol",
-        "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol",
-        "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol",
-        "@openzeppelin/contracts/utils/math/Math.sol"
+        "../utils/ContextUpgradeable.sol",
+        "../proxy/utils/Initializable.sol"
       ],
       "versionPragmas": [
-        "^0.8.28"
+        "^0.8.20"
       ],
       "artifacts": [
-        "GovernanceToken"
+        "PausableUpgradeable"
       ]
     },
-    "/Volumes/RCA/agricredit/contracts/LoanManager.sol": {
-      "lastModificationDate": 1765656744676,
+    "/Volumes/RCA/AgriCredit-Africa/contracts/LoanManager.sol": {
+      "lastModificationDate": 1766580518626,
       "contentHash": "96653a3f728dd01a4380a3494d59f7b8",
       "sourceName": "contracts/LoanManager.sol",
       "solcConfig": {
@@ -2494,7 +2489,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -2542,8 +2537,8 @@
         "LoanManager"
       ]
     },
-    "/Volumes/RCA/agricredit/contracts/IdentityRegistry.sol": {
-      "lastModificationDate": 1765650568474,
+    "/Volumes/RCA/AgriCredit-Africa/contracts/IdentityRegistry.sol": {
+      "lastModificationDate": 1766580518624,
       "contentHash": "9ae20366723d2c5281dc884873f0d552",
       "sourceName": "contracts/IdentityRegistry.sol",
       "solcConfig": {
@@ -2552,7 +2547,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -2591,17 +2586,17 @@
         "SoulboundCredential"
       ]
     },
-    "/Volumes/RCA/agricredit/node_modules/@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol": {
-      "lastModificationDate": 1765654701792,
-      "contentHash": "a77dad8312dfaddab72fab403ee0c0a6",
-      "sourceName": "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol",
+    "/Volumes/RCA/AgriCredit-Africa/contracts/PredictionMarket.sol": {
+      "lastModificationDate": 1766580518628,
+      "contentHash": "2c62fb41444b91551c7d0c345757956c",
+      "sourceName": "contracts/PredictionMarket.sol",
       "solcConfig": {
         "version": "0.8.28",
         "settings": {
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -2622,117 +2617,33 @@
         }
       },
       "imports": [
-        "../utils/ContextUpgradeable.sol",
-        "../proxy/utils/Initializable.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.20"
-      ],
-      "artifacts": [
-        "PausableUpgradeable"
-      ]
-    },
-    "/Volumes/RCA/agricredit/node_modules/@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20PausableUpgradeable.sol": {
-      "lastModificationDate": 1765654701363,
-      "contentHash": "46d770a6194b5c717774c7ce4287ffd1",
-      "sourceName": "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20PausableUpgradeable.sol",
-      "solcConfig": {
-        "version": "0.8.28",
-        "settings": {
-          "viaIR": true,
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "evmVersion": "paris",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "storageLayout"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "../ERC20Upgradeable.sol",
-        "../../../utils/PausableUpgradeable.sol",
-        "../../../proxy/utils/Initializable.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.20"
-      ],
-      "artifacts": [
-        "ERC20PausableUpgradeable"
-      ]
-    },
-    "/Volumes/RCA/agricredit/contracts/AgriCredit.sol": {
-      "lastModificationDate": 1765655462748,
-      "contentHash": "96748b13af8e340705b5a7c508b38823",
-      "sourceName": "contracts/AgriCredit.sol",
-      "solcConfig": {
-        "version": "0.8.28",
-        "settings": {
-          "viaIR": true,
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "evmVersion": "paris",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "storageLayout"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol",
-        "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20BurnableUpgradeable.sol",
-        "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20PausableUpgradeable.sol",
+        "@openzeppelin/contracts/token/ERC20/IERC20.sol",
+        "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol",
         "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol",
-        "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol",
         "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol",
         "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol",
         "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol",
-        "@openzeppelin/contracts/utils/math/Math.sol"
+        "@openzeppelin/contracts/utils/math/Math.sol",
+        "./DecentralizedOracle.sol"
       ],
       "versionPragmas": [
         "^0.8.28"
       ],
       "artifacts": [
-        "AgriCredit"
+        "PredictionMarket"
       ]
     },
-    "/Volumes/RCA/agricredit/node_modules/@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol": {
-      "lastModificationDate": 1765654700874,
-      "contentHash": "1460918cfe408f7a514ff980f638fecc",
-      "sourceName": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol",
+    "/Volumes/RCA/AgriCredit-Africa/contracts/ParametricInsurance.sol": {
+      "lastModificationDate": 1766580518627,
+      "contentHash": "ad3020fb4ca48eaa12aed167571f3b5f",
+      "sourceName": "contracts/ParametricInsurance.sol",
       "solcConfig": {
         "version": "0.8.28",
         "settings": {
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -2753,30 +2664,35 @@
         }
       },
       "imports": [
-        "@openzeppelin/contracts/access/IAccessControl.sol",
-        "../utils/ContextUpgradeable.sol",
-        "@openzeppelin/contracts/utils/introspection/IERC165.sol",
-        "../utils/introspection/ERC165Upgradeable.sol",
-        "../proxy/utils/Initializable.sol"
+        "@openzeppelin/contracts/token/ERC20/IERC20.sol",
+        "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol",
+        "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol",
+        "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol",
+        "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol",
+        "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol",
+        "@openzeppelin/contracts/utils/math/Math.sol",
+        "./DecentralizedOracle.sol"
       ],
       "versionPragmas": [
-        "^0.8.20"
+        "^0.8.28"
       ],
       "artifacts": [
-        "AccessControlUpgradeable"
+        "ICropOracle",
+        "IWeatherOracle",
+        "ParametricInsurance"
       ]
     },
-    "/Volumes/RCA/agricredit/node_modules/@openzeppelin/contracts/access/IAccessControl.sol": {
-      "lastModificationDate": 1765654701582,
-      "contentHash": "def1e8f7b6cac577cf2600655bf3bdf8",
-      "sourceName": "@openzeppelin/contracts/access/IAccessControl.sol",
+    "/Volumes/RCA/AgriCredit-Africa/contracts/AdvancedInsurance.sol": {
+      "lastModificationDate": 1766580518594,
+      "contentHash": "d6bdbbb8e3cffc8090515b6b1aabc2e0",
+      "sourceName": "contracts/AdvancedInsurance.sol",
       "solcConfig": {
         "version": "0.8.28",
         "settings": {
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -2796,17 +2712,124 @@
           }
         }
       },
-      "imports": [],
+      "imports": [
+        "@openzeppelin/contracts/token/ERC20/IERC20.sol",
+        "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol",
+        "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol",
+        "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol",
+        "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol",
+        "@openzeppelin/contracts/utils/math/Math.sol",
+        "./DecentralizedOracle.sol",
+        "./ParametricInsurance.sol"
+      ],
       "versionPragmas": [
-        ">=0.8.4"
+        "^0.8.28"
       ],
       "artifacts": [
-        "IAccessControl"
+        "AdvancedInsurance",
+        "IZKVerifier"
       ]
     },
-    "/Volumes/RCA/agricredit/contracts/MarketplaceEscrow.sol": {
-      "lastModificationDate": 1765651482430,
-      "contentHash": "3edd5e353f8fdfb46f12f3869d39cf36",
+    "/Volumes/RCA/AgriCredit-Africa/contracts/LendingProtocol.sol": {
+      "lastModificationDate": 1766580518625,
+      "contentHash": "ef75f44dfe72a0f3d205b5d885333b14",
+      "sourceName": "contracts/LendingProtocol.sol",
+      "solcConfig": {
+        "version": "0.8.28",
+        "settings": {
+          "viaIR": true,
+          "optimizer": {
+            "enabled": true,
+            "runs": 1000
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "storageLayout"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/token/ERC20/IERC20.sol",
+        "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol",
+        "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol",
+        "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol",
+        "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol",
+        "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol",
+        "@openzeppelin/contracts/utils/math/Math.sol",
+        "./DecentralizedOracle.sol",
+        "./IdentityRegistry.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.28"
+      ],
+      "artifacts": [
+        "LendingProtocol"
+      ]
+    },
+    "/Volumes/RCA/AgriCredit-Africa/contracts/NFTFarming.sol": {
+      "lastModificationDate": 1766580518627,
+      "contentHash": "4bbde54758dde15f727b2fb0c8af895e",
+      "sourceName": "contracts/NFTFarming.sol",
+      "solcConfig": {
+        "version": "0.8.28",
+        "settings": {
+          "viaIR": true,
+          "optimizer": {
+            "enabled": true,
+            "runs": 1000
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "storageLayout"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol",
+        "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol",
+        "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol",
+        "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol",
+        "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol",
+        "@openzeppelin/contracts/token/ERC20/IERC20.sol",
+        "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol",
+        "./IdentityRegistry.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.28"
+      ],
+      "artifacts": [
+        "FarmShareToken",
+        "ICrossChainBridge",
+        "NFTFarming"
+      ]
+    },
+    "/Volumes/RCA/AgriCredit-Africa/contracts/MarketplaceEscrow.sol": {
+      "lastModificationDate": 1766582063666,
+      "contentHash": "456d6da22814db64ea13b62816498827",
       "sourceName": "contracts/MarketplaceEscrow.sol",
       "solcConfig": {
         "version": "0.8.28",
@@ -2814,7 +2837,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -2855,249 +2878,8 @@
         "MarketplaceEscrow"
       ]
     },
-    "/Volumes/RCA/agricredit/contracts/NFTFarming.sol": {
-      "lastModificationDate": 1765658322084,
-      "contentHash": "4bbde54758dde15f727b2fb0c8af895e",
-      "sourceName": "contracts/NFTFarming.sol",
-      "solcConfig": {
-        "version": "0.8.28",
-        "settings": {
-          "viaIR": true,
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "evmVersion": "paris",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "storageLayout"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol",
-        "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol",
-        "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol",
-        "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol",
-        "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol",
-        "@openzeppelin/contracts/token/ERC20/IERC20.sol",
-        "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol",
-        "./IdentityRegistry.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.28"
-      ],
-      "artifacts": [
-        "FarmShareToken",
-        "ICrossChainBridge",
-        "NFTFarming"
-      ]
-    },
-    "/Volumes/RCA/agricredit/contracts/LendingProtocol.sol": {
-      "lastModificationDate": 1765098854013,
-      "contentHash": "ef75f44dfe72a0f3d205b5d885333b14",
-      "sourceName": "contracts/LendingProtocol.sol",
-      "solcConfig": {
-        "version": "0.8.28",
-        "settings": {
-          "viaIR": true,
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "evmVersion": "paris",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "storageLayout"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "@openzeppelin/contracts/token/ERC20/IERC20.sol",
-        "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol",
-        "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol",
-        "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol",
-        "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol",
-        "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol",
-        "@openzeppelin/contracts/utils/math/Math.sol",
-        "./DecentralizedOracle.sol",
-        "./IdentityRegistry.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.28"
-      ],
-      "artifacts": [
-        "LendingProtocol"
-      ]
-    },
-    "/Volumes/RCA/agricredit/contracts/PredictionMarket.sol": {
-      "lastModificationDate": 1765651727112,
-      "contentHash": "2c62fb41444b91551c7d0c345757956c",
-      "sourceName": "contracts/PredictionMarket.sol",
-      "solcConfig": {
-        "version": "0.8.28",
-        "settings": {
-          "viaIR": true,
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "evmVersion": "paris",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "storageLayout"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "@openzeppelin/contracts/token/ERC20/IERC20.sol",
-        "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol",
-        "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol",
-        "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol",
-        "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol",
-        "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol",
-        "@openzeppelin/contracts/utils/math/Math.sol",
-        "./DecentralizedOracle.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.28"
-      ],
-      "artifacts": [
-        "PredictionMarket"
-      ]
-    },
-    "/Volumes/RCA/agricredit/contracts/ParametricInsurance.sol": {
-      "lastModificationDate": 1765097973364,
-      "contentHash": "ad3020fb4ca48eaa12aed167571f3b5f",
-      "sourceName": "contracts/ParametricInsurance.sol",
-      "solcConfig": {
-        "version": "0.8.28",
-        "settings": {
-          "viaIR": true,
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "evmVersion": "paris",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "storageLayout"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "@openzeppelin/contracts/token/ERC20/IERC20.sol",
-        "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol",
-        "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol",
-        "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol",
-        "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol",
-        "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol",
-        "@openzeppelin/contracts/utils/math/Math.sol",
-        "./DecentralizedOracle.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.28"
-      ],
-      "artifacts": [
-        "ICropOracle",
-        "IWeatherOracle",
-        "ParametricInsurance"
-      ]
-    },
-    "/Volumes/RCA/agricredit/contracts/AdvancedInsurance.sol": {
-      "lastModificationDate": 1765649593524,
-      "contentHash": "d6bdbbb8e3cffc8090515b6b1aabc2e0",
-      "sourceName": "contracts/AdvancedInsurance.sol",
-      "solcConfig": {
-        "version": "0.8.28",
-        "settings": {
-          "viaIR": true,
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "evmVersion": "paris",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "storageLayout"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "@openzeppelin/contracts/token/ERC20/IERC20.sol",
-        "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol",
-        "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol",
-        "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol",
-        "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol",
-        "@openzeppelin/contracts/utils/math/Math.sol",
-        "./DecentralizedOracle.sol",
-        "./ParametricInsurance.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.28"
-      ],
-      "artifacts": [
-        "AdvancedInsurance",
-        "IZKVerifier"
-      ]
-    },
-    "/Volumes/RCA/agricredit/contracts/CrossChainGovernance.sol": {
-      "lastModificationDate": 1764870159715,
+    "/Volumes/RCA/AgriCredit-Africa/contracts/CrossChainGovernance.sol": {
+      "lastModificationDate": 1766580518621,
       "contentHash": "403de35e3555ce3fc03e5d30c52139aa",
       "sourceName": "contracts/CrossChainGovernance.sol",
       "solcConfig": {
@@ -3106,7 +2888,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -3142,8 +2924,8 @@
         "CrossChainGovernance"
       ]
     },
-    "/Volumes/RCA/agricredit/contracts/GovernanceDAO.sol": {
-      "lastModificationDate": 1765657817471,
+    "/Volumes/RCA/AgriCredit-Africa/contracts/GovernanceDAO.sol": {
+      "lastModificationDate": 1766580518623,
       "contentHash": "de0e401fa16075a26c737b0c40a25c60",
       "sourceName": "contracts/GovernanceDAO.sol",
       "solcConfig": {
@@ -3152,7 +2934,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -3190,8 +2972,8 @@
         "GovernanceDAO"
       ]
     },
-    "/Volumes/RCA/agricredit/contracts/InsurancePool.sol": {
-      "lastModificationDate": 1765098807310,
+    "/Volumes/RCA/AgriCredit-Africa/contracts/InsurancePool.sol": {
+      "lastModificationDate": 1766580518624,
       "contentHash": "d2b6767129fb1ee7b599b693bf8afde5",
       "sourceName": "contracts/InsurancePool.sol",
       "solcConfig": {
@@ -3200,7 +2982,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -3236,8 +3018,96 @@
         "InsurancePool"
       ]
     },
-    "/Volumes/RCA/agricredit/contracts/CrossChainMessenger.sol": {
-      "lastModificationDate": 1765649914111,
+    "/Volumes/RCA/AgriCredit-Africa/contracts/GovernanceToken.sol": {
+      "lastModificationDate": 1766580518623,
+      "contentHash": "a60d58f720e1fb7eceef9f6db73b7547",
+      "sourceName": "contracts/GovernanceToken.sol",
+      "solcConfig": {
+        "version": "0.8.28",
+        "settings": {
+          "viaIR": true,
+          "optimizer": {
+            "enabled": true,
+            "runs": 1000
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "storageLayout"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol",
+        "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20VotesUpgradeable.sol",
+        "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol",
+        "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol",
+        "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol",
+        "@openzeppelin/contracts/utils/math/Math.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.28"
+      ],
+      "artifacts": [
+        "GovernanceToken"
+      ]
+    },
+    "/Volumes/RCA/AgriCredit-Africa/node_modules/@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20VotesUpgradeable.sol": {
+      "lastModificationDate": 1766580705569,
+      "contentHash": "b41e4fe35151d0c778a4f082e79246c9",
+      "sourceName": "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20VotesUpgradeable.sol",
+      "solcConfig": {
+        "version": "0.8.28",
+        "settings": {
+          "viaIR": true,
+          "optimizer": {
+            "enabled": true,
+            "runs": 1000
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "storageLayout"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "../ERC20Upgradeable.sol",
+        "../../../governance/utils/VotesUpgradeable.sol",
+        "@openzeppelin/contracts/utils/structs/Checkpoints.sol",
+        "../../../proxy/utils/Initializable.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "ERC20VotesUpgradeable"
+      ]
+    },
+    "/Volumes/RCA/AgriCredit-Africa/contracts/CrossChainMessenger.sol": {
+      "lastModificationDate": 1766580518621,
       "contentHash": "6ed4388b014091e72027180c83e9546c",
       "sourceName": "contracts/CrossChainMessenger.sol",
       "solcConfig": {
@@ -3246,7 +3116,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -3281,8 +3151,8 @@
         "CrossChainMessenger"
       ]
     },
-    "/Volumes/RCA/agricredit/contracts/CarbonMarketplace.sol": {
-      "lastModificationDate": 1765648543702,
+    "/Volumes/RCA/AgriCredit-Africa/contracts/CarbonMarketplace.sol": {
+      "lastModificationDate": 1766580518608,
       "contentHash": "4b178a78ad43d2bef6765ca221897ac3",
       "sourceName": "contracts/CarbonMarketplace.sol",
       "solcConfig": {
@@ -3291,7 +3161,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -3329,8 +3199,8 @@
         "ISoulboundCarbonCredit"
       ]
     },
-    "/Volumes/RCA/agricredit/contracts/Bridge.sol": {
-      "lastModificationDate": 1765649667640,
+    "/Volumes/RCA/AgriCredit-Africa/contracts/Bridge.sol": {
+      "lastModificationDate": 1766580518597,
       "contentHash": "9534c112ddf3ac9cfc16fd8e4f6e4360",
       "sourceName": "contracts/Bridge.sol",
       "solcConfig": {
@@ -3339,7 +3209,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -3377,8 +3247,8 @@
         "Bridge"
       ]
     },
-    "/Volumes/RCA/agricredit/contracts/AgriDEX.sol": {
-      "lastModificationDate": 1765651577525,
+    "/Volumes/RCA/AgriCredit-Africa/contracts/AgriDEX.sol": {
+      "lastModificationDate": 1766580518596,
       "contentHash": "d433fdd1ce8d2cc440284165170bef6c",
       "sourceName": "contracts/AgriDEX.sol",
       "solcConfig": {
@@ -3387,7 +3257,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -3424,8 +3294,8 @@
         "IFlashLoanReceiver"
       ]
     },
-    "/Volumes/RCA/agricredit/contracts/AgriDAO.sol": {
-      "lastModificationDate": 1765098167064,
+    "/Volumes/RCA/AgriCredit-Africa/contracts/AgriDAO.sol": {
+      "lastModificationDate": 1766580518595,
       "contentHash": "d5d704ad2bdacf1462569bdff8daa93b",
       "sourceName": "contracts/AgriDAO.sol",
       "solcConfig": {
@@ -3434,7 +3304,7 @@
           "viaIR": true,
           "optimizer": {
             "enabled": true,
-            "runs": 200
+            "runs": 1000
           },
           "evmVersion": "paris",
           "outputSelection": {
@@ -3469,6 +3339,136 @@
       ],
       "artifacts": [
         "AgriDAO"
+      ]
+    },
+    "/Volumes/RCA/AgriCredit-Africa/contracts/AgriCredit.sol": {
+      "lastModificationDate": 1766580518595,
+      "contentHash": "96748b13af8e340705b5a7c508b38823",
+      "sourceName": "contracts/AgriCredit.sol",
+      "solcConfig": {
+        "version": "0.8.28",
+        "settings": {
+          "viaIR": true,
+          "optimizer": {
+            "enabled": true,
+            "runs": 1000
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "storageLayout"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol",
+        "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20BurnableUpgradeable.sol",
+        "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20PausableUpgradeable.sol",
+        "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol",
+        "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol",
+        "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol",
+        "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol",
+        "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol",
+        "@openzeppelin/contracts/utils/math/Math.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.28"
+      ],
+      "artifacts": [
+        "AgriCredit"
+      ]
+    },
+    "/Volumes/RCA/AgriCredit-Africa/node_modules/@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol": {
+      "lastModificationDate": 1766580704798,
+      "contentHash": "1460918cfe408f7a514ff980f638fecc",
+      "sourceName": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol",
+      "solcConfig": {
+        "version": "0.8.28",
+        "settings": {
+          "viaIR": true,
+          "optimizer": {
+            "enabled": true,
+            "runs": 1000
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "storageLayout"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/access/IAccessControl.sol",
+        "../utils/ContextUpgradeable.sol",
+        "@openzeppelin/contracts/utils/introspection/IERC165.sol",
+        "../utils/introspection/ERC165Upgradeable.sol",
+        "../proxy/utils/Initializable.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "AccessControlUpgradeable"
+      ]
+    },
+    "/Volumes/RCA/AgriCredit-Africa/node_modules/@openzeppelin/contracts/access/IAccessControl.sol": {
+      "lastModificationDate": 1766580707908,
+      "contentHash": "def1e8f7b6cac577cf2600655bf3bdf8",
+      "sourceName": "@openzeppelin/contracts/access/IAccessControl.sol",
+      "solcConfig": {
+        "version": "0.8.28",
+        "settings": {
+          "viaIR": true,
+          "optimizer": {
+            "enabled": true,
+            "runs": 1000
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "storageLayout"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        ">=0.8.4"
+      ],
+      "artifacts": [
+        "IAccessControl"
       ]
     }
   }

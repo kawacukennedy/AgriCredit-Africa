@@ -65,7 +65,7 @@ class EventListener:
         if key not in self.event_handlers:
             self.event_handlers[key] = []
         self.event_handlers[key].append(handler)
-        logger.info("Added event handler", contract=contract_name, event=event_name)
+        logger.info("Added event handler", contract=contract_name, event_name=event_name)
 
     async def start_listening(self):
         """Start listening for blockchain events"""

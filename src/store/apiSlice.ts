@@ -293,6 +293,30 @@ export const apiSlice = createApi({
       }),
     }),
 
+    // Escrow endpoints
+    createEscrow: builder.mutation({
+      query: (escrowData) => ({
+        url: '/marketplace/escrow',
+        method: 'POST',
+        body: escrowData,
+      }),
+    }),
+    getUserEscrows: builder.query({
+      query: (address) => `/marketplace/escrow/user/${address}`,
+    }),
+    confirmEscrowDelivery: builder.mutation({
+      query: (escrowId) => ({
+        url: `/marketplace/escrows/${escrowId}/confirm-delivery`,
+        method: 'POST',
+      }),
+    }),
+    completeEscrow: builder.mutation({
+      query: (escrowId) => ({
+        url: `/marketplace/escrow/${escrowId}/complete`,
+        method: 'POST',
+      }),
+    }),
+
     // IoT endpoints
     registerIoTDevice: builder.mutation({
       query: (deviceData) => ({
@@ -472,6 +496,10 @@ export const {
   useGetMarketplaceListingsQuery,
   useCreateMarketplaceListingMutation,
   useGetMarketplaceLoansQuery,
+  useCreateEscrowMutation,
+  useGetUserEscrowsQuery,
+  useConfirmEscrowDeliveryMutation,
+  useCompleteEscrowMutation,
   useRegisterIoTDeviceMutation,
   useGetIoTDevicesQuery,
   useGetSensorDataQuery,

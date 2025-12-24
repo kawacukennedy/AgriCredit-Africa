@@ -67,7 +67,7 @@ class LoanType:
     total_owed: float
     collateral_returned: bool
     purpose: Optional[str]
-    explainability: dict
+    explainability: Optional[str]
     created_at: datetime
     approved_at: Optional[datetime]
     disbursed_at: Optional[datetime]
@@ -122,6 +122,74 @@ class MarketplaceFilter:
     min_price: Optional[float] = None
     max_price: Optional[float] = None
     status: Optional[str] = "active"
+
+# New GraphQL Types for Enhanced Contracts
+@strawberry.type
+class StakingPositionType:
+    id: str
+    user_address: str
+    amount: float
+    lock_period: int
+    apy: float
+    rewards_earned: float
+    start_time: datetime
+    end_time: datetime
+    status: str
+
+@strawberry.type
+class PredictionMarketType:
+    id: str
+    question: str
+    outcomes: List[str]
+    end_time: int
+    total_liquidity: float
+    resolved: bool
+    winning_outcome: Optional[int]
+    created_at: datetime
+
+@strawberry.type
+class LendingPositionType:
+    id: str
+    user_address: str
+    amount: float
+    interest_rate: float
+    collateral_amount: float
+    collateral_token: str
+    liquidation_price: float
+    status: str
+    created_at: datetime
+
+@strawberry.type
+class YieldStrategyType:
+    id: str
+    name: str
+    description: str
+    protocols: List[str]
+    allocations: List[float]
+    expected_apy: float
+    total_deposited: float
+    performance: float
+    created_at: datetime
+
+@strawberry.type
+class BridgeTransferType:
+    id: str
+    user_address: str
+    amount: float
+    source_chain: str
+    target_chain: str
+    recipient: str
+    status: str
+    tx_hash: Optional[str]
+    created_at: datetime
+
+@strawberry.type
+class DashboardStatsType:
+    total_users: int
+    active_loans: int
+    total_sensor_readings: int
+    active_marketplace_listings: int
+    total_carbon_credits: int
 
 # Query
 @strawberry.type
@@ -268,7 +336,7 @@ class Query:
         return credits
 
     @strawberry.field
-    async def dashboard_stats(self, info: Info) -> dict:
+    async def dashboard_stats(self, info: Info) -> DashboardStatsType:
         """Get dashboard statistics"""
         db = next(get_db())
 
@@ -279,15 +347,15 @@ class Query:
         active_listings = db.query(MarketplaceListing).filter(MarketplaceListing.status == "active").count()
         total_carbon_credits = db.query(CarbonCredit).count()
 
-        stats = {
-            "total_users": total_users,
-            "active_loans": active_loans,
-            "total_sensor_readings": total_sensor_readings,
-            "active_marketplace_listings": active_listings,
-            "total_carbon_credits": total_carbon_credits
-        }
+        stats = DashboardStatsType(
+            total_users=total_users,
+            active_loans=active_loans,
+            total_sensor_readings=total_sensor_readings,
+            active_marketplace_listings=active_listings,
+            total_carbon_credits=total_carbon_credits
+        )
 
-        logger.info("GraphQL query: dashboard_stats", stats=stats)
+        logger.info("GraphQL query: dashboard_stats", total_users=total_users)
         return stats
 
     # New Enhanced Contract Queries
@@ -406,65 +474,7 @@ class Query:
             )
         ]
 
-# New GraphQL Types for Enhanced Contracts
-@strawberry.type
-class StakingPositionType:
-    id: str
-    user_address: str
-    amount: float
-    lock_period: int
-    apy: float
-    rewards_earned: float
-    start_time: datetime
-    end_time: datetime
-    status: str
-
-@strawberry.type
-class PredictionMarketType:
-    id: str
-    question: str
-    outcomes: List[str]
-    end_time: int
-    total_liquidity: float
-    resolved: bool
-    winning_outcome: Optional[int]
-    created_at: datetime
-
-@strawberry.type
-class LendingPositionType:
-    id: str
-    user_address: str
-    amount: float
-    interest_rate: float
-    collateral_amount: float
-    collateral_token: str
-    liquidation_price: float
-    status: str
-    created_at: datetime
-
-@strawberry.type
-class YieldStrategyType:
-    id: str
-    name: str
-    description: str
-    protocols: List[str]
-    allocations: List[float]
-    expected_apy: float
-    total_deposited: float
-    performance: float
-    created_at: datetime
-
-@strawberry.type
-class BridgeTransferType:
-    id: str
-    user_address: str
-    amount: float
-    source_chain: str
-    target_chain: str
-    recipient: str
-    status: str
-    tx_hash: Optional[str]
-    created_at: datetime
+# Types moved before Query class
 
 # Input Types for New Mutations
 @strawberry.input
