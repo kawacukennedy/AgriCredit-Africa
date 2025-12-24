@@ -20,7 +20,7 @@ async function main() {
   // Deployment configuration
   const deploymentConfig = {
     network: network.name,
-    chainId: network.chainId,
+    chainId: Number(network.chainId),
     deployer: deployer.address,
     timestamp: new Date().toISOString(),
     contracts: {}
@@ -111,19 +111,19 @@ async function main() {
       verified: false
     };
 
-    // 7. Deploy NFTFarming
-    console.log("\n7️⃣  Deploying NFTFarming...");
-    const NFTFarming = await ethers.getContractFactory("NFTFarming");
-    const nftFarming = await upgrades.deployProxy(NFTFarming, [], { kind: 'uups' });
-    await nftFarming.waitForDeployment();
-    const nftFarmingAddress = await nftFarming.getAddress();
+    // 7. Deploy NFTFarming - Skipped due to contract size
+    console.log("\n7️⃣  Skipping NFTFarming deployment due to contract size limit...");
+    // const NFTFarming = await ethers.getContractFactory("NFTFarming");
+    // const nftFarming = await upgrades.deployProxy(NFTFarming, [], { kind: 'uups' });
+    // await nftFarming.waitForDeployment();
+    // const nftFarmingAddress = await nftFarming.getAddress();
 
-    console.log("✅ NFTFarming deployed to:", nftFarmingAddress);
-    deploymentConfig.contracts.NFTFarming = {
-      address: nftFarmingAddress,
-      deploymentTx: nftFarming.deploymentTransaction().hash,
-      verified: false
-    };
+    // console.log("✅ NFTFarming deployed to:", nftFarmingAddress);
+    // deploymentConfig.contracts.NFTFarming = {
+    //   address: nftFarmingAddress,
+    //   deploymentTx: nftFarming.deploymentTransaction().hash,
+    //   verified: false
+    // };
 
     // 8. Deploy LiquidityPool
     console.log("\n8️⃣  Deploying LiquidityPool...");
@@ -139,19 +139,19 @@ async function main() {
       verified: false
     };
 
-    // 9. Deploy MarketplaceEscrow
-    console.log("\n9️⃣  Deploying MarketplaceEscrow...");
-    const MarketplaceEscrow = await ethers.getContractFactory("MarketplaceEscrow");
-    const marketplaceEscrow = await upgrades.deployProxy(MarketplaceEscrow, [], { kind: 'uups' });
-    await marketplaceEscrow.waitForDeployment();
-    const marketplaceEscrowAddress = await marketplaceEscrow.getAddress();
+    // 9. Deploy MarketplaceEscrow - Skipped due to contract size
+    console.log("\n9️⃣  Skipping MarketplaceEscrow deployment due to contract size limit...");
+    // const MarketplaceEscrow = await ethers.getContractFactory("MarketplaceEscrow");
+    // const marketplaceEscrow = await upgrades.deployProxy(MarketplaceEscrow, [], { kind: 'uups' });
+    // await marketplaceEscrow.waitForDeployment();
+    // const marketplaceEscrowAddress = await marketplaceEscrow.getAddress();
 
-    console.log("✅ MarketplaceEscrow deployed to:", marketplaceEscrowAddress);
-    deploymentConfig.contracts.MarketplaceEscrow = {
-      address: marketplaceEscrowAddress,
-      deploymentTx: marketplaceEscrow.deploymentTransaction().hash,
-      verified: false
-    };
+    // console.log("✅ MarketplaceEscrow deployed to:", marketplaceEscrowAddress);
+    // deploymentConfig.contracts.MarketplaceEscrow = {
+    //   address: marketplaceEscrowAddress,
+    //   deploymentTx: marketplaceEscrow.deploymentTransaction().hash,
+    //   verified: false
+    // };
 
     // Save deployment configuration
     const configPath = path.join(deploymentsDir, `${network.name}-deployment.json`);

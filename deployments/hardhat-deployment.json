@@ -1,0 +1,43 @@
+{
+  "network": "hardhat",
+  "chainId": 31337,
+  "deployer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+  "timestamp": "2025-12-24T13:15:30.143Z",
+  "contracts": {
+    "AgriCredit": {
+      "address": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+      "deploymentTx": "0x123c4cbac2be6a9d13069616205e424de6273d2b681c69bde49f78dffbb48b8f",
+      "verified": false
+    },
+    "IdentityRegistry": {
+      "address": "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
+      "deploymentTx": "0x088d666972124dab3098e325ed2456b4233fc7ede7248388f2e38ec07504a329",
+      "verified": false
+    },
+    "CarbonToken": {
+      "address": "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707",
+      "deploymentTx": "0x1dfdc02e18a0c0112de833b7061be062cfb15cf36a47a493520dfba65d2c13b7",
+      "verified": false
+    },
+    "YieldToken": {
+      "address": "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853",
+      "deploymentTx": "0x145eb97e2ca76f62684bbe4ffd9ab2b97a2de3987ea59e4d4319f5dc83f8d60d",
+      "verified": false
+    },
+    "LoanManager": {
+      "address": "0x8A791620dd6260079BF849Dc5567aDC3F2FdC318",
+      "deploymentTx": "0x78e60755d5012ffaeaa8edb7a5e699e825326b46cd6a0db40c90df709768c732",
+      "verified": false
+    },
+    "GovernanceDAO": {
+      "address": "0xB7f8BC63BbcaD18155201308C8f3540b07f84F5e",
+      "deploymentTx": "0xb9f9fc80ac2a62ca596b9f58c931f47b4e31013df407929117f018ddac5617b4",
+      "verified": false
+    },
+    "LiquidityPool": {
+      "address": "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82",
+      "deploymentTx": "0xc527d6ed31e91b76a0a56747415b219ee433a53d0475d40ba4f7019f69e3ec9f",
+      "verified": false
+    }
+  }
+}

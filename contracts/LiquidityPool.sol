@@ -121,7 +121,7 @@ contract LiquidityPool is Initializable, OwnableUpgradeable, ReentrancyGuardUpgr
     }
 
     mapping(uint256 => CrossChainMessage) public crossChainMessages;
-    uint256 public nextMessageId = 1;
+    uint256 public nextMessageId;
 
     ICrossChainBridge public crossChainBridge;
 
@@ -132,6 +132,7 @@ contract LiquidityPool is Initializable, OwnableUpgradeable, ReentrancyGuardUpgr
 
         carbonToken = CarbonToken(_carbonToken);
         crossChainBridge = ICrossChainBridge(_crossChainBridge);
+        nextMessageId = 1;
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}

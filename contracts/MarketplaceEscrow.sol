@@ -70,8 +70,8 @@ contract MarketplaceEscrow is Initializable, OwnableUpgradeable, ReentrancyGuard
 
     mapping(uint256 => Escrow) public escrows;
     mapping(uint256 => Listing) public listings;
-    uint256 public nextEscrowId = 1;
-    uint256 public nextListingId = 1;
+    uint256 public nextEscrowId;
+    uint256 public nextListingId;
 
     // Batch operations
     struct BatchListing {
@@ -97,12 +97,12 @@ contract MarketplaceEscrow is Initializable, OwnableUpgradeable, ReentrancyGuard
     }
 
     mapping(uint256 => Dispute) public disputes;
-    uint256 public nextDisputeId = 1;
+    uint256 public nextDisputeId;
 
     // Platform fees
-    uint256 public platformFee = 25; // 0.25% in basis points
+    uint256 public platformFee; // 0.25% in basis points
     address public feeCollector;
-    uint256 public disputePeriod = 7 days;
+    uint256 public disputePeriod;
 
     event ListingCreated(uint256 indexed listingId, address indexed seller, string cropType, uint256 quantity);
     event ListingUpdated(uint256 indexed listingId, uint256 aiScore);
@@ -147,8 +147,8 @@ contract MarketplaceEscrow is Initializable, OwnableUpgradeable, ReentrancyGuard
 
     mapping(uint256 => CrossChainListing) public crossChainListings;
     mapping(uint256 => CrossChainEscrow) public crossChainEscrows;
-    uint256 public nextCrossChainListingId = 1;
-    uint256 public nextCrossChainEscrowId = 1;
+    uint256 public nextCrossChainListingId;
+    uint256 public nextCrossChainEscrowId;
 
 
 
@@ -171,6 +171,14 @@ contract MarketplaceEscrow is Initializable, OwnableUpgradeable, ReentrancyGuard
         qualityOracle = IQualityOracle(_qualityOracle);
         feeCollector = _feeCollector;
         crossChainBridge = ICrossChainBridge(_crossChainBridge);
+
+        nextEscrowId = 1;
+        nextListingId = 1;
+        nextDisputeId = 1;
+        platformFee = 25; // 0.25% in basis points
+        disputePeriod = 7 days;
+        nextCrossChainListingId = 1;
+        nextCrossChainEscrowId = 1;
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}

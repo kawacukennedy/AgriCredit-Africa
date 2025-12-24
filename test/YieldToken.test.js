@@ -1,4 +1,4 @@
-import { expect } from "chai";
+const { expect } = require("chai");
 const { ethers } = require("hardhat");
 const { time } = require("@nomicfoundation/hardhat-network-helpers");
 
