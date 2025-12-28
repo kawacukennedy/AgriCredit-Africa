@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useTranslation } from 'react-i18next';
-import { useGetSensorReadingsQuery } from '@/store/apiSlice';
+import { useGetSensorDataQuery } from '@/store/apiSlice';
 import {
   Activity,
   Thermometer,
@@ -30,7 +30,7 @@ import {
 export default function IoTPage() {
   const { t } = useTranslation();
   const [selectedDevice, setSelectedDevice] = useState('device-001');
-  const { data: sensorData, isLoading, refetch } = useGetSensorReadingsQuery(selectedDevice);
+  const { data: sensorData, isLoading, refetch } = useGetSensorDataQuery({ deviceId: selectedDevice });
 
   // Mock IoT devices
   const devices = [
